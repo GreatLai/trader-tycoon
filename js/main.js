@@ -188,6 +188,8 @@ document.addEventListener('click', (e) => {
     } else if (target.id === 'introBtn') {
       advanceIntro();
     } else if (target.id === 'versionBtn') {
+    } else if (target.id === 'versionFab') {
+      checkVersion();
       checkVersion();
     } else if (target.id === 'versionUpdateBtn') {
       doVersionUpdate();
