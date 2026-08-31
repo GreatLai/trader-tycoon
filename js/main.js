@@ -185,16 +185,14 @@ document.addEventListener('click', (e) => {
     if (confirm('确定放弃当前进度，重新开始？')) showIntro();
   } else if (target.id === 'restartBtn') {
     showIntro();
-    } else if (target.id === 'introBtn') {
-      advanceIntro();
-    } else if (target.id === 'versionBtn') {
-    } else if (target.id === 'versionFab') {
-      checkVersion();
-      checkVersion();
-    } else if (target.id === 'versionUpdateBtn') {
-      doVersionUpdate();
-    } else if (target.id === 'versionCloseBtn') {
-      $('versionOverlay').classList.add('hidden');
+  } else if (target.id === 'introBtn') {
+    advanceIntro();
+  } else if (target.id === 'versionBtn' || target.id === 'versionFab') {
+    checkVersion();
+  } else if (target.id === 'versionUpdateBtn') {
+    doVersionUpdate();
+  } else if (target.id === 'versionCloseBtn') {
+    $('versionOverlay').classList.add('hidden');
   } else if (target.id === 'eventCloseBtn') {
     $('eventOverlay').classList.add('hidden');
   } else if (target.id === 'milestoneCloseBtn') {
@@ -231,7 +229,6 @@ document.addEventListener('click', (e) => {
     handleClick(e);
   }
 });
-
 // 初始化：有存档则显示继续
 (function init() {
   const s = load();
