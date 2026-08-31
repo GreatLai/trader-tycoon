@@ -210,7 +210,7 @@ document.addEventListener('click', (e) => {
   } else if (target.dataset.chartGood) {
     state.chartGood = target.dataset.chartGood;
     save();
-    renderChart();
+    openChart();
   } else if (target.id === 'upgradeBtn') {
     const next = CAPACITY_LEVELS[state.capacityLevel + 1];
     if (next && state.cash >= next.cost) {

@@ -60,7 +60,7 @@ function render() {
     const ecoClass = state.eco && ECO_EVENTS[state.eco.treeId].goods.includes(id) ? ' eco-affected' : '';
     return `
       <div class="market-row${ecoClass}">
-        <div class="good-name"><span class="good-icon">${g.icon}</span>${g.name}</div>
+        <div class="good-name"><button class="good-icon-btn" data-chart-good="${id}" title="查看走势">${g.icon}</button>${g.name}</div>
         <div class="price-col">
           <div class="price">¥${fmt(price, 2)}</div>
           <div class="change ${seenCls}">${seenArrow} ${seenChange >= 0 ? '+' : ''}${fmt(seenChange, 1)}% 较上次</div>
