@@ -25,12 +25,40 @@ function advanceIntro() {
   introStep++;
   if (introStep >= INTRO_SLIDES.length) {
     $('introOverlay').classList.add('hidden');
+  $('versionOverlay').classList.add('hidden');
     startNewGame();
   } else {
     renderIntroSlide();
   }
 }
 
+
+function checkVersion() {
+  $('versionInfo').innerHTML = '<div>当前版本：<b>' + APP_VERSION + '</b></div><div style="color:var(--muted);">正在检查最新版本...</div>';
+  $('versionUpdateBtn').style.display = 'none';
+  $('versionOverlay').classList.remove('hidden');
+
+  fetch('version.json?t=' + Date.now())
+    .then(r => { if (!r.ok) throw new Error('http'); return r.json(); })
+    .then(data => {
+      const latest = data.version || '0.0.0';
+      const isLatest = latest === APP_VERSION;
+      $('versionInfo').innerHTML =
+        '<div>当前版本：<b>' + APP_VERSION + '</b></div>' +
+        '<div>最新版本：<b>' + latest + '</b></div>' +
+        (data.notes ? '<div style="color:var(--muted);margin-top:6px;">' + data.notes + '</div>' : '') +
+        '<div style="margin-top:10px;font-weight:700;">' + (isLatest ? '✅ 已是最新版本' : '⬆️ 发现新版本，更新将清除存档并重新开始') + '</div>';
+      if (!isLatest) $('versionUpdateBtn').style.display = 'block';
+    })
+    .catch(() => {
+      $('versionInfo').innerHTML = '<div>当前版本：<b>' + APP_VERSION + '</b></div><div style="color:var(--red);">无法检查最新版本，请确认已通过 GitHub Pages 访问。</div>';
+    });
+}
+
+function doVersionUpdate() {
+  try { localStorage.removeItem(CONFIG.SAVE_KEY); } catch (e) {}
+  location.href = location.href.split('?')[0] + '?v=' + Date.now();
+}
 // ==================== 交互 ====================
 function renderChart() {
   const id = state.chartGood;
@@ -104,6 +132,7 @@ function startNewGame() {
   $('historyOverlay').classList.add('hidden');
   $('chartOverlay').classList.add('hidden');
   $('introOverlay').classList.add('hidden');
+  $('versionOverlay').classList.add('hidden');
   clearSave();
   save();
   render();
@@ -158,6 +187,12 @@ document.addEventListener('click', (e) => {
     showIntro();
     } else if (target.id === 'introBtn') {
       advanceIntro();
+    } else if (target.id === 'versionBtn') {
+      checkVersion();
+    } else if (target.id === 'versionUpdateBtn') {
+      doVersionUpdate();
+    } else if (target.id === 'versionCloseBtn') {
+      $('versionOverlay').classList.add('hidden');
   } else if (target.id === 'eventCloseBtn') {
     $('eventOverlay').classList.add('hidden');
   } else if (target.id === 'milestoneCloseBtn') {

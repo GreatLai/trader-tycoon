@@ -1,4 +1,6 @@
 // ==================== 配置 ====================
+const APP_VERSION = '1.1.0';
+
 const CONFIG = {
   DAYS_LIMIT: 90,
   TARGET: 1000000,
