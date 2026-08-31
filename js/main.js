@@ -229,13 +229,14 @@ document.addEventListener('click', (e) => {
     handleClick(e);
   }
 });
-// 初始化：有存档则显示继续
+// 初始化：有存档自动继续，无存档自动进入开场剧情
 (function init() {
   const s = load();
   $('continueBtn').classList.toggle('hidden', !s);
   if (s) {
     state = s;
     render();
+  } else {
+    showIntro();
   }
 })();
-
