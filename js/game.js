@@ -16,23 +16,25 @@ function nextDay() {
     } else if (rel === 2) {
       state.eco.A = Math.floor(Math.random() * 3);
       const A = tree.A[state.eco.A];
-      state.ecoPopup = { special: false, title: '国际新闻', desc: '此前报道的干旱仍在持续——' + A.news, mults: A.mults };
+      state.ecoPopup = { special: false, title: '国际新闻', desc: '此前报道的' + tree.name + '仍在持续——' + A.news, mults: A.mults };
     } else if (rel === 4) {
       state.eco.B = Math.floor(Math.random() * 3);
       const B = tree.A[state.eco.A].B[state.eco.B];
-      state.ecoPopup = { special: false, title: '国际新闻', desc: '旱情进一步发展——' + B.news, mults: B.mults };
+      state.ecoPopup = { special: false, title: '国际新闻', desc: tree.name + '进一步发展——' + B.news, mults: B.mults };
     } else if (rel === 7) {
       state.eco.C = Math.floor(Math.random() * 3);
       const C = tree.A[state.eco.A].B[state.eco.B].C[state.eco.C];
-      state.ecoPopup = { special: false, title: '国际新闻', desc: '这场持续一周的干旱最终——' + C.news, mults: C.mults };
+      state.ecoPopup = { special: false, title: '国际新闻', desc: '这场持续一周的' + tree.name + '最终——' + C.news, mults: C.mults };
     }
   }
 
-  // 启动新的生态事件（测试期第 8 天必定触发）
+  // 启动新的生态事件（正式规则：第 8~83 天每天 20% 概率）
   if (!state.eco && state.day >= 8 && state.day <= 83) {
-    if (state.day === 8 || Math.random() < 0.20) {
-      state.eco = { treeId: 'globalDrought', startDay: state.day, startPrices: null, A: null, B: null, C: null };
-      state.ecoPopup = { special: true, title: '国际新闻', desc: ECO_EVENTS.globalDrought.announce.desc };
+    if (Math.random() < 0.20) {
+      const keys = Object.keys(ECO_EVENTS);
+      const treeId = keys[Math.floor(Math.random() * keys.length)];
+      state.eco = { treeId, startDay: state.day, startPrices: null, A: null, B: null, C: null };
+      state.ecoPopup = { special: true, title: '国际新闻', desc: ECO_EVENTS[treeId].announce.desc };
     }
   }
 

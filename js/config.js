@@ -140,6 +140,286 @@ const ECO_EVENTS = {
         ]
       }
     ]
+  },
+  energyCrisis: {
+    name: '能源危机',
+    goods: ['oil', 'coal', 'copper', 'chip', 'phone'],
+    announce: { title: '国际新闻', desc: '国际能源供给中断，石油、煤炭、铜、芯片、手机价格可能出现剧烈波动。' },
+    A: [
+      {
+        news: '能源供给中断加剧，油价煤价飙升，制造业承压。',
+        mults: { oil: 1.6, coal: 1.5, copper: 1.2, chip: 0.8, phone: 0.7 },
+        B: [
+          { news: '主要产油国停产，能源价格失控。', mults: { oil: 2.2, coal: 2.0, copper: 1.5, chip: 0.6, phone: 0.5 }, C: [
+            { news: '全球能源危机爆发，石油暴涨，电子产品崩盘。', mults: { oil: 4.0, coal: 3.5, copper: 2.5, chip: 0.3, phone: 0.2 }, super: true },
+            { news: '各国紧急增产，能源回落，制造业修复。', mults: { oil: 1.5, coal: 1.6, copper: 1.3, chip: 1.1, phone: 1.0 } },
+            { news: '能源高位震荡，铜受益，手机低迷。', mults: { oil: 2.0, coal: 1.9, copper: 1.8, chip: 0.8, phone: 0.7 } }
+          ]},
+          { news: '运输受阻，供应链进一步恶化。', mults: { oil: 2.0, coal: 1.8, copper: 1.6, chip: 0.5, phone: 0.4 }, C: [
+            { news: '供应链断裂，能源与铜暴涨，科技崩盘。', mults: { oil: 3.5, coal: 3.0, copper: 2.8, chip: 0.2, phone: 0.15 }, super: true },
+            { news: '临时通道恢复，价格回落。', mults: { oil: 1.4, coal: 1.4, copper: 1.3, chip: 1.0, phone: 0.9 } },
+            { news: '运费高企，商品分化。', mults: { oil: 2.4, coal: 2.1, copper: 2.0, chip: 0.7, phone: 0.6 } }
+          ]},
+          { news: '各国释放战略储备，能源价格承压。', mults: { oil: 0.8, coal: 0.85, copper: 1.0, chip: 1.1, phone: 1.1 }, C: [
+            { news: '储备释放成功，能源大跌，制造业反弹。', mults: { oil: 0.5, coal: 0.55, copper: 1.2, chip: 1.5, phone: 1.4 } },
+            { news: '储备不足，能源再度上涨。', mults: { oil: 1.8, coal: 1.7, copper: 1.2, chip: 0.8, phone: 0.7 } },
+            { news: '市场情绪反复，震荡收场。', mults: { oil: 1.2, coal: 1.2, copper: 1.1, chip: 1.0, phone: 1.0 } }
+          ]}
+        ]
+      },
+      {
+        news: '各国释放储备，能源价格短期回落。',
+        mults: { oil: 0.8, coal: 0.85, copper: 1.0, chip: 1.1, phone: 1.1 },
+        B: [
+          { news: '储备释放超预期，能源继续下行。', mults: { oil: 0.6, coal: 0.65, copper: 1.1, chip: 1.3, phone: 1.3 }, C: [
+            { news: '能源价格崩盘，制造业狂欢。', mults: { oil: 0.3, coal: 0.35, copper: 1.5, chip: 1.8, phone: 1.7 }, super: true },
+            { news: '回落趋缓，市场企稳。', mults: { oil: 0.7, coal: 0.75, copper: 1.2, chip: 1.2, phone: 1.2 } },
+            { news: '政策反复，能源反弹。', mults: { oil: 1.4, coal: 1.3, copper: 1.1, chip: 0.9, phone: 0.9 } }
+          ]},
+          { news: '释放力度不足，市场失望。', mults: { oil: 1.2, coal: 1.2, copper: 1.0, chip: 0.9, phone: 0.9 }, C: [
+            { news: '能源重新暴涨，制造业再受挫。', mults: { oil: 2.8, coal: 2.5, copper: 1.5, chip: 0.5, phone: 0.4 } },
+            { news: '再度释放储备，价格回落。', mults: { oil: 1.0, coal: 1.0, copper: 1.1, chip: 1.1, phone: 1.1 } },
+            { news: '高位拉锯，铜价受益。', mults: { oil: 1.6, coal: 1.5, copper: 1.8, chip: 0.8, phone: 0.7 } }
+          ]},
+          { news: '地缘局势缓和，能源价格平稳。', mults: { oil: 0.9, coal: 0.95, copper: 1.0, chip: 1.0, phone: 1.0 }, C: [
+            { news: '和平协议达成，市场全面回暖。', mults: { oil: 0.6, coal: 0.7, copper: 1.3, chip: 1.4, phone: 1.4 } },
+            { news: '局势反复，能源小幅反弹。', mults: { oil: 1.3, coal: 1.2, copper: 1.1, chip: 0.9, phone: 0.9 } },
+            { news: '恢复缓慢，商品分化。', mults: { oil: 1.1, coal: 1.1, copper: 1.2, chip: 1.0, phone: 1.0 } }
+          ]}
+        ]
+      },
+      {
+        news: '地缘冲突升级，能源恐慌性上涨。',
+        mults: { oil: 1.8, coal: 1.6, copper: 1.3, chip: 0.7, phone: 0.6 },
+        B: [
+          { news: '冲突扩大，能源供给告急。', mults: { oil: 2.5, coal: 2.2, copper: 1.6, chip: 0.5, phone: 0.4 }, C: [
+            { news: '全面战争风险，能源暴涨，科技崩盘。', mults: { oil: 5.0, coal: 4.5, copper: 3.0, chip: 0.2, phone: 0.15 }, super: true },
+            { news: '国际调停，能源回落。', mults: { oil: 1.5, coal: 1.5, copper: 1.3, chip: 1.0, phone: 0.9 } },
+            { news: '长期对峙，能源高位，铜价坚挺。', mults: { oil: 2.2, coal: 2.0, copper: 2.2, chip: 0.6, phone: 0.5 } }
+          ]},
+          { news: '能源设施遭袭，价格剧烈波动。', mults: { oil: 2.3, coal: 2.0, copper: 1.5, chip: 0.6, phone: 0.5 }, C: [
+            { news: '设施损毁严重，能源失控。', mults: { oil: 4.5, coal: 4.0, copper: 2.5, chip: 0.3, phone: 0.2 }, super: true },
+            { news: '快速修复，价格回归。', mults: { oil: 1.3, coal: 1.3, copper: 1.2, chip: 1.0, phone: 1.0 } },
+            { news: '修复缓慢，高位震荡。', mults: { oil: 2.0, coal: 1.8, copper: 1.8, chip: 0.7, phone: 0.6 } }
+          ]},
+          { news: '冲突引发避险，黄金同涨。', mults: { oil: 1.6, coal: 1.4, copper: 1.2, chip: 0.7, phone: 0.6 }, C: [
+            { news: '避险情绪退潮，能源回落。', mults: { oil: 1.0, coal: 1.0, copper: 1.1, chip: 1.0, phone: 1.0 } },
+            { news: '避险持续，能源高位。', mults: { oil: 2.0, coal: 1.7, copper: 1.4, chip: 0.6, phone: 0.5 } },
+            { news: '局势缓和，市场回暖。', mults: { oil: 0.8, coal: 0.85, copper: 1.2, chip: 1.3, phone: 1.3 } }
+          ]}
+        ]
+      }
+    ]
+  },
+  techBoom: {
+    name: '科技热潮',
+    goods: ['chip', 'phone', 'copper', 'gold', 'coffee'],
+    announce: { title: '国际新闻', desc: '全球科技产业迎来革命性突破，芯片、手机、铜、黄金、咖啡价格可能出现剧烈波动。' },
+    A: [
+      {
+        news: '芯片需求爆发，科技股狂欢。',
+        mults: { chip: 1.7, phone: 1.5, copper: 1.4, gold: 0.9, coffee: 1.1 },
+        B: [
+          { news: 'AI 算力需求井喷。', mults: { chip: 2.2, phone: 1.8, copper: 1.7, gold: 0.8, coffee: 1.2 }, C: [
+            { news: '科技超级周期，芯片暴涨。', mults: { chip: 5.0, phone: 3.5, copper: 3.0, gold: 0.6, coffee: 1.5 }, super: true },
+            { news: '产能跟上，价格回落。', mults: { chip: 1.5, phone: 1.4, copper: 1.4, gold: 1.0, coffee: 1.1 } },
+            { news: '需求持续，高位运行。', mults: { chip: 2.5, phone: 2.0, copper: 1.9, gold: 0.9, coffee: 1.2 } }
+          ]},
+          { news: '手机换机潮来袭。', mults: { chip: 1.6, phone: 2.0, copper: 1.5, gold: 0.9, coffee: 1.1 }, C: [
+            { news: '换机潮超预期，手机暴涨。', mults: { chip: 2.0, phone: 4.0, copper: 1.8, gold: 0.8, coffee: 1.2 }, super: true },
+            { news: '热度降温，价格回落。', mults: { chip: 1.2, phone: 1.3, copper: 1.2, gold: 1.0, coffee: 1.0 } },
+            { news: '持续热销，高位震荡。', mults: { chip: 1.7, phone: 2.2, copper: 1.5, gold: 0.9, coffee: 1.1 } }
+          ]},
+          { news: '铜矿供应紧张。', mults: { chip: 1.5, phone: 1.4, copper: 1.8, gold: 1.0, coffee: 1.0 }, C: [
+            { news: '铜价暴涨，科技成本承压。', mults: { chip: 1.8, phone: 1.5, copper: 3.5, gold: 1.1, coffee: 1.0 }, super: true },
+            { news: '新矿投产，铜价回落。', mults: { chip: 1.3, phone: 1.3, copper: 1.4, gold: 1.0, coffee: 1.0 } },
+            { news: '铜价高位，科技分化。', mults: { chip: 1.6, phone: 1.4, copper: 2.2, gold: 1.0, coffee: 1.1 } }
+          ]}
+        ]
+      },
+      {
+        news: '资本过热，科技泡沫初现。',
+        mults: { chip: 1.4, phone: 1.3, copper: 1.2, gold: 1.5, coffee: 1.0 },
+        B: [
+          { news: '投机资金疯狂涌入。', mults: { chip: 1.8, phone: 1.6, copper: 1.4, gold: 1.8, coffee: 1.0 }, C: [
+            { news: '泡沫破裂，科技崩盘。', mults: { chip: 0.3, phone: 0.3, copper: 0.6, gold: 2.5, coffee: 0.9 }, super: true },
+            { news: '监管介入，市场降温。', mults: { chip: 1.0, phone: 1.0, copper: 1.1, gold: 1.3, coffee: 1.0 } },
+            { news: '泡沫持续，高位狂欢。', mults: { chip: 2.0, phone: 1.8, copper: 1.5, gold: 2.0, coffee: 1.1 } }
+          ]},
+          { news: '黄金避险需求上升。', mults: { chip: 1.2, phone: 1.1, copper: 1.1, gold: 2.0, coffee: 1.0 }, C: [
+            { news: '避险狂潮，黄金暴涨。', mults: { chip: 1.0, phone: 1.0, copper: 1.2, gold: 4.0, coffee: 1.0 }, super: true },
+            { news: '风险偏好回升，黄金回落。', mults: { chip: 1.4, phone: 1.3, copper: 1.3, gold: 1.3, coffee: 1.0 } },
+            { news: '避险与科技拉锯。', mults: { chip: 1.3, phone: 1.2, copper: 1.2, gold: 1.8, coffee: 1.0 } }
+          ]},
+          { news: '咖啡消费意外走强。', mults: { chip: 1.3, phone: 1.2, copper: 1.1, gold: 1.4, coffee: 1.6 }, C: [
+            { news: '咖啡热潮，价格暴涨。', mults: { chip: 1.5, phone: 1.4, copper: 1.3, gold: 1.5, coffee: 3.5 }, super: true },
+            { news: '热度消退，咖啡回落。', mults: { chip: 1.2, phone: 1.2, copper: 1.1, gold: 1.3, coffee: 1.2 } },
+            { news: '消费稳健，咖啡走高。', mults: { chip: 1.3, phone: 1.3, copper: 1.2, gold: 1.4, coffee: 2.0 } }
+          ]}
+        ]
+      },
+      {
+        news: '监管降温，科技板块承压。',
+        mults: { chip: 0.8, phone: 0.85, copper: 0.9, gold: 1.2, coffee: 1.0 },
+        B: [
+          { news: '反垄断调查启动。', mults: { chip: 0.6, phone: 0.65, copper: 0.8, gold: 1.4, coffee: 1.0 }, C: [
+            { news: '巨额罚款，科技重挫。', mults: { chip: 0.3, phone: 0.3, copper: 0.6, gold: 2.0, coffee: 0.9 }, super: true },
+            { news: '调查无果，市场回暖。', mults: { chip: 1.2, phone: 1.2, copper: 1.1, gold: 1.1, coffee: 1.0 } },
+            { news: '监管长期化，科技低迷。', mults: { chip: 0.7, phone: 0.75, copper: 0.9, gold: 1.5, coffee: 1.0 } }
+          ]},
+          { news: '补贴退坡，成本上升。', mults: { chip: 0.7, phone: 0.7, copper: 0.9, gold: 1.3, coffee: 1.0 }, C: [
+            { news: '成本压力爆发，科技大跌。', mults: { chip: 0.4, phone: 0.4, copper: 0.7, gold: 1.8, coffee: 1.0 } },
+            { news: '企业消化成本，价格企稳。', mults: { chip: 1.0, phone: 1.0, copper: 1.0, gold: 1.2, coffee: 1.0 } },
+            { news: '部分企业转型，铜受益。', mults: { chip: 0.9, phone: 0.9, copper: 1.5, gold: 1.3, coffee: 1.0 } }
+          ]},
+          { news: '消费者信心下滑。', mults: { chip: 0.8, phone: 0.8, copper: 0.9, gold: 1.4, coffee: 1.0 }, C: [
+            { news: '消费寒冬，科技与咖啡齐跌。', mults: { chip: 0.5, phone: 0.5, copper: 0.7, gold: 1.6, coffee: 0.6 }, super: true },
+            { news: '刺激政策出台，市场回暖。', mults: { chip: 1.2, phone: 1.2, copper: 1.1, gold: 1.1, coffee: 1.1 } },
+            { news: '缓慢复苏，分化明显。', mults: { chip: 1.0, phone: 1.0, copper: 1.0, gold: 1.3, coffee: 0.9 } }
+          ]}
+        ]
+      }
+    ]
+  },
+  financialStorm: {
+    name: '金融风暴',
+    goods: ['gold', 'copper', 'oil', 'wheat', 'coffee'],
+    announce: { title: '国际新闻', desc: '全球金融市场出现剧烈动荡，黄金、铜、石油、小麦、咖啡价格可能出现剧烈波动。' },
+    A: [
+      {
+        news: '恐慌情绪蔓延，资金涌入黄金。',
+        mults: { gold: 1.6, copper: 0.7, oil: 0.8, wheat: 1.2, coffee: 1.1 },
+        B: [
+          { news: '股市崩盘，避险情绪极端。', mults: { gold: 2.0, copper: 0.5, oil: 0.6, wheat: 1.4, coffee: 1.2 }, C: [
+            { news: '金融海啸，黄金暴涨，商品崩盘。', mults: { gold: 4.5, copper: 0.3, oil: 0.3, wheat: 1.8, coffee: 1.4 }, super: true },
+            { news: '央行紧急救市，市场企稳。', mults: { gold: 1.5, copper: 0.9, oil: 0.9, wheat: 1.2, coffee: 1.1 } },
+            { news: '恐慌持续，黄金高位。', mults: { gold: 2.2, copper: 0.6, oil: 0.7, wheat: 1.4, coffee: 1.2 } }
+          ]},
+          { news: '大宗商品遭抛售。', mults: { gold: 1.7, copper: 0.4, oil: 0.5, wheat: 1.3, coffee: 1.1 }, C: [
+            { news: '商品崩盘，黄金独涨。', mults: { gold: 3.5, copper: 0.2, oil: 0.2, wheat: 1.5, coffee: 1.2 }, super: true },
+            { news: '超跌反弹，商品修复。', mults: { gold: 1.4, copper: 1.0, oil: 1.0, wheat: 1.1, coffee: 1.0 } },
+            { news: '抛售持续，分化加剧。', mults: { gold: 2.0, copper: 0.5, oil: 0.6, wheat: 1.3, coffee: 1.1 } }
+          ]},
+          { news: '农产品成避风港。', mults: { gold: 1.5, copper: 0.7, oil: 0.8, wheat: 1.6, coffee: 1.5 }, C: [
+            { news: '粮食危机担忧，农产品暴涨。', mults: { gold: 1.8, copper: 0.6, oil: 0.7, wheat: 3.5, coffee: 3.0 }, super: true },
+            { news: '情绪缓和，农产品回落。', mults: { gold: 1.3, copper: 0.9, oil: 0.9, wheat: 1.2, coffee: 1.2 } },
+            { news: '避险持续，农产品走强。', mults: { gold: 1.6, copper: 0.7, oil: 0.8, wheat: 2.0, coffee: 1.8 } }
+          ]}
+        ]
+      },
+      {
+        news: '央行救市，市场暂时企稳。',
+        mults: { gold: 1.2, copper: 1.1, oil: 1.0, wheat: 1.0, coffee: 1.0 },
+        B: [
+          { news: '降息预期升温。', mults: { gold: 1.5, copper: 1.2, oil: 1.1, wheat: 1.0, coffee: 1.0 }, C: [
+            { news: '流动性泛滥，黄金铜齐涨。', mults: { gold: 2.5, copper: 2.0, oil: 1.3, wheat: 1.1, coffee: 1.1 }, super: true },
+            { news: '预期落空，市场回落。', mults: { gold: 1.0, copper: 0.9, oil: 0.9, wheat: 1.0, coffee: 1.0 } },
+            { news: '宽松持续，商品温和上涨。', mults: { gold: 1.6, copper: 1.4, oil: 1.2, wheat: 1.1, coffee: 1.1 } }
+          ]},
+          { news: '财政刺激出台。', mults: { gold: 1.1, copper: 1.3, oil: 1.2, wheat: 1.1, coffee: 1.0 }, C: [
+            { news: '基建拉动，铜油大涨。', mults: { gold: 1.2, copper: 2.8, oil: 2.2, wheat: 1.2, coffee: 1.1 }, super: true },
+            { news: '刺激不及预期，商品回落。', mults: { gold: 1.0, copper: 1.0, oil: 1.0, wheat: 1.0, coffee: 1.0 } },
+            { news: '经济复苏，商品普涨。', mults: { gold: 1.3, copper: 1.8, oil: 1.5, wheat: 1.2, coffee: 1.1 } }
+          ]},
+          { news: '银行危机隐现。', mults: { gold: 1.6, copper: 0.8, oil: 0.8, wheat: 1.1, coffee: 1.0 }, C: [
+            { news: '银行倒闭潮，黄金暴涨。', mults: { gold: 3.5, copper: 0.4, oil: 0.5, wheat: 1.4, coffee: 1.1 }, super: true },
+            { news: '政府担保，危机缓解。', mults: { gold: 1.2, copper: 1.0, oil: 1.0, wheat: 1.0, coffee: 1.0 } },
+            { news: '危机反复，黄金走强。', mults: { gold: 2.0, copper: 0.7, oil: 0.8, wheat: 1.2, coffee: 1.1 } }
+          ]}
+        ]
+      },
+      {
+        news: '信用危机爆发，市场剧烈分化。',
+        mults: { gold: 1.8, copper: 0.6, oil: 0.7, wheat: 1.3, coffee: 1.2 },
+        B: [
+          { news: '债务违约潮。', mults: { gold: 2.2, copper: 0.4, oil: 0.5, wheat: 1.5, coffee: 1.3 }, C: [
+            { news: '全面违约，黄金暴涨，商品崩盘。', mults: { gold: 5.0, copper: 0.2, oil: 0.2, wheat: 1.8, coffee: 1.5 }, super: true },
+            { news: '国际援助，市场恢复。', mults: { gold: 1.4, copper: 0.9, oil: 0.9, wheat: 1.2, coffee: 1.1 } },
+            { news: '违约持续，黄金高位。', mults: { gold: 2.5, copper: 0.5, oil: 0.6, wheat: 1.5, coffee: 1.3 } }
+          ]},
+          { news: '货币贬值担忧。', mults: { gold: 2.0, copper: 0.7, oil: 0.8, wheat: 1.4, coffee: 1.2 }, C: [
+            { news: '恶性通胀，黄金与粮食暴涨。', mults: { gold: 4.0, copper: 0.8, oil: 1.2, wheat: 3.0, coffee: 2.5 }, super: true },
+            { news: '汇率稳定，市场回稳。', mults: { gold: 1.3, copper: 1.0, oil: 1.0, wheat: 1.1, coffee: 1.1 } },
+            { news: '贬值持续，黄金走强。', mults: { gold: 2.4, copper: 0.7, oil: 0.9, wheat: 1.6, coffee: 1.4 } }
+          ]},
+          { news: '新兴市场遭重创。', mults: { gold: 1.7, copper: 0.5, oil: 0.6, wheat: 1.3, coffee: 1.2 }, C: [
+            { news: '新兴市场崩盘，黄金独涨。', mults: { gold: 3.8, copper: 0.3, oil: 0.4, wheat: 1.6, coffee: 1.4 }, super: true },
+            { news: '救助计划出台，市场反弹。', mults: { gold: 1.3, copper: 0.9, oil: 0.9, wheat: 1.1, coffee: 1.0 } },
+            { news: '危机蔓延，分化加剧。', mults: { gold: 2.2, copper: 0.5, oil: 0.6, wheat: 1.4, coffee: 1.2 } }
+          ]}
+        ]
+      }
+    ]
+  },
+  supplyChain: {
+    name: '供应链断裂',
+    goods: ['chip', 'phone', 'wood', 'coffee', 'oil'],
+    announce: { title: '国际新闻', desc: '全球供应链遭遇严重中断，芯片、手机、木材、咖啡、石油价格可能出现剧烈波动。' },
+    A: [
+      {
+        news: '港口停摆，物流全面受阻。',
+        mults: { chip: 1.5, phone: 1.4, wood: 1.3, coffee: 1.2, oil: 1.4 },
+        B: [
+          { news: '主要港口持续关闭。', mults: { chip: 1.8, phone: 1.7, wood: 1.6, coffee: 1.4, oil: 1.7 }, C: [
+            { news: '供应链崩溃，商品暴涨。', mults: { chip: 3.5, phone: 3.0, wood: 3.0, coffee: 2.5, oil: 3.0 }, super: true },
+            { news: '部分港口恢复，价格回落。', mults: { chip: 1.2, phone: 1.2, wood: 1.2, coffee: 1.1, oil: 1.2 } },
+            { news: '停摆持续，高位运行。', mults: { chip: 2.0, phone: 1.9, wood: 1.8, coffee: 1.5, oil: 1.8 } }
+          ]},
+          { news: '卡车司机罢工。', mults: { chip: 1.4, phone: 1.3, wood: 1.5, coffee: 1.3, oil: 1.5 }, C: [
+            { news: '罢工蔓延，运输瘫痪。', mults: { chip: 2.2, phone: 2.0, wood: 2.8, coffee: 2.0, oil: 2.5 }, super: true },
+            { news: '工资协议达成，运输恢复。', mults: { chip: 1.0, phone: 1.0, wood: 1.0, coffee: 1.0, oil: 1.0 } },
+            { news: '谈判僵持，价格走高。', mults: { chip: 1.6, phone: 1.5, wood: 1.8, coffee: 1.4, oil: 1.7 } }
+          ]},
+          { news: '集装箱严重短缺。', mults: { chip: 1.6, phone: 1.5, wood: 1.4, coffee: 1.3, oil: 1.4 }, C: [
+            { news: '一箱难求，运费暴涨。', mults: { chip: 2.5, phone: 2.2, wood: 2.0, coffee: 1.8, oil: 1.8 }, super: true },
+            { news: '新箱投放，压力缓解。', mults: { chip: 1.1, phone: 1.1, wood: 1.1, coffee: 1.1, oil: 1.1 } },
+            { news: '短缺持续，高位震荡。', mults: { chip: 1.8, phone: 1.6, wood: 1.5, coffee: 1.4, oil: 1.5 } }
+          ]}
+        ]
+      },
+      {
+        news: '物流逐步恢复，价格开始回落。',
+        mults: { chip: 0.9, phone: 0.95, wood: 0.9, coffee: 1.0, oil: 0.9 },
+        B: [
+          { news: '港口复工顺利。', mults: { chip: 0.8, phone: 0.85, wood: 0.8, coffee: 0.9, oil: 0.8 }, C: [
+            { news: '供应恢复，商品大跌。', mults: { chip: 0.5, phone: 0.5, wood: 0.5, coffee: 0.6, oil: 0.5 }, super: true },
+            { news: '恢复缓慢，价格企稳。', mults: { chip: 0.9, phone: 0.95, wood: 0.9, coffee: 0.95, oil: 0.9 } },
+            { news: '需求强劲，价格反弹。', mults: { chip: 1.3, phone: 1.2, wood: 1.1, coffee: 1.1, oil: 1.1 } }
+          ]},
+          { news: '运费回落。', mults: { chip: 0.85, phone: 0.9, wood: 0.85, coffee: 0.95, oil: 0.85 }, C: [
+            { news: '运费崩盘，商品成本大降。', mults: { chip: 0.6, phone: 0.6, wood: 0.6, coffee: 0.7, oil: 0.6 }, super: true },
+            { news: '运费企稳，市场平稳。', mults: { chip: 1.0, phone: 1.0, wood: 1.0, coffee: 1.0, oil: 1.0 } },
+            { news: '需求回升，商品走强。', mults: { chip: 1.2, phone: 1.2, wood: 1.1, coffee: 1.1, oil: 1.1 } }
+          ]},
+          { news: '新航线开通。', mults: { chip: 0.9, phone: 0.95, wood: 0.9, coffee: 0.95, oil: 0.9 }, C: [
+            { news: '运力大增，商品回落。', mults: { chip: 0.7, phone: 0.75, wood: 0.7, coffee: 0.8, oil: 0.7 } },
+            { news: '新航线遇阻，价格反弹。', mults: { chip: 1.3, phone: 1.2, wood: 1.2, coffee: 1.1, oil: 1.2 } },
+            { news: '平稳运行，小幅波动。', mults: { chip: 1.0, phone: 1.0, wood: 1.0, coffee: 1.0, oil: 1.0 } }
+          ]}
+        ]
+      },
+      {
+        news: '运费暴涨，成本推动价格上行。',
+        mults: { chip: 1.3, phone: 1.2, wood: 1.5, coffee: 1.1, oil: 1.6 },
+        B: [
+          { news: '燃油价格大涨。', mults: { chip: 1.4, phone: 1.3, wood: 1.6, coffee: 1.2, oil: 2.0 }, C: [
+            { news: '能源与运输双重危机。', mults: { chip: 2.2, phone: 2.0, wood: 2.8, coffee: 1.8, oil: 4.0 }, super: true },
+            { news: '油价回落，运输成本下降。', mults: { chip: 1.0, phone: 1.0, wood: 1.2, coffee: 1.0, oil: 1.1 } },
+            { news: '成本高位，商品分化。', mults: { chip: 1.5, phone: 1.4, wood: 1.8, coffee: 1.3, oil: 2.2 } }
+          ]},
+          { news: '港口拥堵加剧。', mults: { chip: 1.5, phone: 1.4, wood: 1.7, coffee: 1.3, oil: 1.5 }, C: [
+            { news: '拥堵失控，商品暴涨。', mults: { chip: 2.8, phone: 2.5, wood: 3.0, coffee: 2.0, oil: 2.5 }, super: true },
+            { news: '拥堵缓解，价格回落。', mults: { chip: 1.0, phone: 1.0, wood: 1.2, coffee: 1.0, oil: 1.1 } },
+            { news: '持续拥堵，高位运行。', mults: { chip: 1.8, phone: 1.6, wood: 2.0, coffee: 1.4, oil: 1.7 } }
+          ]},
+          { news: '空运替代增加。', mults: { chip: 1.3, phone: 1.3, wood: 1.4, coffee: 1.2, oil: 1.4 }, C: [
+            { news: '空运成本高企，商品继续涨。', mults: { chip: 2.0, phone: 1.9, wood: 2.0, coffee: 1.6, oil: 1.8 } },
+            { news: '海运恢复，空运退潮。', mults: { chip: 1.0, phone: 1.0, wood: 1.1, coffee: 1.0, oil: 1.1 } },
+            { news: '混合运输，价格温和。', mults: { chip: 1.4, phone: 1.3, wood: 1.5, coffee: 1.2, oil: 1.4 } }
+          ]}
+        ]
+      }
+    ]
   }
 };
 

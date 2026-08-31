@@ -1,4 +1,37 @@
 // ==================== 交互 ====================
+const INTRO_SLIDES = [
+  { emoji: '🧳', title: '商海启程', text: '你是一个刚拿到 5000 块启动资金的小商人。\n没有靠山，没有内幕，只有一张旧日历和满脑子“低买高卖”的念头。', hint: '点击“好的”继续' },
+  { emoji: '📅', title: '日子就是金钱', text: '每天你会看到市场上架 5 种商品。\n价格每天都会波动，你要在 90 天内尽可能把财富滚大。', hint: '点击“好的”继续' },
+  { emoji: '📰', title: '小心突发事件', text: '突发利好可能让你一夜暴富，突发利空也可能让你血本无归。\n偶尔还会有“国际新闻”带来持续一周的大行情。', hint: '点击“好的”继续' },
+  { emoji: '📦', title: '仓库与现金', text: '买入会占用仓库容量，现金不足可以贷款。\n每天都有仓库费和利息，破产就真的结束了。', hint: '点击“好的”开始商途' }
+];
+let introStep = 0;
+
+function showIntro() {
+  introStep = 0;
+  $('introOverlay').classList.remove('hidden');
+  renderIntroSlide();
+}
+
+function renderIntroSlide() {
+  const s = INTRO_SLIDES[introStep];
+  $('introEmoji').textContent = s.emoji;
+  $('introTitle').textContent = s.title;
+  $('introText').textContent = s.text;
+  $('introHint').textContent = s.hint;
+}
+
+function advanceIntro() {
+  introStep++;
+  if (introStep >= INTRO_SLIDES.length) {
+    $('introOverlay').classList.add('hidden');
+    startNewGame();
+  } else {
+    renderIntroSlide();
+  }
+}
+
+// ==================== 交互 ====================
 function renderChart() {
   const id = state.chartGood;
   const g = goodById(id);
@@ -70,6 +103,7 @@ function startNewGame() {
   $('milestoneOverlay').classList.add('hidden');
   $('historyOverlay').classList.add('hidden');
   $('chartOverlay').classList.add('hidden');
+  $('introOverlay').classList.add('hidden');
   clearSave();
   save();
   render();
@@ -112,16 +146,18 @@ document.addEventListener('click', (e) => {
   if (!target) return;
 
   if (target.id === 'startBtn') {
-    startNewGame();
+    showIntro();
   } else if (target.id === 'continueBtn') {
     const s = load();
     if (s) { state = s; render(); }
   } else if (target.id === 'nextDayBtn') {
     nextDay();
   } else if (target.id === 'newGameBtn') {
-    if (confirm('确定放弃当前进度，重新开始？')) startNewGame();
+    if (confirm('确定放弃当前进度，重新开始？')) showIntro();
   } else if (target.id === 'restartBtn') {
-    startNewGame();
+    showIntro();
+    } else if (target.id === 'introBtn') {
+      advanceIntro();
   } else if (target.id === 'eventCloseBtn') {
     $('eventOverlay').classList.add('hidden');
   } else if (target.id === 'milestoneCloseBtn') {
@@ -168,3 +204,4 @@ document.addEventListener('click', (e) => {
     render();
   }
 })();
+
