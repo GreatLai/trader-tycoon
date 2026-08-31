@@ -1,5 +1,6 @@
 // ==================== 配置 ====================
-const APP_VERSION = '1.1.0';
+const ULTRA_UNLOCK = 10000000;
+const APP_VERSION = '1.2.0';
 
 const CONFIG = {
   DAYS_LIMIT: 90,
@@ -26,7 +27,7 @@ const MILESTONES = [
   { value: 10000,      title: '万元户',     msg: '恭喜！你的总资产突破了 1 万，已经是个像样的小商贩了。' },
   { value: 100000,     title: '小老板',     msg: '10 万！你已经有了经营一家小铺子的实力。' },
   { value: 1000000,    title: '百万富翁',   msg: '100 万！你已经迈入百万俱乐部，街上的人都开始叫你老板。' },
-  { value: 10000000,   title: '千万富豪',   msg: '1000 万！这条街已经装不下你的野心了。' },
+  { value: 10000000,   title: '千万富豪',   msg: '1000 万！这条街已经装不下你的野心了。解锁高价值物品：钻石、古董、航天器，以及稀世收藏热潮、太空竞赛事件。' },
   { value: 100000000,  title: '亿万大亨',   msg: '1 亿！你的名字开始出现在商业报纸的头条。' },
   { value: 1000000000, title: '十亿巨鳄',   msg: '10 亿！你已经是传说级商人，商界开始流传你的故事。' },
   { value: 10000000000,title: '商业神话',   msg: '100 亿！这已经不是生意，这是一段传奇。' }
@@ -422,6 +423,148 @@ const ECO_EVENTS = {
         ]
       }
     ]
+  },
+  collectorCraze: {
+    name: '稀世收藏热潮',
+    unlock: 10000000,
+    goods: ['antique', 'diamond', 'gold', 'phone', 'coffee'],
+    announce: { title: '国际新闻', desc: '全球富豪涌入收藏品市场，古董、钻石、黄金、手机、咖啡价格可能出现剧烈波动。' },
+    A: [
+      {
+        news: '顶级拍卖行成交价屡创新高，收藏品热度升温。',
+        mults: { antique: 1.5, diamond: 1.4, gold: 1.2, phone: 0.8, coffee: 0.9 },
+        B: [
+          { news: '亚洲买家疯狂扫货，古董钻石暴涨。', mults: { antique: 2.5, diamond: 2.2, gold: 1.4, phone: 0.6, coffee: 0.8 }, C: [
+            { news: '收藏品超级牛市，古董钻石史诗级暴涨。', mults: { antique: 8.0, diamond: 7.0, gold: 2.0, phone: 0.4, coffee: 0.7 }, super: true },
+            { news: '热度回落，收藏品高位震荡。', mults: { antique: 1.8, diamond: 1.7, gold: 1.2, phone: 0.9, coffee: 1.0 } },
+            { news: '泡沫破裂，古董钻石崩盘。', mults: { antique: 0.3, diamond: 0.35, gold: 1.1, phone: 1.2, coffee: 1.1 }, super: true }
+          ]},
+          { news: '市场传言有假货，收藏品遭抛售。', mults: { antique: 0.7, diamond: 0.75, gold: 1.1, phone: 1.1, coffee: 1.0 }, C: [
+            { news: '假货风波持续，古董钻石大跌。', mults: { antique: 0.3, diamond: 0.35, gold: 1.2, phone: 1.2, coffee: 1.0 } },
+            { news: '鉴定澄清，价格修复。', mults: { antique: 1.2, diamond: 1.2, gold: 1.1, phone: 1.0, coffee: 1.0 } },
+            { news: '恐慌蔓延，收藏品长期低迷。', mults: { antique: 0.4, diamond: 0.45, gold: 1.3, phone: 1.1, coffee: 1.0 } }
+          ]},
+          { news: '高净值人群资产配置转向收藏品。', mults: { antique: 2.0, diamond: 1.8, gold: 1.3, phone: 0.7, coffee: 0.9 }, C: [
+            { news: '配置需求爆发，古董钻石大涨。', mults: { antique: 5.0, diamond: 4.5, gold: 1.8, phone: 0.6, coffee: 0.8 }, super: true },
+            { news: '配置趋缓，价格平稳。', mults: { antique: 1.4, diamond: 1.4, gold: 1.2, phone: 0.9, coffee: 1.0 } },
+            { news: '资金撤离，收藏品回落。', mults: { antique: 0.6, diamond: 0.65, gold: 1.0, phone: 1.1, coffee: 1.1 } }
+          ]}
+        ]
+      },
+      {
+        news: '拍卖行供应增加，市场开始降温。',
+        mults: { antique: 0.8, diamond: 0.85, gold: 1.0, phone: 1.1, coffee: 1.0 },
+        B: [
+          { news: '大量藏品涌入市场。', mults: { antique: 0.6, diamond: 0.65, gold: 0.9, phone: 1.2, coffee: 1.1 }, C: [
+            { news: '供过于求，古董钻石大跌。', mults: { antique: 0.3, diamond: 0.35, gold: 0.8, phone: 1.3, coffee: 1.2 }, super: true },
+            { news: '部分精品仍受追捧。', mults: { antique: 1.1, diamond: 1.0, gold: 1.0, phone: 1.1, coffee: 1.0 } },
+            { news: '市场长期低迷，收藏品阴跌。', mults: { antique: 0.4, diamond: 0.45, gold: 0.9, phone: 1.2, coffee: 1.1 } }
+          ]},
+          { news: '经济下行，奢侈品消费萎缩。', mults: { antique: 0.5, diamond: 0.55, gold: 1.2, phone: 0.8, coffee: 0.9 }, C: [
+            { news: '消费寒冬，古董钻石崩盘。', mults: { antique: 0.2, diamond: 0.25, gold: 1.5, phone: 0.6, coffee: 0.8 }, super: true },
+            { news: '刺激政策出台，消费回暖。', mults: { antique: 1.0, diamond: 1.0, gold: 1.1, phone: 1.1, coffee: 1.1 } },
+            { news: '缓慢恢复，收藏品仍弱。', mults: { antique: 0.6, diamond: 0.65, gold: 1.2, phone: 0.9, coffee: 1.0 } }
+          ]},
+          { news: '投机资金退潮。', mults: { antique: 0.7, diamond: 0.75, gold: 1.1, phone: 1.0, coffee: 1.0 }, C: [
+            { news: '资金撤离，收藏品大跌。', mults: { antique: 0.35, diamond: 0.4, gold: 1.2, phone: 1.0, coffee: 1.0 } },
+            { news: '长线资金接盘，价格企稳。', mults: { antique: 1.2, diamond: 1.2, gold: 1.1, phone: 1.0, coffee: 1.0 } },
+            { news: '市场冷清，阴跌不止。', mults: { antique: 0.5, diamond: 0.55, gold: 1.1, phone: 1.0, coffee: 1.0 } }
+          ]}
+        ]
+      },
+      {
+        news: '监管关注收藏品市场，政策风险上升。',
+        mults: { antique: 0.9, diamond: 0.9, gold: 1.3, phone: 1.0, coffee: 1.0 },
+        B: [
+          { news: '拟征收收藏品交易税。', mults: { antique: 0.6, diamond: 0.65, gold: 1.4, phone: 1.0, coffee: 1.0 }, C: [
+            { news: '重税落地，古董钻石崩盘。', mults: { antique: 0.2, diamond: 0.25, gold: 1.6, phone: 1.0, coffee: 1.0 }, super: true },
+            { news: '税率低于预期，市场回暖。', mults: { antique: 1.3, diamond: 1.3, gold: 1.2, phone: 1.0, coffee: 1.0 } },
+            { news: '政策悬而未决，市场低迷。', mults: { antique: 0.5, diamond: 0.55, gold: 1.3, phone: 1.0, coffee: 1.0 } }
+          ]},
+          { news: '反洗钱调查波及拍卖行。', mults: { antique: 0.7, diamond: 0.75, gold: 1.4, phone: 0.9, coffee: 0.9 }, C: [
+            { news: '调查扩大，收藏品重挫。', mults: { antique: 0.3, diamond: 0.35, gold: 1.5, phone: 0.8, coffee: 0.9 } },
+            { news: '调查结束，市场恢复。', mults: { antique: 1.2, diamond: 1.2, gold: 1.2, phone: 1.0, coffee: 1.0 } },
+            { news: '监管常态化，收藏品承压。', mults: { antique: 0.5, diamond: 0.55, gold: 1.3, phone: 0.9, coffee: 1.0 } }
+          ]},
+          { news: '央行提示收藏品泡沫风险。', mults: { antique: 0.8, diamond: 0.85, gold: 1.3, phone: 1.0, coffee: 1.0 }, C: [
+            { news: '警告引发抛售，古董钻石大跌。', mults: { antique: 0.35, diamond: 0.4, gold: 1.5, phone: 1.0, coffee: 1.0 } },
+            { news: '市场无视警告，继续上涨。', mults: { antique: 2.2, diamond: 2.0, gold: 1.4, phone: 0.9, coffee: 1.0 } },
+            { news: '情绪谨慎，高位震荡。', mults: { antique: 1.0, diamond: 1.0, gold: 1.2, phone: 1.0, coffee: 1.0 } }
+          ]}
+        ]
+      }
+    ]
+  },
+  spaceRace: {
+    name: '太空竞赛',
+    unlock: 10000000,
+    goods: ['spacecraft', 'chip', 'copper', 'oil', 'gold'],
+    announce: { title: '国际新闻', desc: '大国重启太空竞赛，航天器、芯片、铜、石油、黄金价格可能出现剧烈波动。' },
+    A: [
+      {
+        news: '多国宣布载人登月计划，航天需求爆发。',
+        mults: { spacecraft: 1.6, chip: 1.4, copper: 1.3, oil: 1.2, gold: 1.1 },
+        B: [
+          { news: '订单量超预期，航天器暴涨。', mults: { spacecraft: 3.0, chip: 1.8, copper: 1.6, oil: 1.3, gold: 1.2 }, C: [
+            { news: '太空竞赛白热化，航天器史诗级暴涨。', mults: { spacecraft: 12.0, chip: 3.5, copper: 3.0, oil: 2.0, gold: 1.5 }, super: true },
+            { news: '订单落地缓慢，价格回落。', mults: { spacecraft: 1.5, chip: 1.3, copper: 1.3, oil: 1.1, gold: 1.1 } },
+            { news: '多国竞争持续，高位震荡。', mults: { spacecraft: 2.5, chip: 1.6, copper: 1.5, oil: 1.2, gold: 1.2 } }
+          ]},
+          { news: '火箭发射失败，市场恐慌。', mults: { spacecraft: 0.7, chip: 0.9, copper: 1.0, oil: 1.1, gold: 1.4 }, C: [
+            { news: '连续失败，航天器崩盘。', mults: { spacecraft: 0.2, chip: 0.7, copper: 0.8, oil: 1.2, gold: 1.8 }, super: true },
+            { news: '技术修复，市场回暖。', mults: { spacecraft: 1.4, chip: 1.2, copper: 1.2, oil: 1.1, gold: 1.2 } },
+            { news: '进度延期，航天器阴跌。', mults: { spacecraft: 0.5, chip: 0.9, copper: 1.0, oil: 1.1, gold: 1.3 } }
+          ]},
+          { news: '私营航天公司崛起。', mults: { spacecraft: 2.0, chip: 1.5, copper: 1.4, oil: 1.2, gold: 1.0 }, C: [
+            { news: '私营资本涌入，航天器暴涨。', mults: { spacecraft: 6.0, chip: 2.2, copper: 2.0, oil: 1.4, gold: 1.1 }, super: true },
+            { news: '竞争加剧，价格分化。', mults: { spacecraft: 1.8, chip: 1.4, copper: 1.4, oil: 1.1, gold: 1.0 } },
+            { news: '资本退潮，航天器回落。', mults: { spacecraft: 0.8, chip: 1.0, copper: 1.1, oil: 1.0, gold: 1.1 } }
+          ]}
+        ]
+      },
+      {
+        news: '预算削减，太空项目降温。',
+        mults: { spacecraft: 0.7, chip: 0.9, copper: 0.9, oil: 0.9, gold: 1.2 },
+        B: [
+          { news: '多国取消部分计划。', mults: { spacecraft: 0.4, chip: 0.7, copper: 0.8, oil: 0.8, gold: 1.4 }, C: [
+            { news: '项目大规模取消，航天器崩盘。', mults: { spacecraft: 0.15, chip: 0.5, copper: 0.6, oil: 0.7, gold: 1.8 }, super: true },
+            { news: '保留核心计划，价格企稳。', mults: { spacecraft: 1.0, chip: 0.9, copper: 0.9, oil: 0.9, gold: 1.2 } },
+            { news: '持续削减，长期低迷。', mults: { spacecraft: 0.4, chip: 0.7, copper: 0.7, oil: 0.8, gold: 1.4 } }
+          ]},
+          { news: '芯片出口管制加剧。', mults: { spacecraft: 0.6, chip: 0.5, copper: 0.8, oil: 0.9, gold: 1.5 }, C: [
+            { news: '管制升级，航天器与芯片双崩。', mults: { spacecraft: 0.2, chip: 0.2, copper: 0.6, oil: 0.8, gold: 2.0 }, super: true },
+            { news: '管制缓和，市场修复。', mults: { spacecraft: 1.2, chip: 1.2, copper: 1.1, oil: 1.0, gold: 1.2 } },
+            { news: '长期限制，航天承压。', mults: { spacecraft: 0.5, chip: 0.5, copper: 0.8, oil: 0.9, gold: 1.5 } }
+          ]},
+          { news: '经济衰退影响航天投入。', mults: { spacecraft: 0.6, chip: 0.7, copper: 0.7, oil: 0.7, gold: 1.4 }, C: [
+            { news: '衰退加深，航天器大跌。', mults: { spacecraft: 0.25, chip: 0.5, copper: 0.5, oil: 0.6, gold: 1.8 } },
+            { news: '财政刺激，项目重启。', mults: { spacecraft: 1.5, chip: 1.2, copper: 1.2, oil: 1.1, gold: 1.1 } },
+            { news: '复苏缓慢，低位徘徊。', mults: { spacecraft: 0.7, chip: 0.8, copper: 0.8, oil: 0.8, gold: 1.3 } }
+          ]}
+        ]
+      },
+      {
+        news: '技术突破，太空经济进入新阶段。',
+        mults: { spacecraft: 1.8, chip: 1.6, copper: 1.5, oil: 1.3, gold: 1.2 },
+        B: [
+          { news: '可回收火箭成本大降。', mults: { spacecraft: 2.5, chip: 1.8, copper: 1.7, oil: 1.3, gold: 1.1 }, C: [
+            { news: '成本革命，航天器暴涨。', mults: { spacecraft: 8.0, chip: 2.5, copper: 2.2, oil: 1.5, gold: 1.2 }, super: true },
+            { news: '技术扩散，价格回落。', mults: { spacecraft: 1.5, chip: 1.4, copper: 1.4, oil: 1.1, gold: 1.1 } },
+            { news: '竞争加剧，高位震荡。', mults: { spacecraft: 2.2, chip: 1.6, copper: 1.5, oil: 1.2, gold: 1.1 } }
+          ]},
+          { news: '太空采矿概念升温。', mults: { spacecraft: 2.0, chip: 1.5, copper: 2.0, oil: 1.2, gold: 1.3 }, C: [
+            { news: '采矿预期爆发，航天器与铜暴涨。', mults: { spacecraft: 7.0, chip: 2.0, copper: 4.5, oil: 1.5, gold: 1.5 }, super: true },
+            { news: '预期降温，价格回落。', mults: { spacecraft: 1.2, chip: 1.2, copper: 1.8, oil: 1.1, gold: 1.2 } },
+            { news: '长期故事，高位运行。', mults: { spacecraft: 2.5, chip: 1.5, copper: 2.5, oil: 1.2, gold: 1.3 } }
+          ]},
+          { news: '国际竞争引发黄金避险。', mults: { spacecraft: 1.6, chip: 1.4, copper: 1.4, oil: 1.2, gold: 2.0 }, C: [
+            { news: '地缘紧张，黄金暴涨，航天分化。', mults: { spacecraft: 2.0, chip: 1.5, copper: 1.5, oil: 1.4, gold: 6.0 }, super: true },
+            { news: '局势缓和，黄金回落。', mults: { spacecraft: 1.4, chip: 1.3, copper: 1.3, oil: 1.1, gold: 1.3 } },
+            { news: '长期博弈，多品高位。', mults: { spacecraft: 1.8, chip: 1.4, copper: 1.4, oil: 1.2, gold: 2.5 } }
+          ]}
+        ]
+      }
+    ]
   }
 };
 
@@ -438,6 +581,10 @@ const GOODS = [
   { id: 'chip',   name: '芯片',  icon: '🔲', base: 320, vol: 0.04, tier: 'mid' },
   // 高档：日常也涨跌，但暴击机会更少，适合后期大资金
   { id: 'phone',  name: '手机',  icon: '📱', base: 2000, vol: 0.03, tier: 'high' },
-  { id: 'gold',   name: '黄金',  icon: '🪙', base: 6000, vol: 0.02, tier: 'high' }
+  { id: 'gold',   name: '黄金',  icon: '🪙', base: 6000, vol: 0.02, tier: 'high' },
+  // 超高价值：后期解锁，跌多涨少，一涨很夸张
+  { id: 'diamond', name: '钻石', icon: '💎', base: 30000, vol: 0.015, tier: 'ultra' },
+  { id: 'antique', name: '古董', icon: '🏺', base: 120000, vol: 0.012, tier: 'ultra' },
+  { id: 'spacecraft', name: '航天器', icon: '🚀', base: 500000, vol: 0.010, tier: 'ultra' }
 ];
 

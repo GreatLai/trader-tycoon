@@ -26,7 +26,11 @@ function shuffle(arr) {
 }
 
 function pickGoods(count) {
-  return shuffle(GOODS.map(g => g.id)).slice(0, count);
+  const unlocked = GOODS.filter(g => {
+    if (g.tier === 'ultra' && typeof state !== 'undefined' && state && netWorth() < ULTRA_UNLOCK) return false;
+    return true;
+  }).map(g => g.id);
+  return shuffle(unlocked).slice(0, count);
 }
 
 function goodById(id) {

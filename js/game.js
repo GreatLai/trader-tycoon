@@ -31,7 +31,7 @@ function nextDay() {
   // 启动新的生态事件（正式规则：第 8~83 天每天 20% 概率）
   if (!state.eco && state.day >= 8 && state.day <= 83) {
     if (Math.random() < 0.20) {
-      const keys = Object.keys(ECO_EVENTS);
+      const keys = Object.keys(ECO_EVENTS).filter(k => !ECO_EVENTS[k].unlock || netWorth() >= ECO_EVENTS[k].unlock);
       const treeId = keys[Math.floor(Math.random() * keys.length)];
       state.eco = { treeId, startDay: state.day, startPrices: null, A: null, B: null, C: null };
       state.ecoPopup = { special: true, title: '国际新闻', desc: ECO_EVENTS[treeId].announce.desc };

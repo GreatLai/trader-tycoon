@@ -2,8 +2,8 @@
 function makeEvent(goodId) {
   const target = goodById(goodId);
   if (!target) return null;
-  const rare = Math.random() < 0.06;
-  const positive = Math.random() < 0.55;
+    const rare = Math.random() < 0.06;
+    const positive = target.tier === 'ultra' ? Math.random() < 0.30 : Math.random() < 0.55;
 
   let targetMult;
   let title, desc;
@@ -40,7 +40,17 @@ function makeEvent(goodId) {
       title = '📉 突发利空';
       desc = `${target.name}供给突然过剩，今日价格大跌！`;
     }
-  } else {
+    } else if (tier === 'ultra') {
+      if (positive) {
+        targetMult = 3 + Math.random() * 3; // 3~6 倍
+        title = '📈 突发利好';
+        desc = `${target.name}出现历史级抢购潮，今日价格暴涨！`;
+      } else {
+        targetMult = 0.30 + Math.random() * 0.30; // 0.30~0.60 倍
+        title = '📉 突发利空';
+        desc = `${target.name}遭遇恐慌性抛售，今日价格大跌！`;
+      }
+    } else {
     if (positive) {
       targetMult = 1.5 + Math.random() * 0.5; // 1.5~2 倍
       title = '📈 突发利好';
@@ -122,14 +132,21 @@ function updatePrices() {
         } else if (Math.random() < 0.03) {
           logF -= Math.log(1.075 + Math.random() * 0.101); // 跌到 0.85~0.93 倍
         }
-      } else {
-        // 高档：日常波动更小
-        if (Math.random() < 0.03) {
-          logF += Math.log(1.03 + Math.random() * 0.07); // 涨 3%~10%
-        } else if (Math.random() < 0.02) {
-          logF -= Math.log(1.053 + Math.random() * 0.083); // 跌到 0.88~0.95 倍
+        } else if (g.tier === 'high') {
+          // 高档：日常波动更小
+          if (Math.random() < 0.03) {
+            logF += Math.log(1.03 + Math.random() * 0.07); // 涨 3%~10%
+          } else if (Math.random() < 0.02) {
+            logF -= Math.log(1.053 + Math.random() * 0.083); // 跌到 0.88~0.95 倍
+          }
+        } else if (g.tier === 'ultra') {
+          // 超高价值：跌多涨少，一涨很夸张
+          if (Math.random() < 0.02) {
+            logF += Math.log(1.10 + Math.random() * 0.10); // 涨 10%~20%
+          } else if (Math.random() < 0.12) {
+            logF -= Math.log(1.05 + Math.random() * 0.10); // 跌 5%~15%
+          }
         }
-      }
 
       // 普通日硬边界：价格限制在基础价 ±20% 内，不允许漂移形成大行情
       logF = Math.max(Math.log(0.8), Math.min(Math.log(1.2), logF));
