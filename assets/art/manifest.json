@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "reference": "assets/art/reference/style-anchor-v1.png",
+  "brand": {
+    "horizontal": {
+      "source": "assets/art/source/brand/logo-horizontal.png",
+      "runtime": "assets/art/runtime/brand/logo-horizontal.webp"
+    },
+    "seal": {
+      "source": "assets/art/source/brand/logo-seal.png",
+      "runtime": "assets/art/runtime/brand/logo-seal.webp"
+    }
+  },
+  "goods": {
+    "wheat": {
+      "source": "assets/art/source/goods/good-wheat.png",
+      "master": "assets/art/runtime/goods/good-wheat-512.png",
+      "webp128": "assets/art/runtime/goods/good-wheat-128.webp",
+      "webp256": "assets/art/runtime/goods/good-wheat-256.webp"
+    },
+    "wood": {
+      "source": "assets/art/source/goods/good-wood.png",
+      "master": "assets/art/runtime/goods/good-wood-512.png",
+      "webp128": "assets/art/runtime/goods/good-wood-128.webp",
+      "webp256": "assets/art/runtime/goods/good-wood-256.webp"
+    },
+    "coal": {
+      "source": "assets/art/source/goods/good-coal.png",
+      "master": "assets/art/runtime/goods/good-coal-512.png",
+      "webp128": "assets/art/runtime/goods/good-coal-128.webp",
+      "webp256": "assets/art/runtime/goods/good-coal-256.webp"
+    },
+    "tea": {
+      "source": "assets/art/source/goods/good-tea.png",
+      "master": "assets/art/runtime/goods/good-tea-512.png",
+      "webp128": "assets/art/runtime/goods/good-tea-128.webp",
+      "webp256": "assets/art/runtime/goods/good-tea-256.webp"
+    },
+    "coffee": {
+      "source": "assets/art/source/goods/good-coffee.png",
+      "master": "assets/art/runtime/goods/good-coffee-512.png",
+      "webp128": "assets/art/runtime/goods/good-coffee-128.webp",
+      "webp256": "assets/art/runtime/goods/good-coffee-256.webp"
+    },
+    "copper": {
+      "source": "assets/art/source/goods/good-copper.png",
+      "master": "assets/art/runtime/goods/good-copper-512.png",
+      "webp128": "assets/art/runtime/goods/good-copper-128.webp",
+      "webp256": "assets/art/runtime/goods/good-copper-256.webp"
+    },
+    "oil": {
+      "source": "assets/art/source/goods/good-oil.png",
+      "master": "assets/art/runtime/goods/good-oil-512.png",
+      "webp128": "assets/art/runtime/goods/good-oil-128.webp",
+      "webp256": "assets/art/runtime/goods/good-oil-256.webp"
+    },
+    "chip": {
+      "source": "assets/art/source/goods/good-chip.png",
+      "master": "assets/art/runtime/goods/good-chip-512.png",
+      "webp128": "assets/art/runtime/goods/good-chip-128.webp",
+      "webp256": "assets/art/runtime/goods/good-chip-256.webp"
+    },
+    "phone": {
+      "source": "assets/art/source/goods/good-phone.png",
+      "master": "assets/art/runtime/goods/good-phone-512.png",
+      "webp128": "assets/art/runtime/goods/good-phone-128.webp",
+      "webp256": "assets/art/runtime/goods/good-phone-256.webp"
+    },
+    "gold": {
+      "source": "assets/art/source/goods/good-gold.png",
+      "master": "assets/art/runtime/goods/good-gold-512.png",
+      "webp128": "assets/art/runtime/goods/good-gold-128.webp",
+      "webp256": "assets/art/runtime/goods/good-gold-256.webp"
+    },
+    "diamond": {
+      "source": "assets/art/source/goods/good-diamond.png",
+      "master": "assets/art/runtime/goods/good-diamond-512.png",
+      "webp128": "assets/art/runtime/goods/good-diamond-128.webp",
+      "webp256": "assets/art/runtime/goods/good-diamond-256.webp"
+    },
+    "antique": {
+      "source": "assets/art/source/goods/good-antique.png",
+      "master": "assets/art/runtime/goods/good-antique-512.png",
+      "webp128": "assets/art/runtime/goods/good-antique-128.webp",
+      "webp256": "assets/art/runtime/goods/good-antique-256.webp"
+    },
+    "spacecraft": {
+      "source": "assets/art/source/goods/good-spacecraft.png",
+      "master": "assets/art/runtime/goods/good-spacecraft-512.png",
+      "webp128": "assets/art/runtime/goods/good-spacecraft-128.webp",
+      "webp256": "assets/art/runtime/goods/good-spacecraft-256.webp"
+    }
+  },
+  "environment": {
+    "paper": {
+      "source": "assets/art/source/environment/paper-tile.png",
+      "runtime": "assets/art/runtime/environment/paper-tile.webp"
+    },
+    "harborDesktop": {
+      "source": "assets/art/source/environment/harbor-desktop.png",
+      "runtime": "assets/art/runtime/environment/harbor-desktop.webp"
+    },
+    "harborMobile": {
+      "source": "assets/art/source/environment/harbor-mobile.png",
+      "runtime": "assets/art/runtime/environment/harbor-mobile.webp"
+    },
+    "tassel": {
+      "source": "assets/art/source/environment/coin-tassel.png",
+      "runtime": "assets/art/runtime/environment/coin-tassel.webp"
+    }
+  }
+}
