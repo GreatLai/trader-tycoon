@@ -207,7 +207,7 @@ function liquidateInventory(shortfall) {
 
 function applyDailyCosts() {
   const fee = +calcDailyFee().toFixed(2);
-  const interest = +(state.loan * CONFIG.LOAN_INTEREST_RATE).toFixed(2);
+  const interest = 0;
   const totalCost = fee + interest;
   if (totalCost <= 0) return;
 

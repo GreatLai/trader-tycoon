@@ -13,6 +13,7 @@ function render() {
     $('milestoneOverlay').classList.add('hidden');
     $('historyOverlay').classList.add('hidden');
     $('chartOverlay').classList.add('hidden');
+    $('cardOverlay').classList.add('hidden');
     $('continueBtn').classList.toggle('hidden', !load());
     return;
   }
@@ -25,6 +26,7 @@ function render() {
     $('milestoneOverlay').classList.add('hidden');
     $('historyOverlay').classList.add('hidden');
     $('chartOverlay').classList.add('hidden');
+    $('cardOverlay').classList.add('hidden');
   }
 
   const nw = netWorth();
@@ -35,7 +37,7 @@ function render() {
   $('dayText').textContent = `第 ${state.day} 天 / ${CONFIG.DAYS_LIMIT}`;
   $('cashText').textContent = '¥' + fmt(state.cash, 2);
   const feeNow = +calcDailyFee().toFixed(2);
-  const interestNow = +(state.loan * CONFIG.LOAN_INTEREST_RATE).toFixed(2);
+  const interestNow = 0;
   $('cashExpense').textContent = `今日支出 -¥${fmt(feeNow + interestNow, 2)}`;
   $('networthText').textContent = '¥' + fmt(nw, 2);
   $('networthText').className = 'value ' + (nw >= 0 ? 'green' : 'red');
@@ -130,17 +132,13 @@ function render() {
   $('inventoryList').innerHTML = invRows || '<div style="color:var(--muted);font-size:14px;">仓库是空的</div>';
 
 
-  // 银行
-  const maxBorrow = Math.max(0, Math.floor(creditLimit() - state.loan));
-  $('bankInfo').innerHTML = `
-    <div class="loan-row"><span>可借额度</span><span>¥${fmt(creditLimit(), 0)}</span></div>
-    <div class="loan-row"><span>已借</span><span>¥${fmt(state.loan, 2)}</span></div>
-    <div class="loan-row"><span>还可借</span><span>¥${fmt(maxBorrow, 0)}</span></div>
-    <div class="loan-row"><span>日利率</span><span>${(CONFIG.LOAN_INTEREST_RATE * 100).toFixed(1)}%</span></div>`;
+  // 商店
+  refreshShopIfNeeded();
+  renderShop();
 
   // 每日支出
   const fee = +calcDailyFee().toFixed(2);
-  const interest = +(state.loan * CONFIG.LOAN_INTEREST_RATE).toFixed(2);
+  const interest = 0;
   $('expenseInfo').innerHTML = `
     <div class="loan-row"><span>仓库管理费</span><span>¥${fmt(fee, 2)}</span></div>
     <div class="loan-row"><span>贷款利息</span><span>¥${fmt(interest, 2)}</span></div>

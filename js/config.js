@@ -1,6 +1,6 @@
 // ==================== 配置 ====================
 const ULTRA_UNLOCK = 10000000;
-const APP_VERSION = '1.6.0';
+const APP_VERSION = '1.7.0';
 
 const CONFIG = {
   DAYS_LIMIT: 90,
@@ -12,6 +12,23 @@ const CONFIG = {
   SAVE_KEY: 'trader-tycoon-save-v11'
 };
 
+// ==================== 商店配置 ====================
+const SHOP_CONFIG = {
+  REFRESH_INTERVAL: 7,
+  FIRST_REFRESH_DAY: 1,
+  STOCK_SIZE: 4,
+  PRICE_VARIATION: [0.85, 1.15],
+  SUDDEN_EVENT_CHANCE: 0.26,
+  RARE_EVENT_CHANCE: 0.06,
+  CARDS: {
+    addGood:       { name: '添货',         weight: 29, priceRate: 0.04, desc: '把一个已解锁商品加入今日市场，并刷新一次。' },
+    refreshPrice:  { name: '刷新行情',    weight: 27, priceRate: 0.08, desc: '刷新一个已上架商品的当前价格。' },
+    futureMarket:  { name: '明日行情',    weight: 22, priceRate: 0.06, desc: '查看一个商品明天的涨跌区间。' },
+    suddenRise:    { name: '突发利好',      weight: 10, priceRate: 0.12, desc: '强制一个已上架商品触发利好事件。' },
+    suddenFall:    { name: '突发利空',      weight: 10, priceRate: 0.18, desc: '强制一个已上架商品触发利空事件。' },
+    iAmTheTrend:   { name: '趋势之主',   weight: 2,  priceRate: 1.20, desc: '主动安排一次生态事件。' }
+  }
+};
 const CAPACITY_LEVELS = [
   { cap: 1000, cost: 0 },
   { cap: 1600, cost: 5000 },

@@ -46,6 +46,13 @@ function newState() {
     chartGood: GOODS[0].id,
     highestMilestone: -1,
     availableGoods,
+    shopStock: [],
+    shopRefreshDay: 1,
+    cardInventory: {},
+    peakNetWorth: CONFIG.START_CASH,
+    scheduledEco: null,
+    nextDaySeed: Math.floor(Math.random() * 1e9),
+    eventNoticeQueue: [],
     logs: [],
     gameOver: null
   };

@@ -35,9 +35,14 @@ function nextDay() {
       }
   }
 
-  // 启动新的生态事件（正式规则：第 8~83 天每天 20% 概率）
+  // 启动新的生态事件（正式规则：第 8~83 天每天 20% 概率；趋势之主可主动安排）
   if (!state.eco && state.day >= 8 && state.day <= 83) {
-    if (Math.random() < 0.20) {
+    if (state.scheduledEco) {
+      const treeId = state.scheduledEco;
+      state.scheduledEco = null;
+      state.eco = { treeId, startDay: state.day, A: null, B: null, C: null };
+      state.ecoPopup = { special: true, title: '国际新闻', desc: ECO_EVENTS[treeId].announce.desc };
+    } else if (Math.random() < 0.20) {
       const keys = Object.keys(ECO_EVENTS).filter(k => !ECO_EVENTS[k].unlock || netWorth() >= ECO_EVENTS[k].unlock);
       const treeId = keys[Math.floor(Math.random() * keys.length)];
       state.eco = { treeId, startDay: state.day, A: null, B: null, C: null };
@@ -50,6 +55,7 @@ function nextDay() {
   spawnEvents();
   updatePrices();
   updateSeenPrices();
+  state.nextDaySeed = Math.floor(Math.random() * 1e9);
 
   // 记录每日价格走势
   GOODS.forEach(g => {

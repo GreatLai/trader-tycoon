@@ -26,6 +26,7 @@ function advanceIntro() {
   if (introStep >= INTRO_SLIDES.length) {
     $('introOverlay').classList.add('hidden');
     $('versionOverlay').classList.add('hidden');
+  $('cardOverlay').classList.add('hidden');
     startNewGame();
   } else {
     renderIntroSlide();
@@ -125,6 +126,7 @@ function openHistory() {
 
 function startNewGame() {
   state = newState();
+  generateShopStock();
   state.logs = ['第1天：游戏开始。市场每天只上架5种商品。'];
   $('eventOverlay').classList.add('hidden');
   $('milestoneOverlay').classList.add('hidden');
@@ -132,6 +134,7 @@ function startNewGame() {
   $('chartOverlay').classList.add('hidden');
   $('introOverlay').classList.add('hidden');
   $('versionOverlay').classList.add('hidden');
+  $('cardOverlay').classList.add('hidden');
   clearSave();
   save();
   render();
@@ -209,6 +212,7 @@ document.addEventListener('click', (e) => {
     doVersionUpdate();
   } else if (target.id === 'versionCloseBtn') {
     $('versionOverlay').classList.add('hidden');
+  $('cardOverlay').classList.add('hidden');
   } else if (target.id === 'eventCloseBtn') {
     $('eventOverlay').classList.add('hidden');
   } else if (target.id === 'milestoneCloseBtn') {
@@ -227,10 +231,6 @@ document.addEventListener('click', (e) => {
     openChart();
   } else if (target.dataset.customTrade) {
     executeCustomTrade(target);
-  } else if (target.id === 'borrowBtn') {
-    const amount = Math.min(5000, Math.max(0, Math.floor(creditLimit() - state.loan)));
-    borrow(amount || 0);
-  } else if (target.id === 'repayBtn') {
     repay(Math.min(5000, state.loan, state.cash));
   } else {
     handleClick(e);
