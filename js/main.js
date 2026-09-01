@@ -1,9 +1,8 @@
 // ==================== 交互 ====================
 const INTRO_SLIDES = [
-  { emoji: '🧳', title: '商海启程', text: '你是一个刚拿到 5000 块启动资金的小商人。\n没有靠山，没有内幕，只有一张旧日历和满脑子“低买高卖”的念头。', hint: '点击“好的”继续' },
-  { emoji: '📅', title: '日子就是金钱', text: '每天你会看到市场上架 5 种商品。\n价格每天都会波动，你要在 90 天内尽可能把财富滚大。', hint: '点击“好的”继续' },
-  { emoji: '📰', title: '小心突发事件', text: '突发利好可能让你一夜暴富，突发利空也可能让你血本无归。\n偶尔还会有“国际新闻”带来持续一周的大行情。', hint: '点击“好的”继续' },
-  { emoji: '📦', title: '仓库与现金', text: '买入会占用仓库容量。\n每天结算仓库管理费，现金不足会按七折强制平仓。', hint: '点击“好的”开始商途' }
+  { emoji: '🧳', title: '旧商行，新掌柜', text: '港口重新开市，这间旧商行和账上仅剩的 ¥5,000 都交到了你手里。\n九十天后封账，能留下多少身家，只看你的眼光。', hint: '接下这间商行', button: '接下委托' },
+  { emoji: '📈', title: '先看价，再下手', text: '每天只有一部分商品摆上货架。价格低时收货，行情起来后卖出，现金和仓位都要留有余地。\n国际生态行情出现时，市场会扩展到 7 种商品。', hint: '每次推进日期，市场都会重新洗牌', button: '记住了' },
+  { emoji: '🏪', title: '等行情，也造行情', text: '新闻会制造突发机会，奇货铺则每七天带来一批道具。\n买消息、刷新价格、制造低价，或让选中的持仓迎来风口。真正的掌柜不会只靠运气。', hint: '留些现金，机会出现时才买得起', button: '开张营业' }
 ];
 let introStep = 0;
 
@@ -19,6 +18,7 @@ function renderIntroSlide() {
   $('introTitle').textContent = s.title;
   $('introText').textContent = s.text;
   $('introHint').textContent = s.hint;
+  $('introBtn').textContent = s.button;
 }
 
 function advanceIntro() {
@@ -127,7 +127,7 @@ function openHistory() {
 function startNewGame() {
   state = newState();
   generateShopStock();
-  state.logs = ['第1天：游戏开始。市场每天只上架5种商品。'];
+  state.logs = ['第1天：商行开张。常规市场上架5种商品，生态行情期间扩展到7种。'];
   $('eventOverlay').classList.add('hidden');
   $('milestoneOverlay').classList.add('hidden');
   $('historyOverlay').classList.add('hidden');
@@ -137,6 +137,13 @@ function startNewGame() {
   $('cardOverlay').classList.add('hidden');
   clearSave();
   save();
+  render();
+}
+
+function returnToStartScreen() {
+  clearSave();
+  state = null;
+  ['overlay', 'eventOverlay', 'milestoneOverlay', 'historyOverlay', 'chartOverlay', 'introOverlay', 'versionOverlay', 'cardOverlay'].forEach(id => $(id).classList.add('hidden'));
   render();
 }
 
@@ -201,9 +208,9 @@ document.addEventListener('click', (e) => {
   } else if (target.id === 'nextDayBtn') {
     nextDay();
   } else if (target.id === 'newGameBtn') {
-    if (confirm('确定放弃当前进度，重新开始？')) showIntro();
+    if (confirm('确定放弃当前进度，返回首页？')) returnToStartScreen();
   } else if (target.id === 'restartBtn') {
-    showIntro();
+    returnToStartScreen();
   } else if (target.id === 'introBtn') {
     advanceIntro();
   } else if (target.id === 'versionBtn' || target.id === 'versionFab') {

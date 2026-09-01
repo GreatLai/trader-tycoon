@@ -7,6 +7,7 @@ const CONFIG = {
   TARGET: 1000000,
   START_CASH: 5000,
   MARKET_SIZE: 5,
+  ECO_MARKET_SIZE: 7,
   STORAGE_FEE_PER_UNIT: 0.05,
   SAVE_KEY: 'trader-tycoon-save-v17'
 };

@@ -27,7 +27,7 @@
   #startScreen {
     max-width: 680px;
     margin: 0 auto;
-    padding: 48px 24px;
+    padding: 24px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -41,26 +41,37 @@
   }
   #startScreen .subtitle {
     color: var(--muted);
-    margin-bottom: 32px;
+    margin-bottom: 16px;
   }
   .rule-card {
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    padding: 24px;
+    padding: 18px 20px;
     width: 100%;
     box-shadow: 0 2px 8px rgba(0,0,0,.04);
   }
   .rule-card h2 { font-size: 18px; margin-bottom: 12px; }
+  .start-kicker {
+    color: var(--amber);
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .start-story { color: var(--muted); font-size: 14px; line-height: 1.7; margin-bottom: 12px; }
   .rule-card ul { list-style: none; }
   .rule-card li {
-    padding: 8px 0;
+    padding: 6px 0;
     border-bottom: 1px dashed var(--line);
     font-size: 14px;
     line-height: 1.6;
     color: #374151;
   }
   .rule-card li:last-child { border-bottom: none; }
+  .start-rules li { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 10px; }
+  .start-rules strong { color: var(--amber); font-family: "STKaiti", "KaiTi", sans-serif; font-size: 16px; }
+  .shop-motto { color: var(--muted); font-size: 12px; line-height: 1.5; margin: -4px 0 10px; }
+  .rule-card .btn-block { margin-top: 12px; }
   .btn {
     border: none;
     border-radius: 10px;
@@ -473,7 +484,7 @@
   }
   .start-brand {
     width: min(620px, 90vw);
-    height: clamp(108px, 18vw, 190px);
+    height: clamp(96px, 14vw, 145px);
     display: grid;
     place-items: center;
     margin-bottom: 4px;
@@ -639,17 +650,19 @@
     .shop-entry { align-items: start; }
     .shop-entry-action { flex-direction: column; align-items: stretch; }
     .shop-price { min-width: 0; text-align: center; }
-    #startScreen { padding: 28px 14px; }
+    #startScreen { padding: 14px; }
     #startScreen::before {
       height: 58vh;
       background-image: url('../assets/art/runtime/environment/harbor-mobile.webp');
       background-position: center bottom;
     }
-    .start-brand { height: 100px; margin-bottom: 2px; }
+    .start-brand { height: 82px; margin-bottom: 2px; }
     .start-brand .brand-logo-horizontal { display: none; }
     .start-brand .brand-logo-seal { display: block; width: 94px; height: 94px; }
-    #startScreen .subtitle { margin-bottom: 20px; text-align: center; font-size: 14px; }
+    #startScreen .subtitle { margin-bottom: 10px; text-align: center; font-size: 14px; }
     .rule-card { padding: 16px; }
+    .start-story { line-height: 1.5; margin-bottom: 8px; }
+    .start-rules li { padding: 4px 0; line-height: 1.45; }
     #chartOverlay .modal { padding: 20px 16px; }
     header {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -679,6 +692,7 @@
   @media (max-width: 360px) {
     .start-brand .brand-logo-seal { width: 82px; height: 82px; }
     .rule-card li { font-size: 13px; padding: 6px 0; }
+    .start-rules li { grid-template-columns: 44px minmax(0, 1fr); gap: 8px; }
     header { gap: 7px; }
     header .stat { padding: 6px; }
     .market-info { grid-template-columns: minmax(100px, 1fr) minmax(118px, auto); }

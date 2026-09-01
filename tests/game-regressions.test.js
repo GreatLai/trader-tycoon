@@ -104,13 +104,27 @@ test('warehouse and shop are sibling panels', () => {
   );
 });
 
-test('start-screen rules match the v1.4 warehouse and liquidation behavior', () => {
+test('start screen presents five immersive operating principles including the shop', () => {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const ruleList = html.match(/<ul class="start-rules">([\s\S]*?)<\/ul>/)?.[1] || '';
 
-  assert.doesNotMatch(html, /可花钱扩容/);
-  assert.doesNotMatch(html, /现金不足会自动转贷款/);
-  assert.match(html, /财富评级提升后自动扩容/);
+  assert.equal((ruleList.match(/<li>/g) || []).length, 5);
+  assert.match(html, /只剩.*¥5,000.*旧商行/);
+  assert.match(ruleList, /逐利/);
+  assert.match(ruleList, /观势/);
+  assert.match(ruleList, /借势/);
+  assert.match(ruleList, /奇货铺每 7 天/);
+  assert.match(ruleList, /守仓/);
   assert.match(html, /现金不足会按七折强制平仓/);
+  assert.match(ruleList, /登阶/);
+});
+
+test('new-game controls return to the start screen before another run begins', () => {
+  const source = fs.readFileSync(path.join(ROOT, 'js', 'main.js'), 'utf8');
+
+  assert.match(source, /function returnToStartScreen\(\)/);
+  assert.match(source, /target\.id === 'newGameBtn'[\s\S]*?returnToStartScreen\(\)/);
+  assert.match(source, /target\.id === 'restartBtn'[\s\S]*?returnToStartScreen\(\)/);
 });
 
 test('the in-game version button lives in the header instead of covering content', () => {
@@ -317,6 +331,20 @@ test('natural sudden event count keeps the original daily distribution', () => {
   api.setRandom(() => calls++ === 0 ? 0.90 : 0.1);
   api.spawnEvents();
   assert.equal(state.events.length, 3);
+});
+
+test('ecological news expands the market to seven goods until the event ends', () => {
+  const { api } = createGame({ random: () => 0.5 });
+  const state = api.reset();
+  state.day = 7;
+  state.scheduledEco = 'globalDrought';
+
+  api.nextDay();
+  assert.notEqual(state.eco, null);
+  assert.equal(state.availableGoods.length, 7);
+
+  while (state.eco) api.nextDay();
+  assert.equal(state.availableGoods.length, api.CONFIG.MARKET_SIZE);
 });
 
 test('an extreme event price recovers over multiple days instead of snapping to normal', () => {

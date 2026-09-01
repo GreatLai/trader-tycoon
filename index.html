@@ -14,18 +14,17 @@
       <img class="brand-logo brand-logo-horizontal" src="assets/art/runtime/brand/logo-horizontal.webp" alt="倒卖大亨">
       <img class="brand-logo brand-logo-seal" src="assets/art/runtime/brand/logo-seal.webp" alt="">
     </div>
-    <div class="subtitle">90 天商途，每多一个 0 提升一个财富评级</div>
+    <div class="subtitle">九十日商途，从一间旧商行做到万贯家业</div>
     <div class="rule-card">
-      <h2>规则</h2>
-      <ul>
-        <li>💰 初始本钱 <b>¥5,000</b>，90 天内尽可能积累财富，每翻 10 倍获得新评级</li>
-        <li>📦 初始仓库容量 <b>1,000</b>，财富评级提升后自动扩容</li>
-        <li>📅 点击「进入下一天」推进日期，当天内买卖不限次数</li>
-        <li>🏪 每天市场只上架 <b>5 种</b>商品，没上架的商品当天无法买卖</li>
-        <li>📊 价格每天波动；低价商品更容易翻倍，高价商品更稳</li>
-        <li>📰 事件会带来暴涨或暴跌，是机会也是惊吓</li>
-        <li>💸 每天有仓库管理费，现金不足会按七折强制平仓</li>
-        <li>⏰ 90 天到期或破产则结束，不会因达到某个金额提前通关</li>
+      <div class="start-kicker">商行委托书</div>
+      <h2>这间只剩 ¥5,000 本钱的旧商行，现在交给你了。</h2>
+      <p class="start-story">九十天后港口封账。看准行情、周转货物，让账本上的每一个零都成为新的财富评级。</p>
+      <ul class="start-rules">
+        <li><strong>逐利</strong><span>每日通常上架 5 种商品，当天买卖不限次数。低价收货，高价出手。</span></li>
+        <li><strong>观势</strong><span>行情每日刷新；突发新闻与国际生态事件会制造涨跌机会，生态行情期间货架扩至 7 个。</span></li>
+        <li><strong>借势</strong><span>奇货铺每 7 天换一批道具。买消息、造低价，或让选中的持仓迎来风口。</span></li>
+        <li><strong>守仓</strong><span>货物占用仓库并产生管理费；现金不足会按七折强制平仓。</span></li>
+        <li><strong>登阶</strong><span>财富每跨越一个数量级，评级提升、仓库扩建；第 90 天结算最终身家。</span></li>
       </ul>
       <button id="startBtn" class="btn btn-block">开始新游戏</button>
       <button id="continueBtn" class="btn btn-secondary btn-block hidden">继续上次游戏</button>
@@ -87,6 +86,7 @@
 
         <div class="panel">
           <div class="panel-title">🏪 奇货铺 <span class="badge" id="shopCountdown">刷新倒计时</span></div>
+          <div class="shop-motto">七日一开市，售完不补。奇货价格随你的最高身家上涨。</div>
           <div id="shopStock"></div>
           <div id="cardInventory"></div>
         </div>

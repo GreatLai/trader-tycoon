@@ -54,7 +54,7 @@ function resolveNextDayState() {
   state.eventNoticeQueue = [];
   advanceEcology();
   applyDailyCosts();
-  state.availableGoods = pickGoods(CONFIG.MARKET_SIZE);
+  state.availableGoods = pickGoods(state.eco ? CONFIG.ECO_MARKET_SIZE : CONFIG.MARKET_SIZE);
   spawnEvents();
   updatePrices();
   updateSeenPrices();
