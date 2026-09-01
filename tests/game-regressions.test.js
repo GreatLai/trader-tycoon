@@ -125,14 +125,14 @@ test('the in-game version button lives in the header instead of covering content
   assert.doesNotMatch(html, /id="versionFab"[^>]*position:fixed/);
 });
 
-test('the stability release version is consistent across delivery files', () => {
+test('the inline trading release version is consistent across delivery files', () => {
   const { api } = createGame();
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.4.1');
+  assert.equal(api.APP_VERSION, '1.5.0');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.4\.1/g) || []).length, 11);
+  assert.equal((html.match(/\?v=1\.5\.0/g) || []).length, 11);
 });
 
 test('manual version refresh preserves the existing save', () => {
@@ -141,6 +141,56 @@ test('manual version refresh preserves the existing save', () => {
 
   assert.doesNotMatch(updateBody, /removeItem|clearSave/);
   assert.doesNotMatch(source, /更新将清除存档/);
+});
+
+test('market rows expose immediate presets and custom buy and sell controls', () => {
+  const source = fs.readFileSync(path.join(ROOT, 'js', 'ui.js'), 'utf8');
+
+  assert.match(source, /class="trade-row trade-buy"/);
+  assert.match(source, /class="trade-row trade-sell"/);
+  for (const qty of ['1', '10', '100']) {
+    assert.match(source, new RegExp(`data-action="buy"[^>]*data-qty="${qty}"`));
+    assert.match(source, new RegExp(`data-action="sell"[^>]*data-qty="${qty}"`));
+  }
+  assert.match(source, /data-action="buy"[^>]*data-qty="max"[^>]*>买满/);
+  assert.match(source, /data-action="sell"[^>]*data-qty="all"[^>]*>全卖/);
+  assert.match(source, /data-trade-input="buy"/);
+  assert.match(source, /data-trade-input="sell"/);
+  assert.match(source, /data-custom-trade="buy"/);
+  assert.match(source, /data-custom-trade="sell"/);
+  assert.match(source, /owned === 0 \? 'disabled' : ''/);
+});
+
+test('legacy trade modal is removed', () => {
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const mainSource = fs.readFileSync(path.join(ROOT, 'js', 'main.js'), 'utf8');
+
+  assert.doesNotMatch(html, /id="tradeOverlay"|id="tradeQty"|id="tradeBuyBtn"|id="tradeSellBtn"/);
+  assert.doesNotMatch(mainSource, /tradeGoodId|openTrade|renderTrade|data\.tradeQuick/);
+});
+
+test('custom inline trades support click and Enter and clear only after success', () => {
+  const source = fs.readFileSync(path.join(ROOT, 'js', 'main.js'), 'utf8');
+
+  assert.match(source, /function executeCustomTrade\(target\)/);
+  assert.match(source, /target\.dataset\.customTrade/);
+  assert.match(source, /input\.value = ''/);
+  assert.match(source, /document\.addEventListener\('keydown'/);
+  assert.match(source, /e\.key !== 'Enter'/);
+  assert.match(source, /executeCustomTrade\(input\)/);
+});
+
+test('market CSS uses stable desktop tracks and a three-row mobile layout', () => {
+  const css = fs.readFileSync(path.join(ROOT, 'css', 'style.css'), 'utf8');
+
+  assert.match(css, /@media \(max-width:\s*1120px\)\s*\{\s*main \{ grid-template-columns: 1fr; \}/);
+  assert.match(css, /grid-template-areas:\s*"info buy"\s*"info sell"/);
+  assert.match(css, /font-variant-numeric:\s*tabular-nums/);
+  assert.match(css, /\.trade-row[^}]*white-space:\s*nowrap/s);
+  assert.match(css, /\.trade-custom-input[^}]*width:/s);
+  assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*grid-template-areas:\s*"info"\s*"buy"\s*"sell"/);
+  assert.match(css, /@media \(max-width:\s*360px\)[\s\S]*\.trade-row\s*\{[^}]*grid-template-columns:\s*24px/s);
+  assert.doesNotMatch(css, /<\/style>/);
 });
 
 test('every ecological event has complete A/B/C multipliers', () => {

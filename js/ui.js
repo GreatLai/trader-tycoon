@@ -9,7 +9,6 @@ function render() {
     $('milestoneOverlay').classList.add('hidden');
     $('historyOverlay').classList.add('hidden');
     $('chartOverlay').classList.add('hidden');
-      $('tradeOverlay').classList.add('hidden');
     $('continueBtn').classList.toggle('hidden', !load());
     return;
   }
@@ -22,7 +21,6 @@ function render() {
     $('milestoneOverlay').classList.add('hidden');
     $('historyOverlay').classList.add('hidden');
     $('chartOverlay').classList.add('hidden');
-      $('tradeOverlay').classList.add('hidden');
   }
 
   const nw = netWorth();
@@ -63,17 +61,37 @@ function render() {
     const holdColor = holdPnl >= 0 ? 'var(--green)' : 'var(--red)';
     const holdText = owned > 0 ? ` ｜ 持仓 <span style="color:${holdColor};font-weight:600;">${holdPnl >= 0 ? '+' : ''}${fmt(holdPnl, 1)}%</span>` : '';
     const ecoClass = state.eco && ECO_EVENTS[state.eco.treeId].goods.includes(id) ? ' eco-affected' : '';
+    const maxBuy = Math.min(Math.floor(state.cash / price), cap - used);
+    const buyDisabled = maxBuy === 0 ? 'disabled' : '';
+    const sellDisabled = owned === 0 ? 'disabled' : '';
     return `
       <div class="market-row${ecoClass}">
-        <div class="good-name"><button class="good-icon-btn" data-chart-good="${id}" title="查看走势">${g.icon}</button>${g.name}</div>
-        <div class="price-col">
-          <div class="price">¥${fmt(price, 2)}</div>
-          <div class="change ${seenCls}">${seenArrow} ${seenChange >= 0 ? '+' : ''}${fmt(seenChange, 1)}% 较上次</div>
-          <div class="base-meta">${seenText}${holdText}</div>
+        <div class="market-info">
+          <div class="good-name"><button class="good-icon-btn" data-chart-good="${id}" title="查看走势">${g.icon}</button><span>${g.name}</span></div>
+          <div class="price-col">
+            <div class="price">¥${fmt(price, 2)}</div>
+            <div class="change ${seenCls}">${seenArrow} ${seenChange >= 0 ? '+' : ''}${fmt(seenChange, 1)}% 较上次</div>
+            <div class="base-meta">${seenText}${holdText}</div>
+          </div>
+          <div class="owned">持有 <strong>${owned}</strong></div>
         </div>
-        <div class="owned">持有 ${owned}</div>
-        <div class="actions">
-          <button class="btn btn-small" data-trade="${id}">交易</button>
+        <div class="trade-row trade-buy">
+          <span class="trade-label">买入</span>
+          <button class="btn btn-small trade-preset" data-action="buy" data-good="${id}" data-qty="1" ${buyDisabled}>+1</button>
+          <button class="btn btn-small trade-preset" data-action="buy" data-good="${id}" data-qty="10" ${buyDisabled}>+10</button>
+          <button class="btn btn-small trade-preset" data-action="buy" data-good="${id}" data-qty="100" ${buyDisabled}>+100</button>
+          <button class="btn btn-small trade-fill" data-action="buy" data-good="${id}" data-qty="max" ${buyDisabled}>买满</button>
+          <input class="trade-custom-input" type="number" min="1" step="1" inputmode="numeric" placeholder="数量" aria-label="${g.name}买入数量" data-trade-input="buy" data-good="${id}" ${buyDisabled}>
+          <button class="btn btn-small btn-green trade-submit" data-custom-trade="buy" data-good="${id}" ${buyDisabled}>买入</button>
+        </div>
+        <div class="trade-row trade-sell">
+          <span class="trade-label">卖出</span>
+          <button class="btn btn-small btn-ghost trade-preset" data-action="sell" data-good="${id}" data-qty="1" ${sellDisabled}>-1</button>
+          <button class="btn btn-small btn-ghost trade-preset" data-action="sell" data-good="${id}" data-qty="10" ${sellDisabled}>-10</button>
+          <button class="btn btn-small btn-ghost trade-preset" data-action="sell" data-good="${id}" data-qty="100" ${sellDisabled}>-100</button>
+          <button class="btn btn-small btn-ghost trade-fill" data-action="sell" data-good="${id}" data-qty="all" ${sellDisabled}>全卖</button>
+          <input class="trade-custom-input" type="number" min="1" step="1" inputmode="numeric" placeholder="数量" aria-label="${g.name}卖出数量" data-trade-input="sell" data-good="${id}" ${sellDisabled}>
+          <button class="btn btn-small btn-red trade-submit" data-custom-trade="sell" data-good="${id}" ${sellDisabled}>卖出</button>
         </div>
       </div>`;
   }).join('');
