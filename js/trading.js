@@ -1,7 +1,13 @@
 // ==================== 交易 ====================
+function parseTradeQuantity(value) {
+  const qty = Math.floor(Number(value));
+  return Number.isFinite(qty) && qty > 0 ? qty : 0;
+}
+
 function buy(id, qty) {
   if (state.gameOver) return;
   if (!state.availableGoods.includes(id)) return;
+  if (!Number.isFinite(qty)) return;
   qty = Math.floor(qty);
   if (qty <= 0) return;
   const price = state.prices[id];
@@ -17,6 +23,7 @@ function buy(id, qty) {
 function sell(id, qty) {
   if (state.gameOver) return;
   if (!state.availableGoods.includes(id)) return;
+  if (!Number.isFinite(qty)) return;
   qty = Math.min(Math.floor(qty), state.inventory[id] || 0);
   if (qty <= 0) return;
   const price = state.prices[id];

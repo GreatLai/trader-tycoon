@@ -125,14 +125,14 @@ test('the in-game version button lives in the header instead of covering content
   assert.doesNotMatch(html, /id="versionFab"[^>]*position:fixed/);
 });
 
-test('the inline trading release version is consistent across delivery files', () => {
+test('the inline trading hotfix version is consistent across delivery files', () => {
   const { api } = createGame();
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.5.0');
+  assert.equal(api.APP_VERSION, '1.5.1');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.5\.0/g) || []).length, 11);
+  assert.equal((html.match(/\?v=1\.5\.1/g) || []).length, 11);
 });
 
 test('manual version refresh preserves the existing save', () => {
@@ -178,6 +178,36 @@ test('custom inline trades support click and Enter and clear only after success'
   assert.match(source, /document\.addEventListener\('keydown'/);
   assert.match(source, /e\.key !== 'Enter'/);
   assert.match(source, /executeCustomTrade\(input\)/);
+  assert.match(source, /parseTradeQuantity\(input\.value\)/);
+});
+
+test('custom trade quantity parsing rejects empty and invalid values', () => {
+  const { api } = createGame();
+
+  assert.equal(api.parseTradeQuantity(''), 0);
+  assert.equal(api.parseTradeQuantity('not-a-number'), 0);
+  assert.equal(api.parseTradeQuantity('Infinity'), 0);
+  assert.equal(api.parseTradeQuantity('3'), 3);
+  assert.equal(api.parseTradeQuantity('3.9'), 3);
+});
+
+test('non-finite trade quantities cannot corrupt cash or inventory', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.availableGoods = ['wheat'];
+  state.prices.wheat = 5;
+  state.inventory.wheat = 1000;
+  state.costBasis.wheat = 5000;
+
+  for (const qty of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+    api.sell('wheat', qty);
+    api.buy('wheat', qty);
+  }
+
+  assert.equal(state.cash, api.CONFIG.START_CASH);
+  assert.equal(state.inventory.wheat, 1000);
+  assert.equal(state.costBasis.wheat, 5000);
+  assert.equal(Number.isFinite(api.netWorth()), true);
 });
 
 test('market CSS uses stable desktop tracks and a three-row mobile layout', () => {

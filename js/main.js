@@ -173,7 +173,7 @@ function executeCustomTrade(target) {
   const good = target.dataset.good;
   const row = target.closest('.trade-row');
   const input = target.matches('input') ? target : row && row.querySelector('[data-trade-input]');
-  const qty = input ? parseInt(input.value, 10) : 0;
+  const qty = input ? parseTradeQuantity(input.value) : 0;
   if (!side || !good || !input || qty <= 0) return;
 
   const cashBefore = state.cash;
