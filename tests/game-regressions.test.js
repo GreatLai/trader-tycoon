@@ -130,9 +130,9 @@ test('the inline trading hotfix version is consistent across delivery files', ()
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.5.1');
+  assert.equal(api.APP_VERSION, '1.6.0');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.5\.1/g) || []).length, 11);
+  assert.equal((html.match(/\?v=1\.6\.0/g) || []).length, 11);
 });
 
 test('manual version refresh preserves the existing save', () => {
@@ -220,7 +220,29 @@ test('market CSS uses stable desktop tracks and a three-row mobile layout', () =
   assert.match(css, /\.trade-custom-input[^}]*width:/s);
   assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*grid-template-areas:\s*"info"\s*"buy"\s*"sell"/);
   assert.match(css, /@media \(max-width:\s*360px\)[\s\S]*\.trade-row\s*\{[^}]*grid-template-columns:\s*24px/s);
+  assert.match(css, /#chartSvgWrap\s+svg\s*\{[^}]*width:\s*100%[^}]*height:\s*auto/s);
   assert.doesNotMatch(css, /<\/style>/);
+});
+
+test('generated art is wired into goods, branding, and responsive scenery', () => {
+  const { api } = createGame();
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const uiSource = fs.readFileSync(path.join(ROOT, 'js', 'ui.js'), 'utf8');
+  const css = fs.readFileSync(path.join(ROOT, 'css', 'style.css'), 'utf8');
+
+  for (const good of api.GOODS) {
+    assert.equal(good.art, `assets/art/runtime/goods/good-${good.id}-128.webp`);
+  }
+  assert.match(html, /class="brand-logo brand-logo-horizontal"[^>]*logo-horizontal\.webp/);
+  assert.match(html, /class="brand-logo brand-logo-seal"[^>]*logo-seal\.webp/);
+  assert.match(uiSource, /good-art-image/);
+  assert.match(uiSource, /onerror=/);
+  assert.match(css, /paper-tile\.webp/);
+  assert.match(css, /harbor-desktop\.webp/);
+  assert.match(css, /harbor-mobile\.webp/);
+  assert.match(html, /coin-tassel\.webp/);
+  assert.match(css, /@media \(max-width:\s*640px\)[\s\S]*brand-logo-horizontal[^}]*display:\s*none/);
+  assert.match(css, /@media \(max-width:\s*640px\)[\s\S]*brand-logo-seal[^}]*display:/);
 });
 
 test('every ecological event has complete A/B/C multipliers', () => {

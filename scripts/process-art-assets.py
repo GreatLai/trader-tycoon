@@ -2,7 +2,7 @@
 import argparse
 from pathlib import Path
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageChops, ImageFilter, ImageOps
 
 
 RESAMPLE = Image.Resampling.LANCZOS
@@ -21,6 +21,27 @@ def trim_alpha(image):
     if bbox is None:
         raise ValueError("source image is fully transparent")
     return image.crop(bbox)
+
+
+def chroma_alpha(image, key):
+    red, green, blue = image.convert("RGB").split()
+    if key == "green":
+        dominant = green
+        competing = ImageChops.lighter(red, blue)
+    else:
+        dominant = ImageChops.darker(red, blue)
+        competing = green
+
+    difference = ImageChops.subtract(dominant, competing)
+    alpha = difference.point(lambda value: max(0, min(255, int((72 - value) * 4.72))))
+    return alpha.filter(ImageFilter.GaussianBlur(0.55))
+
+
+def process_chroma_key(args):
+    image = open_rgba(args.source)
+    image.putalpha(chroma_alpha(image, args.key))
+    ensure_parent(args.output)
+    image.save(args.output, "PNG", optimize=True)
 
 
 def save_webp(image, path, size=None):
@@ -85,6 +106,12 @@ def process_contact_sheet(args):
 def build_parser():
     parser = argparse.ArgumentParser(description="Normalize Trader Tycoon art assets")
     subparsers = parser.add_subparsers(dest="mode", required=True)
+
+    chroma = subparsers.add_parser("chroma-key", help="convert a solid green or magenta backdrop to alpha")
+    chroma.add_argument("source")
+    chroma.add_argument("--output", required=True)
+    chroma.add_argument("--key", choices=("green", "magenta"), required=True)
+    chroma.set_defaults(func=process_chroma_key)
 
     icon = subparsers.add_parser("icon", help="normalize a transparent commodity icon")
     icon.add_argument("source")

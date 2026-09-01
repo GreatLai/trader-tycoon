@@ -84,7 +84,39 @@ test('art processor exposes all production modes', () => {
   const result = runPython([script, '--help']);
 
   assert.equal(result.status, 0, result.stderr);
-  for (const mode of ['icon', 'brand', 'texture', 'scenery', 'contact-sheet']) {
+  for (const mode of ['chroma-key', 'icon', 'brand', 'texture', 'scenery', 'contact-sheet']) {
     assert.match(result.stdout, new RegExp(`\\b${mode}\\b`));
   }
+});
+
+test('art processor removes a solid chroma background without erasing the subject', () => {
+  const script = path.join(ROOT, 'scripts', 'process-art-assets.py');
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'trader-chroma-'));
+  const source = path.join(tempDir, 'source.png');
+  const output = path.join(tempDir, 'cutout.png');
+
+  const create = runPython([
+    '-c',
+    'from PIL import Image, ImageDraw; import sys; im=Image.new("RGB",(100,100),(255,0,255)); ImageDraw.Draw(im).ellipse((25,20,75,80),fill=(190,130,40)); im.save(sys.argv[1])',
+    source
+  ]);
+  assert.equal(create.status, 0, create.stderr);
+
+  const process = runPython([
+    script, 'chroma-key', source,
+    '--output', output,
+    '--key', 'magenta'
+  ]);
+  assert.equal(process.status, 0, process.stderr);
+
+  const inspect = runPython([
+    '-c',
+    'from PIL import Image; import json,sys; im=Image.open(sys.argv[1]).convert("RGBA"); print(json.dumps({"corner":im.getpixel((0,0)),"center":im.getpixel((50,50)),"mode":im.mode}))',
+    output
+  ]);
+  assert.equal(inspect.status, 0, inspect.stderr);
+  const details = JSON.parse(inspect.stdout);
+  assert.equal(details.mode, 'RGBA');
+  assert.equal(details.corner[3], 0);
+  assert.equal(details.center[3], 255);
 });

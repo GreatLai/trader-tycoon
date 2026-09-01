@@ -1,6 +1,6 @@
 // ==================== 配置 ====================
 const ULTRA_UNLOCK = 10000000;
-const APP_VERSION = '1.5.1';
+const APP_VERSION = '1.6.0';
 
 const CONFIG = {
   DAYS_LIMIT: 90,
@@ -2968,21 +2968,21 @@ const WAREHOUSE_CAPACITY_BY_MILESTONE = [1000, 2000, 20000, 200000, 2000000, 200
 
 const GOODS = [
   // 低档：便宜、频繁翻倍，前期滚雪球主力
-  { id: 'wheat',  name: '小麦',  icon: '🌾', base: 5,   vol: 0.10, tier: 'low' },
-  { id: 'wood',   name: '木材',  icon: '🪵', base: 8,   vol: 0.09, tier: 'low' },
-  { id: 'coal',   name: '煤炭',  icon: '⛏️', base: 12,  vol: 0.08, tier: 'low' },
-  { id: 'tea',    name: '茶叶',  icon: '🍵', base: 18,  vol: 0.07, tier: 'low' },
-  { id: 'coffee', name: '咖啡',  icon: '☕', base: 28,  vol: 0.06, tier: 'low' },
+  { id: 'wheat',  name: '小麦',  icon: '🌾', art: 'assets/art/runtime/goods/good-wheat-128.webp', base: 5,   vol: 0.10, tier: 'low' },
+  { id: 'wood',   name: '木材',  icon: '🪵', art: 'assets/art/runtime/goods/good-wood-128.webp', base: 8,   vol: 0.09, tier: 'low' },
+  { id: 'coal',   name: '煤炭',  icon: '⛏️', art: 'assets/art/runtime/goods/good-coal-128.webp', base: 12,  vol: 0.08, tier: 'low' },
+  { id: 'tea',    name: '茶叶',  icon: '🍵', art: 'assets/art/runtime/goods/good-tea-128.webp', base: 18,  vol: 0.07, tier: 'low' },
+  { id: 'coffee', name: '咖啡',  icon: '☕', art: 'assets/art/runtime/goods/good-coffee-128.webp', base: 28,  vol: 0.06, tier: 'low' },
   // 中档：价格更高，机会中等
-  { id: 'copper', name: '铜',    icon: '🔩', base: 80,  vol: 0.06, tier: 'mid' },
-  { id: 'oil',    name: '石油',  icon: '🛢️', base: 160, vol: 0.05, tier: 'mid' },
-  { id: 'chip',   name: '芯片',  icon: '🔲', base: 320, vol: 0.04, tier: 'mid' },
+  { id: 'copper', name: '铜',    icon: '🔩', art: 'assets/art/runtime/goods/good-copper-128.webp', base: 80,  vol: 0.06, tier: 'mid' },
+  { id: 'oil',    name: '石油',  icon: '🛢️', art: 'assets/art/runtime/goods/good-oil-128.webp', base: 160, vol: 0.05, tier: 'mid' },
+  { id: 'chip',   name: '芯片',  icon: '🔲', art: 'assets/art/runtime/goods/good-chip-128.webp', base: 320, vol: 0.04, tier: 'mid' },
   // 高档：日常也涨跌，但暴击机会更少，适合后期大资金
-  { id: 'phone',  name: '手机',  icon: '📱', base: 2000, vol: 0.03, tier: 'high' },
-  { id: 'gold',   name: '黄金',  icon: '🪙', base: 6000, vol: 0.02, tier: 'high' },
+  { id: 'phone',  name: '手机',  icon: '📱', art: 'assets/art/runtime/goods/good-phone-128.webp', base: 2000, vol: 0.03, tier: 'high' },
+  { id: 'gold',   name: '黄金',  icon: '🪙', art: 'assets/art/runtime/goods/good-gold-128.webp', base: 6000, vol: 0.02, tier: 'high' },
   // 超高价值：后期解锁，跌多涨少，一涨很夸张
-  { id: 'diamond', name: '钻石', icon: '💎', base: 30000, vol: 0.015, tier: 'ultra' },
-  { id: 'antique', name: '古董', icon: '🏺', base: 120000, vol: 0.012, tier: 'ultra' },
-  { id: 'spacecraft', name: '航天器', icon: '🚀', base: 500000, vol: 0.010, tier: 'ultra' }
+  { id: 'diamond', name: '钻石', icon: '💎', art: 'assets/art/runtime/goods/good-diamond-128.webp', base: 30000, vol: 0.015, tier: 'ultra' },
+  { id: 'antique', name: '古董', icon: '🏺', art: 'assets/art/runtime/goods/good-antique-128.webp', base: 120000, vol: 0.012, tier: 'ultra' },
+  { id: 'spacecraft', name: '航天器', icon: '🚀', art: 'assets/art/runtime/goods/good-spacecraft-128.webp', base: 500000, vol: 0.010, tier: 'ultra' }
 ];
 

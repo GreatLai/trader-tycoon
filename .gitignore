@@ -12,3 +12,8 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Generated art working files
+assets/art/source/goods/*-chroma.png
+assets/art/source/**/*-preview.png
+assets/art/runtime/**/*-preview.png
+assets/art/runtime/goods/contact-sheet-sample.png

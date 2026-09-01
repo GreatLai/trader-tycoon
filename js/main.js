@@ -63,9 +63,9 @@ function renderChart() {
   const id = state.chartGood;
   const g = goodById(id);
   const data = state.priceHistory[id] || [];
-  $('chartTitle').textContent = `${g.icon} ${g.name} 走势（开局 ¥${fmt(data[0] ? data[0].price : 0, 2)}）`;
+  $('chartTitle').innerHTML = `${goodArt(g, 'good-art-small')}<span>${g.name} 走势（开局 ¥${fmt(data[0] ? data[0].price : 0, 2)}）</span>`;
   $('chartGoods').innerHTML = GOODS.map(x => `
-    <button class="btn btn-small ${x.id === id ? '' : 'btn-ghost'}" data-chart-good="${x.id}" style="font-size:18px;padding:4px 10px;">${x.icon}</button>
+    <button class="btn btn-small chart-good-btn ${x.id === id ? '' : 'btn-ghost'}" data-chart-good="${x.id}" aria-label="查看${x.name}走势">${goodArt(x, 'good-art-small')}</button>
   `).join('');
 
   const W = 620, H = 300, padL = 60, padR = 20, padT = 20, padB = 40;

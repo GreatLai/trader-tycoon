@@ -1,20 +1,22 @@
   :root {
-    --bg: #f4f6fb;
-    --card: #ffffff;
-    --line: #e5e9f2;
-    --text: #1f2937;
-    --muted: #6b7280;
-    --blue: #2f6fed;
-    --blue-dark: #1e50c8;
-    --green: #16a34a;
-    --red: #dc2626;
-    --amber: #d97706;
-    --radius: 12px;
+    --bg: #eee8d7;
+    --card: rgba(250, 247, 238, .94);
+    --line: #c8b88e;
+    --text: #172b35;
+    --muted: #6c6b63;
+    --blue: #183b4a;
+    --blue-dark: #102c38;
+    --green: #3f6b57;
+    --red: #a83d32;
+    --amber: #ae7b2f;
+    --radius: 8px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
-    background: var(--bg);
+    background-color: var(--bg);
+    background-image: url('../assets/art/runtime/environment/paper-tile.webp');
+    background-repeat: repeat;
     color: var(--text);
     min-height: 100vh;
     font-variant-numeric: tabular-nums;
@@ -432,3 +434,239 @@
     transition: opacity .2s;
   }
   .toast.show { opacity: 1; }
+
+  /* ---------- Oriental ledger art layer ---------- */
+  #startScreen {
+    position: relative;
+    isolation: isolate;
+    max-width: none;
+    overflow: hidden;
+  }
+  #startScreen::before {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    z-index: -2;
+    height: min(62vh, 620px);
+    background: url('../assets/art/runtime/environment/harbor-desktop.webp') center bottom / cover no-repeat;
+    opacity: .5;
+  }
+  #startScreen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: rgba(244, 239, 225, .46);
+    pointer-events: none;
+  }
+  .start-brand {
+    width: min(620px, 90vw);
+    height: clamp(108px, 18vw, 190px);
+    display: grid;
+    place-items: center;
+    margin-bottom: 4px;
+  }
+  .brand-logo { display: block; object-fit: contain; }
+  .brand-logo-horizontal { width: 100%; height: 100%; }
+  .brand-logo-seal { display: none; width: 64px; height: 64px; }
+  #startScreen .subtitle {
+    color: var(--text);
+    font-family: "STKaiti", "KaiTi", "FangSong", serif;
+    font-size: 16px;
+    font-weight: 700;
+    text-shadow: 0 1px rgba(255,255,255,.75);
+  }
+  .rule-card {
+    max-width: 680px;
+    background: rgba(250, 247, 238, .92);
+    border-color: rgba(139, 102, 42, .42);
+    border-radius: 8px;
+    box-shadow: 0 12px 32px rgba(33, 42, 38, .12);
+    backdrop-filter: blur(3px);
+  }
+  .rule-card h2,
+  .panel-title,
+  .modal h2 {
+    font-family: "STKaiti", "KaiTi", "Microsoft YaHei", sans-serif;
+    color: var(--text);
+  }
+  .rule-card li { color: #34464a; }
+
+  .btn { border-radius: 6px; background: var(--blue); }
+  .btn:hover { background: var(--blue-dark); }
+  .btn-secondary { background: #e4ddc8; color: var(--text); }
+  .btn-secondary:hover { background: #d8cdaa; }
+  .btn-ghost { background: rgba(250,247,238,.72); color: var(--text); border-color: var(--line); }
+  .btn-ghost:hover { background: #eee5cf; }
+  .btn-green { background: var(--green); }
+  .btn-green:hover { background: #315544; }
+  .btn-red { background: var(--red); }
+  .btn-red:hover { background: #873027; }
+  .btn:disabled { background: #bbb7aa; color: #f5f1e8; }
+  .btn-next { background: var(--blue); border-radius: 6px; }
+
+  #gameScreen { position: relative; max-width: 1280px; }
+  .coin-tassel {
+    position: absolute;
+    z-index: 2;
+    top: 138px;
+    right: -56px;
+    width: 92px;
+    height: auto;
+    pointer-events: none;
+    filter: drop-shadow(0 3px 3px rgba(28,31,26,.18));
+  }
+  header {
+    position: relative;
+    display: grid;
+    grid-template-columns: 150px repeat(5, minmax(94px, 1fr)) auto auto 38px;
+    gap: 10px;
+    min-height: 112px;
+    padding: 14px 16px;
+    overflow: hidden;
+    background-color: rgba(247, 242, 227, .9);
+    background-image: url('../assets/art/runtime/environment/harbor-desktop.webp');
+    background-position: center 61%;
+    background-size: cover;
+    border-color: rgba(139, 102, 42, .5);
+    border-radius: 8px;
+    box-shadow: 0 8px 22px rgba(34,44,39,.11);
+  }
+  header .grow { display: none; }
+  .header-brand {
+    width: 150px;
+    height: 66px;
+    align-self: center;
+    padding: 4px 8px;
+    background: rgba(244,239,225,.72);
+    border: 1px solid rgba(139,102,42,.28);
+    border-radius: 6px;
+  }
+  header .stat {
+    justify-content: center;
+    min-width: 0;
+    padding: 7px 8px;
+    background: rgba(250,247,238,.82);
+    border: 1px solid rgba(139,102,42,.24);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  header .stat .label { color: #5d625c; white-space: nowrap; }
+  header .stat .value {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 18px;
+  }
+  header > .btn { align-self: center; min-height: 40px; padding: 9px 12px; }
+  #versionFab { width: 38px; min-width: 38px; padding: 0; }
+
+  .panel {
+    border-color: rgba(139, 102, 42, .4);
+    border-radius: 8px;
+    box-shadow: 0 5px 16px rgba(34,44,39,.08);
+  }
+  .panel-title { letter-spacing: 0; }
+  .panel-title .badge { background: #e6ddc6; color: #5d625c; border-radius: 6px; }
+  .market-row { min-height: 118px; border-color: rgba(139,102,42,.28); }
+  .market-row.eco-affected {
+    outline-color: #6d6657;
+    background: rgba(217,223,199,.46);
+    border-radius: 6px;
+  }
+  .market-info { grid-template-columns: minmax(112px, 1fr) minmax(142px, auto); }
+  .good-icon-btn {
+    display: grid;
+    place-items: center;
+    width: 50px;
+    height: 50px;
+    flex: 0 0 50px;
+    padding: 2px;
+    overflow: hidden;
+    background: rgba(246,241,226,.9);
+    border: 1px solid rgba(139,102,42,.42);
+    border-radius: 6px;
+  }
+  .good-icon-btn:hover { border-color: var(--green); background: #edf0df; }
+  .good-art { display: inline-grid; place-items: center; width: 44px; height: 44px; flex: 0 0 auto; }
+  .good-art-image { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .good-art-fallback { font-size: 24px; line-height: 1; }
+  .good-art-small { width: 30px; height: 30px; }
+  .good-art-small .good-art-fallback { font-size: 19px; }
+  .inventory-good { display: flex; align-items: center; gap: 7px; min-width: 0; }
+  .inventory-good > span:last-child { min-width: 0; }
+  #chartTitle { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 32px; }
+  #chartSvgWrap { width: 100%; min-width: 0; overflow: hidden; background: #f7f3e8 !important; border-radius: 6px !important; }
+  #chartSvgWrap svg { display: block; width: 100%; height: auto; }
+  .chart-good-btn { width: 40px; height: 36px; padding: 2px; }
+  .price { color: var(--text); }
+  .trade-row .btn-small { border-radius: 5px; }
+  .trade-custom-input {
+    border-color: #bcae89;
+    border-radius: 5px;
+    background: rgba(255,253,247,.9);
+    font-variant-numeric: tabular-nums;
+  }
+  .trade-custom-input:focus { outline-color: rgba(63,107,87,.24); border-color: var(--green); }
+  .cap-bar { background: #ded7c4; border-radius: 5px; }
+  .cap-fill { background: var(--amber); border-radius: 5px; }
+  .news-item { border-radius: 5px; background: #eef0e5; border-left-color: var(--blue); }
+  .news-item.bad { background: #f4e5df; }
+  .news-item.good { background: #e4eee4; }
+  .news-item.international { border-left-color: var(--green); background: #e8ecdf; }
+  .modal { background: #faf7ee; border: 1px solid var(--line); border-radius: 8px; }
+
+  @media (max-width: 1120px) {
+    .coin-tassel { display: none; }
+    header { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .header-brand { grid-column: 1 / -1; justify-self: start; }
+    header > .btn { width: 100%; }
+  }
+
+  @media (max-width: 640px) {
+    #startScreen { padding: 28px 14px; }
+    #startScreen::before {
+      height: 58vh;
+      background-image: url('../assets/art/runtime/environment/harbor-mobile.webp');
+      background-position: center bottom;
+    }
+    .start-brand { height: 100px; margin-bottom: 2px; }
+    .start-brand .brand-logo-horizontal { display: none; }
+    .start-brand .brand-logo-seal { display: block; width: 94px; height: 94px; }
+    #startScreen .subtitle { margin-bottom: 20px; text-align: center; font-size: 14px; }
+    .rule-card { padding: 16px; }
+    #chartOverlay .modal { padding: 20px 16px; }
+    header {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      min-height: 0;
+      background-image: url('../assets/art/runtime/environment/harbor-mobile.webp');
+      background-position: center 48%;
+    }
+    .header-brand {
+      grid-column: 1 / -1;
+      justify-self: stretch;
+      width: 100%;
+      height: 62px;
+      display: grid;
+      place-items: center;
+    }
+    .header-brand .brand-logo-horizontal { display: none; }
+    .header-brand .brand-logo-seal { display: block; width: 54px; height: 54px; }
+    header .stat { min-height: 64px; }
+    header .stat .value { font-size: 16px; }
+    #versionFab { width: 100%; min-width: 0; }
+    .market-info { grid-template-columns: minmax(112px, 1fr) minmax(124px, auto); }
+    .good-icon-btn { width: 44px; height: 44px; flex-basis: 44px; }
+    .good-art { width: 38px; height: 38px; }
+    .good-art-small { width: 28px; height: 28px; }
+  }
+
+  @media (max-width: 360px) {
+    .start-brand .brand-logo-seal { width: 82px; height: 82px; }
+    .rule-card li { font-size: 13px; padding: 6px 0; }
+    header { gap: 7px; }
+    header .stat { padding: 6px; }
+    .market-info { grid-template-columns: minmax(100px, 1fr) minmax(118px, auto); }
+    .good-icon-btn { width: 40px; height: 40px; flex-basis: 40px; }
+    .good-art { width: 35px; height: 35px; }
+  }

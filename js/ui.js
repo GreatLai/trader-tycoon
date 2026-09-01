@@ -1,3 +1,7 @@
+function goodArt(g, extraClass = '') {
+  return `<span class="good-art ${extraClass}"><img class="good-art-image" src="${g.art}" alt="" loading="lazy" decoding="async" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="good-art-fallback" hidden>${g.icon}</span></span>`;
+}
+
 // ==================== 渲染 ====================
 function render() {
   const inGame = !!state && !state.gameOver;
@@ -67,7 +71,7 @@ function render() {
     return `
       <div class="market-row${ecoClass}">
         <div class="market-info">
-          <div class="good-name"><button class="good-icon-btn" data-chart-good="${id}" title="查看走势">${g.icon}</button><span>${g.name}</span></div>
+          <div class="good-name"><button class="good-icon-btn" data-chart-good="${id}" title="查看走势" aria-label="查看${g.name}走势">${goodArt(g)}</button><span>${g.name}</span></div>
           <div class="price-col">
             <div class="price">¥${fmt(price, 2)}</div>
             <div class="change ${seenCls}">${seenArrow} ${seenChange >= 0 ? '+' : ''}${fmt(seenChange, 1)}% 较上次</div>
@@ -116,7 +120,7 @@ function render() {
     const stateLabel = isToday ? '' : '（今日未上架）';
     const ecoClass = state.eco && ECO_EVENTS[state.eco.treeId].goods.includes(g.id) ? ' eco-affected' : '';
     return `<div class="inventory-row${ecoClass}">
-      <span>${g.icon} ${g.name} <span class="qty">×${qty}</span> <span style="font-size:11px;color:var(--muted);">${stateLabel}</span></span>
+      <span class="inventory-good">${goodArt(g, 'good-art-small')}<span>${g.name} <span class="qty">×${qty}</span> <span style="font-size:11px;color:var(--muted);">${stateLabel}</span></span></span>
       <span class="value">
         <div class="price-line">${priceLabel}</div>
         <div class="pnl-line" style="color:${color}">${pnlPer >= 0 ? '+' : ''}${fmt(pnlPer, 2)}/单位 (${fmt(pnlPct, 1)}%) ｜ ${pnl >= 0 ? '+' : ''}${fmt(pnl, 2)}</div>
