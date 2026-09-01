@@ -77,23 +77,6 @@ function buyUsefulCards(api, state, stats, allowedCards = null) {
   }
 }
 
-function diversifyForRiseCards(api, state, stats) {
-  for (const id of state.availableGoods) {
-    const qty = state.inventory[id] || 0;
-    if (!qty) continue;
-    const average = state.costBasis[id] / qty;
-    stats.realizedProfit += (state.prices[id] - average) * qty;
-    api.sell(id, qty);
-    stats.sellActions++;
-  }
-  const cashPerGood = state.cash / state.availableGoods.length;
-  const unitsPerGood = Math.floor(api.capacity() / state.availableGoods.length);
-  for (const id of state.availableGoods) {
-    const quantity = Math.min(unitsPerGood, Math.floor(cashPerGood / state.prices[id]));
-    if (quantity > 0) { api.buy(id, quantity); stats.buyActions++; }
-  }
-}
-
 function useCards(api, state, stats, prepareRise = false) {
   const use = (cardId, target = null) => {
     const before = api.netWorth();
@@ -112,9 +95,10 @@ function useCards(api, state, stats, prepareRise = false) {
     if (quantity > 0) { api.buy(id, quantity); stats.buyActions++; }
   }
   while ((state.cardInventory.suddenRise || 0) > 0) {
-    if (prepareRise) diversifyForRiseCards(api, state, stats);
-    if (api.totalUnits() <= 0) break;
-    const result = use('suddenRise');
+    const held = state.availableGoods.filter(id => (state.inventory[id] || 0) > 0);
+    if (!held.length) break;
+    const target = held.sort((a, b) => state.inventory[b] * state.prices[b] - state.inventory[a] * state.prices[a])[0];
+    const result = use('suddenRise', target);
     if (!result.ok) break;
     if (prepareRise) {
       const id = result.goodId;
@@ -221,6 +205,7 @@ function aggregate(strategy, runs) {
     millionRate: results.filter(result => result.firstMillionDay).length / runs,
     tenMillionRate: results.filter(result => result.firstTenMillionDay).length / runs,
     billionRate: results.filter(result => result.finalWorth >= 1000000000).length / runs,
+    tenBillionRate: results.filter(result => result.finalWorth >= 10000000000).length / runs,
     hundredBillionRate: results.filter(result => result.finalWorth >= 100000000000).length / runs,
     medianMillionDay: summarize(results.filter(result => result.firstMillionDay).map(result => result.firstMillionDay)).median,
     medianTenMillionDay: summarize(results.filter(result => result.firstTenMillionDay).map(result => result.firstTenMillionDay)).median,

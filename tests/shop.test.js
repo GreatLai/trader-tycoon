@@ -31,7 +31,7 @@ test('add-good card expands the live market and consumes one card', () => {
   assert.equal(state.cardInventory.addGood, 0);
 });
 
-test('sudden-rise card chooses its target randomly instead of accepting one', () => {
+test('sudden-rise card applies to the selected listed good', () => {
   const { api } = createGame({ random: () => 0 });
   const state = api.reset();
   state.availableGoods = ['wheat', 'wood'];
@@ -44,9 +44,21 @@ test('sudden-rise card chooses its target randomly instead of accepting one', ()
   const result = api.useCard('suddenRise', 'wood');
 
   assert.equal(result.ok, true);
-  assert.equal(result.goodId, 'wheat');
-  assert.equal(state.prices.wheat > 5, true);
-  assert.equal(state.prices.wood, 8);
+  assert.equal(result.goodId, 'wood');
+  assert.equal(state.prices.wheat, 5);
+  assert.equal(state.prices.wood > 8, true);
+});
+
+test('sudden-rise card rejects an unavailable target without consuming the card', () => {
+  const { api } = createGame({ random: () => 0 });
+  const state = api.reset();
+  state.availableGoods = ['wheat'];
+  state.cardInventory.suddenRise = 1;
+
+  const result = api.useCard('suddenRise', 'wood');
+
+  assert.equal(result.ok, false);
+  assert.equal(state.cardInventory.suddenRise, 1);
 });
 
 test('future-market forecast matches the actual next-day category', () => {
@@ -95,7 +107,7 @@ test('sudden cards anchor their multiplier to the current price during ecology',
   state.eco = { treeId: 'globalDrought', startDay: state.day - 1, A: 0, B: null, C: null };
   state.cardInventory.suddenRise = 1;
 
-  const result = api.useCard('suddenRise');
+  const result = api.useCard('suddenRise', 'wheat');
 
   assert.equal(result.ok, true);
   assert.equal(state.prices.wheat, 25000);

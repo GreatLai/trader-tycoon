@@ -96,7 +96,7 @@ function refreshSingleGood(id) {
 
 function eligibleTargetsFor(cardId) {
   if (cardId === 'addGood') return GOODS.filter(g => !state.availableGoods.includes(g.id) && (g.tier !== 'ultra' || netWorth() >= ULTRA_UNLOCK)).map(g => g.id);
-  if (cardId === 'refreshPrice') return state.availableGoods.slice();
+  if (cardId === 'refreshPrice' || cardId === 'suddenRise') return state.availableGoods.slice();
   if (cardId === 'futureMarket') return GOODS.filter(g => state.lastSeenPrice[g.id] != null).map(g => g.id);
   return [];
 }
@@ -136,10 +136,10 @@ function useCard(cardId, targetId = null) {
     consumeCard(cardId);
     return { ok: true, message: `已安排：${ECO_EVENTS[state.scheduledEco].name}` };
   }
-  if (cardId === 'suddenRise' || cardId === 'suddenFall') {
+  if (cardId === 'suddenFall') {
     if (!state.availableGoods.length) return { ok: false, message: '当前没有已上架商品' };
     const goodId = state.availableGoods[Math.floor(Math.random() * state.availableGoods.length)];
-    const event = applyCardEvent(goodId, cardId === 'suddenRise');
+    const event = applyCardEvent(goodId, false);
     consumeCard(cardId);
     return { ok: true, goodId, message: event.title };
   }
@@ -147,6 +147,11 @@ function useCard(cardId, targetId = null) {
   if (!targetId || !targets.includes(targetId)) return { ok: false, message: '请选择有效商品' };
   if (cardId === 'addGood') { state.availableGoods.push(targetId); refreshSingleGood(targetId); }
   else if (cardId === 'refreshPrice') refreshSingleGood(targetId);
+  else if (cardId === 'suddenRise') {
+    const event = applyCardEvent(targetId, true);
+    consumeCard(cardId);
+    return { ok: true, goodId: targetId, message: event.title };
+  }
   else if (cardId === 'futureMarket') {
     const category = forecastCategories(targetId);
     consumeCard(cardId);
@@ -169,7 +174,7 @@ function renderCardUse() {
   const card = SHOP_CONFIG.CARDS[cardUseId];
   $('cardModalTitle').textContent = `使用卡牌：${card.name}`;
   $('cardModalInfo').textContent = card.desc;
-  const needsTarget = !['suddenRise', 'suddenFall', 'iAmTheTrend'].includes(cardUseId);
+  const needsTarget = !['suddenFall', 'iAmTheTrend'].includes(cardUseId);
   const targets = needsTarget ? eligibleTargetsFor(cardUseId) : [];
   $('cardTargets').innerHTML = needsTarget ? (targets.length ? targets.map(id => `<button class="btn btn-small btn-ghost ${cardTarget === id ? 'btn-secondary' : ''}" data-card-target="${id}">${goodById(id).name}</button>`).join('') : '<div class="card-empty">当前没有可用目标。</div>') : '<div class="card-random-note">无需选择目标，确认后立即生效。</div>';
   $('cardUseConfirmBtn').style.display = (!needsTarget || cardTarget) ? 'block' : 'none';
