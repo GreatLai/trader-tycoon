@@ -8,8 +8,7 @@ const CONFIG = {
   START_CASH: 5000,
   MARKET_SIZE: 5,
   STORAGE_FEE_PER_UNIT: 0.05,
-  LOAN_INTEREST_RATE: 0.005,
-  SAVE_KEY: 'trader-tycoon-save-v11'
+  SAVE_KEY: 'trader-tycoon-save-v17'
 };
 
 // ==================== 商店配置 ====================
@@ -2981,7 +2980,7 @@ const ECO_EVENTS = {
 };
 
 // 仓库容量按财富评级动态解锁，达到过不降
-const WAREHOUSE_CAPACITY_BY_MILESTONE = [1000, 2000, 20000, 200000, 2000000, 20000000, 200000000, 2000000000];
+const WAREHOUSE_CAPACITY_BY_MILESTONE = [1000, 4000, 16000, 64000, 256000, 1024000, 4096000, 16000000];
 
 const GOODS = [
   // 低档：便宜、频繁翻倍，前期滚雪球主力

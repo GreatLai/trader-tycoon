@@ -1,9 +1,11 @@
 // ==================== 价格 / 事件 ====================
-function makeEvent(goodId) {
+function makeEvent(goodId, forcedPositive = null) {
   const target = goodById(goodId);
   if (!target) return null;
-    const rare = Math.random() < 0.06;
-    const positive = target.tier === 'ultra' ? Math.random() < 0.30 : Math.random() < 0.55;
+    const forcedByCard = forcedPositive != null;
+    if (!forcedByCard && Math.random() >= eventMovementChance(target.tier)) return null;
+    const rare = Math.random() < eventRareChance(forcedByCard);
+    const positive = forcedPositive == null ? Math.random() < eventPositiveChance(target.tier, rare) : forcedPositive;
 
   let targetMult;
   let title, desc;
@@ -12,51 +14,55 @@ function makeEvent(goodId) {
   const tier = target.tier;
   if (rare) {
     if (positive) {
-      targetMult = 6 + Math.random() * 6; // 6~12 倍
+      targetMult = forcedByCard
+        ? 250 + Math.pow(Math.random(), 1.8) * 250
+        : 6 + Math.pow(Math.random(), 1.8) * 6;
       title = '🌟 超级风口';
       desc = `${target.name}出现历史级抢购潮，今日价格暴涨！`;
     } else {
-      targetMult = 0.05 + Math.random() * 0.15; // 0.05~0.20 倍
+      targetMult = forcedByCard
+        ? 0.005 + (1 - Math.pow(Math.random(), 1.8)) * 0.015
+        : 0.05 + (1 - Math.pow(Math.random(), 1.8)) * 0.15;
       title = '💥 黑天鹅';
       desc = `${target.name}遭遇毁灭性打击，今日价格崩盘！`;
     }
   } else if (tier === 'low') {
     if (positive) {
-      targetMult = 2.5 + Math.random() * 1.5; // 2.5~4 倍
+      targetMult = 2.5 + Math.pow(Math.random(), 1.8) * 1.5;
       title = '📈 突发利好';
       desc = `${target.name}需求突然大增，今日价格暴涨！`;
     } else {
-      targetMult = 0.20 + Math.random() * 0.20; // 0.20~0.40 倍
+      targetMult = 0.20 + (1 - Math.pow(Math.random(), 1.8)) * 0.20;
       title = '📉 突发利空';
       desc = `${target.name}供给突然过剩，今日价格崩盘！`;
     }
   } else if (tier === 'mid') {
     if (positive) {
-      targetMult = 2.0 + Math.random() * 1.0; // 2~3 倍
+      targetMult = 2.0 + Math.pow(Math.random(), 1.8) * 1.0;
       title = '📈 突发利好';
       desc = `${target.name}需求突然大增，今日价格大涨！`;
     } else {
-      targetMult = 0.30 + Math.random() * 0.20; // 0.30~0.50 倍
+      targetMult = 0.30 + (1 - Math.pow(Math.random(), 1.8)) * 0.20;
       title = '📉 突发利空';
       desc = `${target.name}供给突然过剩，今日价格大跌！`;
     }
     } else if (tier === 'ultra') {
       if (positive) {
-        targetMult = 3 + Math.random() * 3; // 3~6 倍
+        targetMult = 3 + Math.pow(Math.random(), 1.8) * 3;
         title = '📈 突发利好';
         desc = `${target.name}出现历史级抢购潮，今日价格暴涨！`;
       } else {
-        targetMult = 0.30 + Math.random() * 0.30; // 0.30~0.60 倍
+        targetMult = 0.30 + (1 - Math.pow(Math.random(), 1.8)) * 0.30;
         title = '📉 突发利空';
         desc = `${target.name}遭遇恐慌性抛售，今日价格大跌！`;
       }
     } else {
     if (positive) {
-      targetMult = 1.5 + Math.random() * 0.5; // 1.5~2 倍
+      targetMult = 1.5 + Math.pow(Math.random(), 1.8) * 0.5;
       title = '📈 突发利好';
       desc = `${target.name}需求突然大增，今日价格上涨！`;
     } else {
-      targetMult = 0.40 + Math.random() * 0.20; // 0.40~0.60 倍
+      targetMult = 0.40 + (1 - Math.pow(Math.random(), 1.8)) * 0.20;
       title = '📉 突发利空';
       desc = `${target.name}供给突然过剩，今日价格下跌！`;
     }
@@ -71,6 +77,21 @@ function makeEvent(goodId) {
     type: targetMult >= 1 ? 'good' : 'bad',
     isRare: rare
   };
+}
+
+function eventMovementChance(tier) {
+  if (tier === 'ultra') return 0.55;
+  if (tier === 'high') return 0.70;
+  return 0.85;
+}
+
+function eventRareChance(forcedByCard) {
+  return forcedByCard ? 0.20 : 0.06;
+}
+
+function eventPositiveChance(tier, rare) {
+  if (tier === 'ultra') return rare ? 0.18 : 0.22;
+  return rare ? 0.30 : 0.38;
 }
 
 function spawnEvents() {
@@ -101,45 +122,43 @@ function spawnEvents() {
   state.logs = state.logs.slice(0, 50);
 }
 
-function updatePrices() {
-  GOODS.forEach(g => {
+function updateGoodPrice(g, forcedEvent = null) {
     const oldPrice = state.prices[g.id];
     const oldFactor = state.factors[g.id] || 1;
     let logF = Math.log(Math.max(0.001, oldFactor));
 
-    const ecoOn = state.eco && ecoAffected(g.id) && ecoRel() >= 2;
+    const ecoOn = !forcedEvent && state.eco && ecoAffected(g.id) && ecoRel() >= 2;
     if (ecoOn) {
       // 生态事件：围绕“事件开始价 × 累计倍率”逐步过渡
       const targetLog = Math.log(ecoTargetFactor(g.id));
       logF += (targetLog - logF) * 0.6;
     } else {
-      // 1. 向基础价回归：价格围绕 base 波动，不按前一天价格复利滚动
-      logF += -logF * 0.18;
-
-      // 2. 每日随机波动（围绕基础价的独立扰动）
-      logF += randn() * g.vol;
+      const inEventAftershock = oldFactor < 0.8 || oldFactor > 1.2;
+      // 事件极端价分数日消化，避免利空后下一天必然跳回基础价。
+      logF += -logF * (inEventAftershock ? 0.35 : 0.18);
+      logF += randn() * g.vol * (inEventAftershock ? 0.25 : 1);
 
       // 3. 日常涨跌：幅度控制在小波动，真正的大涨大跌留给事件
-      if (g.tier === 'low') {
+      if (!inEventAftershock && g.tier === 'low') {
         if (Math.random() < 0.08) {
           logF += Math.log(1.08 + Math.random() * 0.12); // 涨 8%~20%
         } else if (Math.random() < 0.05) {
           logF -= Math.log(1.087 + Math.random() * 0.163); // 跌到 0.80~0.92 倍
         }
-      } else if (g.tier === 'mid') {
+      } else if (!inEventAftershock && g.tier === 'mid') {
         if (Math.random() < 0.05) {
           logF += Math.log(1.05 + Math.random() * 0.10); // 涨 5%~15%
         } else if (Math.random() < 0.03) {
           logF -= Math.log(1.075 + Math.random() * 0.101); // 跌到 0.85~0.93 倍
         }
-        } else if (g.tier === 'high') {
+        } else if (!inEventAftershock && g.tier === 'high') {
           // 高档：日常波动更小
           if (Math.random() < 0.03) {
             logF += Math.log(1.03 + Math.random() * 0.07); // 涨 3%~10%
           } else if (Math.random() < 0.02) {
             logF -= Math.log(1.053 + Math.random() * 0.083); // 跌到 0.88~0.95 倍
           }
-        } else if (g.tier === 'ultra') {
+        } else if (!inEventAftershock && g.tier === 'ultra') {
           // 超高价值：跌多涨少，一涨很夸张
           if (Math.random() < 0.02) {
             logF += Math.log(1.10 + Math.random() * 0.10); // 涨 10%~20%
@@ -148,12 +167,13 @@ function updatePrices() {
           }
         }
 
-      // 普通日硬边界：价格限制在基础价 ±20% 内，不允许漂移形成大行情
-      logF = Math.max(Math.log(0.8), Math.min(Math.log(1.2), logF));
+      if (!inEventAftershock) {
+        logF = Math.max(Math.log(0.8), Math.min(Math.log(1.2), logF));
+      }
 
       // 4. 事件影响：以基础价为锚直接落点
       //    比如 targetMult=4，当天价格 = 基础价 × 4，而不是“前一天价格 × 4”
-      const ev = activeEventFor(g.id);
+      const ev = forcedEvent || activeEventFor(g.id);
       if (ev) {
         logF = Math.log(ev.targetMult);
       }
@@ -167,7 +187,10 @@ function updatePrices() {
     state.factors[g.id] = newFactor;
     state.prices[g.id] = newPrice;
     state.prevPrices[g.id] = oldPrice;
-  });
+}
+
+function updatePrices() {
+  GOODS.forEach(g => updateGoodPrice(g));
 
 }
 
@@ -207,8 +230,7 @@ function liquidateInventory(shortfall) {
 
 function applyDailyCosts() {
   const fee = +calcDailyFee().toFixed(2);
-  const interest = 0;
-  const totalCost = fee + interest;
+  const totalCost = fee;
   if (totalCost <= 0) return;
 
   if (state.cash >= totalCost) {

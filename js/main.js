@@ -3,7 +3,7 @@ const INTRO_SLIDES = [
   { emoji: '🧳', title: '商海启程', text: '你是一个刚拿到 5000 块启动资金的小商人。\n没有靠山，没有内幕，只有一张旧日历和满脑子“低买高卖”的念头。', hint: '点击“好的”继续' },
   { emoji: '📅', title: '日子就是金钱', text: '每天你会看到市场上架 5 种商品。\n价格每天都会波动，你要在 90 天内尽可能把财富滚大。', hint: '点击“好的”继续' },
   { emoji: '📰', title: '小心突发事件', text: '突发利好可能让你一夜暴富，突发利空也可能让你血本无归。\n偶尔还会有“国际新闻”带来持续一周的大行情。', hint: '点击“好的”继续' },
-  { emoji: '📦', title: '仓库与现金', text: '买入会占用仓库容量，现金不足可以贷款。\n每天都有仓库费和利息，破产就真的结束了。', hint: '点击“好的”开始商途' }
+  { emoji: '📦', title: '仓库与现金', text: '买入会占用仓库容量。\n每天结算仓库管理费，现金不足会按七折强制平仓。', hint: '点击“好的”开始商途' }
 ];
 let introStep = 0;
 
@@ -214,7 +214,7 @@ document.addEventListener('click', (e) => {
     $('versionOverlay').classList.add('hidden');
   $('cardOverlay').classList.add('hidden');
   } else if (target.id === 'eventCloseBtn') {
-    $('eventOverlay').classList.add('hidden');
+    closeEventNotice();
   } else if (target.id === 'milestoneCloseBtn') {
     $('milestoneOverlay').classList.add('hidden');
   } else if (target.id === 'historyBtn') {
@@ -231,7 +231,17 @@ document.addEventListener('click', (e) => {
     openChart();
   } else if (target.dataset.customTrade) {
     executeCustomTrade(target);
-    repay(Math.min(5000, state.loan, state.cash));
+  } else if (target.dataset.shopBuy) {
+    if (!buyCard(target.dataset.shopBuy)) toast('现金不足或商品已售出');
+  } else if (target.dataset.shopUse) {
+    openCardUse(target.dataset.shopUse);
+  } else if (target.dataset.cardTarget) {
+    cardTarget = target.dataset.cardTarget;
+    renderCardUse();
+  } else if (target.id === 'cardUseConfirmBtn') {
+    useCardConfirm();
+  } else if (target.id === 'cardUseCloseBtn') {
+    closeCardUse();
   } else {
     handleClick(e);
   }

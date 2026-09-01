@@ -8,6 +8,7 @@ const SCRIPT_FILES = [
   'js/utils.js',
   'js/eco.js',
   'js/state.js',
+  'js/shop.js',
   'js/events.js',
   'js/trading.js',
   'js/game.js',
@@ -32,7 +33,7 @@ function createElement() {
 function createGame(options = {}) {
   const storage = new Map();
   if (options.savedState) {
-    storage.set('trader-tycoon-save-v11', JSON.stringify(options.savedState));
+    storage.set('trader-tycoon-save-v17', JSON.stringify(options.savedState));
   }
 
   const math = Object.create(Math);
@@ -68,11 +69,20 @@ function createGame(options = {}) {
       GOODS,
       WAREHOUSE_CAPACITY_BY_MILESTONE,
       applyDailyCosts,
-      borrow,
       buy,
+      buyCard,
       calcDailyFee,
       capacity,
+      ecoCurrentMult,
+      ecoBranchWeight,
+      ecoVolatileBranchWeight,
       ecoRel,
+      forecastCategories,
+      generateShopStock,
+      eventPositiveChance,
+      eventMovementChance,
+      eventRareChance,
+      refreshShopIfNeeded,
       getState() { return state; },
       loadSave: load,
       netWorth,
@@ -80,10 +90,14 @@ function createGame(options = {}) {
       nextDay,
       parseTradeQuantity,
       pickGoods,
-      reset() { state = null; state = newState(); return state; },
+      reset() { state = null; state = newState(); generateShopStock(); return state; },
       sell,
+      setRandom(value) { Math.random = value; },
       setState(value) { state = value; },
-      totalUnits
+      spawnEvents,
+      totalUnits,
+      updateGoodPrice,
+      useCard
     };
   `, context);
 

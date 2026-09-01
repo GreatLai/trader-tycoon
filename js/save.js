@@ -12,7 +12,7 @@ function savedNetWorth(saved) {
       : (saved.lastSeenPrice[id] == null ? saved.prices[id] : saved.lastSeenPrice[id]);
     return sum + saved.inventory[id] * price;
   }, 0);
-  return saved.cash - saved.loan + inventoryValue;
+  return saved.cash + inventoryValue;
 }
 
 function normalizeSave(saved) {
@@ -30,16 +30,6 @@ function normalizeSave(saved) {
       saved.priceHistory[g.id] = [{ day: saved.day || 1, price: saved.prices[g.id] }];
     }
   });
-
-  // v1.3 used a longer ecological-event timeline and stored startPrices.
-  // Map the completed branch depth onto v1.4's four-day timeline.
-  if (saved.eco && Object.prototype.hasOwnProperty.call(saved.eco, 'startPrices')) {
-    delete saved.eco.startPrices;
-    if (saved.eco.C != null) saved.eco.startDay = saved.day - 3;
-    else if (saved.eco.B != null) saved.eco.startDay = saved.day - 2;
-    else if (saved.eco.A != null) saved.eco.startDay = saved.day - 1;
-    else saved.eco.startDay = saved.day;
-  }
 
   const wealth = savedNetWorth(saved);
   const hasLockedMarketGood = saved.availableGoods.some(id => {

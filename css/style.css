@@ -355,14 +355,26 @@
     border-top: 1px solid var(--line);
     font-size: 14px;
   }
-  .loan-row {
+  .expense-row {
     display: flex;
     justify-content: space-between;
     padding: 8px 0;
     font-size: 14px;
     border-bottom: 1px dashed var(--line);
   }
-  .loan-actions { display: flex; gap: 8px; margin-top: 10px; }
+
+  .shop-entry { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 11px 0; border-bottom: 1px solid rgba(91, 70, 48, .14); }
+  .shop-entry:last-child { border-bottom: 0; }
+  .shop-entry-copy { min-width: 0; }
+  .shop-name { font-weight: 700; color: var(--text); }
+  .shop-desc { margin-top: 3px; color: var(--muted); font-size: 12px; line-height: 1.45; }
+  .shop-entry-action { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .shop-price { min-width: 72px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .shop-inventory-title { margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(91, 70, 48, .14); color: var(--muted); font-size: 12px; }
+  .shop-inventory-list { display: grid; gap: 6px; margin-top: 7px; }
+  .shop-owned { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; }
+  .card-empty { color: var(--red); }
+  .card-random-note { color: var(--muted); }
 
   .news-item {
     border-left: 4px solid var(--blue);
@@ -624,6 +636,9 @@
   }
 
   @media (max-width: 640px) {
+    .shop-entry { align-items: start; }
+    .shop-entry-action { flex-direction: column; align-items: stretch; }
+    .shop-price { min-width: 0; text-align: center; }
     #startScreen { padding: 28px 14px; }
     #startScreen::before {
       height: 58vh;

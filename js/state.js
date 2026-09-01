@@ -27,7 +27,6 @@ function newState() {
     saveVersion: APP_VERSION,
     day: 1,
     cash: CONFIG.START_CASH,
-    loan: 0,
     capacityLevel: 0,
     prices,
     prevPrices: { ...prices },
@@ -51,8 +50,8 @@ function newState() {
     cardInventory: {},
     peakNetWorth: CONFIG.START_CASH,
     scheduledEco: null,
+    scheduledEcoByCard: false,
     nextDaySeed: Math.floor(Math.random() * 1e9),
-    nextDayPlan: null,
     eventNoticeQueue: [],
     logs: [],
     gameOver: null
@@ -80,11 +79,7 @@ function netWorth() {
   for (const id of Object.keys(state.inventory)) {
     invValue += state.inventory[id] * knownPrice(id);
   }
-  return state.cash - state.loan + invValue;
-}
-
-function creditLimit() {
-  return Math.max(3000, Math.floor(Math.max(0, netWorth()) * 0.3));
+  return state.cash + invValue;
 }
 
 function totalInventoryValue() {

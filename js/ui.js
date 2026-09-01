@@ -37,8 +37,7 @@ function render() {
   $('dayText').textContent = `第 ${state.day} 天 / ${CONFIG.DAYS_LIMIT}`;
   $('cashText').textContent = '¥' + fmt(state.cash, 2);
   const feeNow = +calcDailyFee().toFixed(2);
-  const interestNow = 0;
-  $('cashExpense').textContent = `今日支出 -¥${fmt(feeNow + interestNow, 2)}`;
+  $('cashExpense').textContent = `今日支出 -¥${fmt(feeNow, 2)}`;
   $('networthText').textContent = '¥' + fmt(nw, 2);
   $('networthText').className = 'value ' + (nw >= 0 ? 'green' : 'red');
   const rankIdx = state.highestMilestone;
@@ -138,11 +137,9 @@ function render() {
 
   // 每日支出
   const fee = +calcDailyFee().toFixed(2);
-  const interest = 0;
   $('expenseInfo').innerHTML = `
-    <div class="loan-row"><span>仓库管理费</span><span>¥${fmt(fee, 2)}</span></div>
-    <div class="loan-row"><span>贷款利息</span><span>¥${fmt(interest, 2)}</span></div>
-    <div class="loan-row" style="font-weight:700;"><span>今日合计</span><span>¥${fmt(fee + interest, 2)}</span></div>`;
+    <div class="expense-row"><span>仓库管理费</span><span>¥${fmt(fee, 2)}</span></div>
+    <div class="expense-row" style="font-weight:700;"><span>今日合计</span><span>¥${fmt(fee, 2)}</span></div>`;
 
   // 今日突发 + 国际新闻（生态事件）
   const suddenNewsHtml = state.events.map(ev => `
@@ -160,9 +157,13 @@ function render() {
   const news = (suddenNewsHtml + ecoNewsHtml) || '<div style="color:var(--muted);font-size:14px;">今天没有突发新闻。</div>';
   $('newsList').innerHTML = news;
 
-  // 弹窗：普通突发先弹，国际新闻（生态事件）最后弹
+  // 卡牌事件逐条播报；每日自然事件仍合并播报。
   const popupHtml = suddenNewsHtml + ecoNewsHtml;
-  if (popupHtml && !state.popupShown && !state.gameOver) {
+  if (state.eventNoticeQueue.length && !state.gameOver) {
+    const notice = state.eventNoticeQueue[0];
+    $('eventPopupList').innerHTML = `<div class="news-item"><div class="news-title">${notice.title}</div><div>${notice.desc}</div></div>`;
+    $('eventOverlay').classList.remove('hidden');
+  } else if (popupHtml && !state.popupShown && !state.gameOver) {
     $('eventPopupList').innerHTML = popupHtml;
     $('eventOverlay').classList.remove('hidden');
     state.popupShown = true;
@@ -177,6 +178,13 @@ function render() {
     $('overlayTitle').textContent = timeUp ? '时间到' : '破产了';
     $('overlayDesc').innerHTML = `第 ${state.day} 天，总资产 <b>¥${fmt(nw, 2)}</b>。<br>${timeUp ? '90 天商途结束，下次再战！' : '商海无情，下次再来。'}`;
   }
+}
+
+function closeEventNotice() {
+  if (state.eventNoticeQueue.length) state.eventNoticeQueue.shift();
+  if (state.eventNoticeQueue.length) render();
+  else $('eventOverlay').classList.add('hidden');
+  save();
 }
 
 function toast(msg) {

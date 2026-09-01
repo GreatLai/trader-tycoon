@@ -39,24 +39,3 @@ function sell(id, qty) {
   render();
 }
 
-function borrow(amount) {
-  amount = Math.floor(amount);
-  if (amount <= 0) return;
-  const max = creditLimit() - state.loan;
-  amount = Math.min(amount, max);
-  if (amount <= 0) { toast('已达到借款上限'); return; }
-  state.cash = +(state.cash + amount).toFixed(2);
-  state.loan = +(state.loan + amount).toFixed(2);
-  render();
-}
-
-function repay(amount) {
-  amount = Math.floor(amount);
-  if (amount <= 0) return;
-  amount = Math.min(amount, state.loan, state.cash);
-  if (amount <= 0) { toast('现金不足或没有贷款'); return; }
-  state.cash = +(state.cash - amount).toFixed(2);
-  state.loan = +(state.loan - amount).toFixed(2);
-  render();
-}
-

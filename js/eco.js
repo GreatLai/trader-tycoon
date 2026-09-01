@@ -23,6 +23,34 @@ function ecoCurrentMult(goodId) {
   return B.C[state.eco.C].mults[goodId];
 }
 
+function ecoBranchWeight(stage) {
+  const values = Object.values(stage.mults);
+  const impact = values.reduce((sum, mult) => sum + Math.abs(Math.log(mult)), 0) / values.length;
+  return 1 / Math.pow(1 + impact, 2);
+}
+
+function ecoVolatileBranchWeight(stage) {
+  return 1 / ecoBranchWeight(stage);
+}
+
+function pickEcoBranchByWeight(stages, weightFor) {
+  const weights = stages.map(weightFor);
+  let roll = Math.random() * weights.reduce((sum, weight) => sum + weight, 0);
+  for (let index = 0; index < weights.length; index++) {
+    roll -= weights[index];
+    if (roll <= 0) return index;
+  }
+  return stages.length - 1;
+}
+
+function pickWeightedEcoBranch(stages) {
+  return pickEcoBranchByWeight(stages, ecoBranchWeight);
+}
+
+function pickVolatileEcoBranch(stages) {
+  return pickEcoBranchByWeight(stages, ecoVolatileBranchWeight);
+}
+
 function ecoTargetFactor(goodId) {
   return ecoCurrentMult(goodId);
 }

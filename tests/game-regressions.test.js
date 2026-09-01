@@ -29,7 +29,6 @@ test('forced liquidation pays the shortfall and keeps only the surplus', () => {
   const { api } = createGame();
   const state = api.reset();
   state.cash = 0;
-  state.loan = 0;
   state.inventory = { wheat: 1000 };
   state.costBasis = { wheat: 5000 };
   state.prices.wheat = 5;
@@ -62,14 +61,13 @@ test('ending day 90 does not create or charge day 91', () => {
   assert.equal(state.priceHistory.wheat.length, historyLength);
 });
 
-test('v1.3 ecological saves migrate to a valid v1.4 stage', () => {
+test('current ecological saves reload at the same stage', () => {
   const baseline = createGame().api.reset();
-  baseline.day = 10;
-  baseline.saveVersion = '1.3.0';
+  baseline.day = 9;
+  baseline.saveVersion = '1.7.0';
   baseline.eco = {
     treeId: 'globalDrought',
     startDay: 8,
-    startPrices: { wheat: 5 },
     A: 0,
     B: null,
     C: null
@@ -80,7 +78,6 @@ test('v1.3 ecological saves migrate to a valid v1.4 stage', () => {
   api.setState(loaded);
 
   assert.equal(loaded.saveVersion, api.APP_VERSION);
-  assert.equal(Object.hasOwn(loaded.eco, 'startPrices'), false);
   assert.equal(api.ecoRel(), 2);
   assert.doesNotThrow(() => api.nextDay());
   assert.notEqual(loaded.eco.B, null);
@@ -89,7 +86,6 @@ test('v1.3 ecological saves migrate to a valid v1.4 stage', () => {
 test('loading a low-wealth save removes prematurely listed ultra goods', () => {
   const baseline = createGame().api.reset();
   baseline.cash = 5000;
-  baseline.loan = 0;
   baseline.inventory = {};
   baseline.availableGoods = ['spacecraft', 'antique', 'diamond', 'wheat', 'wood'];
 
@@ -279,7 +275,6 @@ test('a deterministic no-trade run finishes without invalid state', () => {
     api.nextDay();
     const numericValues = [
       state.cash,
-      state.loan,
       api.netWorth(),
       ...Object.values(state.prices),
       ...Object.values(state.inventory),
@@ -292,4 +287,100 @@ test('a deterministic no-trade run finishes without invalid state', () => {
 
   assert.equal(state.day, api.CONFIG.DAYS_LIMIT);
   assert.equal(state.gameOver, 'time');
+});
+
+test('natural sudden event count keeps the original daily distribution', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.availableGoods = ['wheat', 'wood', 'coal'];
+  state.availableGoods.forEach(id => { state.lastSeenPrice[id] = state.prices[id]; });
+
+  let calls = 0;
+  api.setRandom(() => calls++ === 0 ? 0.19 : 0.1);
+  api.spawnEvents();
+  assert.equal(state.events.length, 0);
+
+  state.events = [];
+  calls = 0;
+  api.setRandom(() => calls++ === 0 ? 0.20 : 0.1);
+  api.spawnEvents();
+  assert.equal(state.events.length, 1);
+
+  state.events = [];
+  calls = 0;
+  api.setRandom(() => calls++ === 0 ? 0.60 : 0.1);
+  api.spawnEvents();
+  assert.equal(state.events.length, 2);
+
+  state.events = [];
+  calls = 0;
+  api.setRandom(() => calls++ === 0 ? 0.90 : 0.1);
+  api.spawnEvents();
+  assert.equal(state.events.length, 3);
+});
+
+test('an extreme event price recovers over multiple days instead of snapping to normal', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  const target = api.GOODS.find(good => good.id === 'wheat');
+  state.factors.wheat = 0.1;
+  state.prices.wheat = target.base * 0.1;
+  state.events = [];
+  api.setRandom(() => 0.25);
+
+  api.updateGoodPrice(target);
+
+  assert.equal(state.factors.wheat > 0.1, true);
+  assert.equal(state.factors.wheat < 0.8, true);
+});
+
+test('warehouse growth stays below fourfold per late wealth tier', () => {
+  const { api } = createGame();
+  const levels = api.WAREHOUSE_CAPACITY_BY_MILESTONE;
+
+  for (let index = 2; index < levels.length; index++) {
+    assert.equal(levels[index] / levels[index - 1] <= 4, true);
+  }
+  assert.equal(levels.at(-1), 16000000);
+});
+
+test('ecological events retain their configured multiplier', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.day = 9;
+  state.eco = { treeId: 'globalDrought', startDay: 8, A: 0, B: null, C: null };
+
+  assert.equal(api.ecoCurrentMult('wheat'), api.ECO_EVENTS.globalDrought.A[0].mults.wheat);
+});
+
+test('extreme ecological branches receive less selection weight', () => {
+  const { api } = createGame();
+  const mild = { mults: { wheat: 1.2, wood: 0.9 } };
+  const extreme = { mults: { wheat: 20, wood: 0.04 } };
+
+  assert.equal(api.ecoBranchWeight(extreme) < api.ecoBranchWeight(mild), true);
+  assert.equal(api.ecoVolatileBranchWeight(extreme) > api.ecoVolatileBranchWeight(mild), true);
+});
+
+test('natural events favor falling outcomes over rising outcomes', () => {
+  const { api } = createGame();
+
+  assert.equal(api.eventPositiveChance('low', false), 0.38);
+  assert.equal(api.eventPositiveChance('ultra', false), 0.22);
+  assert.equal(api.eventPositiveChance('low', true), 0.30);
+});
+
+test('most natural event targets resolve as an ordinary flat market', () => {
+  const { api } = createGame();
+
+  assert.equal(api.eventMovementChance('low'), 0.85);
+  assert.equal(api.eventMovementChance('high'), 0.70);
+  assert.equal(api.eventMovementChance('ultra'), 0.55);
+});
+
+test('paid sudden-event cards have a higher rare-outcome chance', () => {
+  const { api } = createGame();
+
+  assert.equal(api.eventRareChance(false), 0.06);
+  assert.equal(api.eventRareChance(true), 0.20);
 });

@@ -1,288 +1,188 @@
 // ==================== 商店 ====================
 function shopAnchor() {
-  const peak = state.peakNetWorth || state.cash;
-  if (peak < 10000) return 5000;
-  return 10 ** Math.floor(Math.log10(peak));
+  const peak = Math.max(CONFIG.START_CASH, state.peakNetWorth || 0);
+  return peak < 10000 ? CONFIG.START_CASH : 10 ** Math.floor(Math.log10(peak));
 }
 
 function shopPriceFor(cardId) {
   const card = SHOP_CONFIG.CARDS[cardId];
-  const base = card.priceRate * shopAnchor();
-  const variance = SHOP_CONFIG.PRICE_VARIATION[0] + Math.random() * (SHOP_CONFIG.PRICE_VARIATION[1] - SHOP_CONFIG.PRICE_VARIATION[0]);
-  return Math.max(1, Math.round(base * variance));
+  const min = SHOP_CONFIG.PRICE_VARIATION[0];
+  const max = SHOP_CONFIG.PRICE_VARIATION[1];
+  return Math.max(1, Math.round(card.priceRate * shopAnchor() * (min + Math.random() * (max - min))));
 }
 
 function generateShopStock() {
-  const entries = [];
   const ids = Object.keys(SHOP_CONFIG.CARDS);
-  const totalWeight = ids.reduce((s, id) => s + SHOP_CONFIG.CARDS[id].weight, 0);
-  for (let i = 0; i < SHOP_CONFIG.STOCK_SIZE; i++) {
+  const totalWeight = ids.reduce((sum, id) => sum + SHOP_CONFIG.CARDS[id].weight, 0);
+  state.shopStock = Array.from({ length: SHOP_CONFIG.STOCK_SIZE }, (_, index) => {
     let roll = Math.random() * totalWeight;
-    let chosen = ids[ids.length - 1];
+    let cardId = ids[ids.length - 1];
     for (const id of ids) {
       roll -= SHOP_CONFIG.CARDS[id].weight;
-      if (roll <= 0) { chosen = id; break; }
+      if (roll <= 0) { cardId = id; break; }
     }
-    entries.push({ id: 'shop-' + Date.now() + '-' + i + '-' + Math.random().toString(36).slice(2, 6), cardId: chosen, price: shopPriceFor(chosen), purchased: false });
-  }
-  state.shopStock = entries;
+    return { id: `shop-${state.day}-${index}-${Math.random().toString(36).slice(2, 6)}`, cardId, price: shopPriceFor(cardId), purchased: false };
+  });
   state.shopRefreshDay = state.day;
 }
 
 function refreshShopIfNeeded() {
-  if (!state.shopStock.length || state.day - state.shopRefreshDay >= SHOP_CONFIG.REFRESH_INTERVAL) {
-    generateShopStock();
-  }
+  if (!state.shopStock.length || state.day - state.shopRefreshDay >= SHOP_CONFIG.REFRESH_INTERVAL) generateShopStock();
 }
 
 function buyCard(entryId) {
-  const entry = state.shopStock.find(e => e.id === entryId);
-  if (!entry || entry.purchased) return false;
-  if (state.cash < entry.price) return false;
+  const entry = state.shopStock.find(item => item.id === entryId);
+  if (!entry || entry.purchased || state.cash < entry.price) return false;
   state.cash = +(state.cash - entry.price).toFixed(2);
   entry.purchased = true;
   state.cardInventory[entry.cardId] = (state.cardInventory[entry.cardId] || 0) + 1;
-  if ((state.peakNetWorth || 0) < netWorth()) state.peakNetWorth = netWorth();
-  save();
-  render();
+  save(); render();
   return true;
 }
 
 function shopCountdownText() {
-  const next = state.shopRefreshDay + SHOP_CONFIG.REFRESH_INTERVAL;
-  return `下次 ${Math.max(0, next - state.day)} 天`;
+  return `下次 ${Math.max(0, state.shopRefreshDay + SHOP_CONFIG.REFRESH_INTERVAL - state.day)} 天`;
 }
 
 function renderShop() {
-  const stockHtml = state.shopStock.map(entry => {
+  $('shopCountdown').textContent = shopCountdownText();
+  $('shopStock').innerHTML = state.shopStock.map(entry => {
     const card = SHOP_CONFIG.CARDS[entry.cardId];
     const disabled = entry.purchased || state.cash < entry.price ? 'disabled' : '';
-    return `<div class="shop-entry">
-      <div class="shop-name">${card.name}</div>
-      <div class="shop-desc">${card.desc}</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
-        <span class="shop-price">¥${fmt(entry.price, 0)}</span>
-        <button class="btn btn-small" data-shop-buy="${entry.id}" ${disabled}>${entry.purchased ? '已购买' : '购买'}</button>
-      </div>
-    </div>`;
+    return `<div class="shop-entry"><div class="shop-entry-copy"><div class="shop-name">${card.name}</div><div class="shop-desc">${card.desc}</div></div><div class="shop-entry-action"><span class="shop-price">¥${fmt(entry.price, 0)}</span><button class="btn btn-small" data-shop-buy="${entry.id}" ${disabled}>${entry.purchased ? '已购买' : '购买'}</button></div></div>`;
   }).join('');
-  $('shopCountdown').textContent = shopCountdownText();
-  $('shopStock').innerHTML = stockHtml;
-  const owned = Object.keys(state.cardInventory).filter(k => state.cardInventory[k] > 0).map(k => `<span class="shop-owned">${SHOP_CONFIG.CARDS[k].name} ×${state.cardInventory[k]} <button class="btn btn-small btn-ghost" data-shop-use="${k}">使用</button></span>`).join(' ');
-  $('cardInventory').innerHTML = owned ? `<div style="margin-top:10px;font-size:12px;color:var(--muted);">持有卡牌：${owned}</div>` : '';
+  const owned = Object.keys(SHOP_CONFIG.CARDS).filter(id => (state.cardInventory[id] || 0) > 0).map(id => `<div class="shop-owned"><span>${SHOP_CONFIG.CARDS[id].name} ×${state.cardInventory[id]}</span><button class="btn btn-small btn-ghost" data-shop-use="${id}">使用</button></div>`).join('');
+  $('cardInventory').innerHTML = owned ? `<div class="shop-inventory-title">持有卡牌</div><div class="shop-inventory-list">${owned}</div>` : '';
+}
+
+function queueNotice(title, desc, source = 'card') {
+  state.eventNoticeQueue.push({ title, desc, source });
+}
+
+function recordCurrentPrice(id) {
+  const history = state.priceHistory[id];
+  if (history.length && history[history.length - 1].day === state.day) history[history.length - 1].price = state.prices[id];
+  else history.push({ day: state.day, price: state.prices[id] });
+  if (state.availableGoods.includes(id)) state.lastSeenPrice[id] = state.prices[id];
+}
+
+function applyCardEvent(id, positive) {
+  const good = goodById(id);
+  const event = makeEvent(id, positive);
+  const oldPrice = state.prices[id];
+  state.prices[id] = +(oldPrice * event.targetMult).toFixed(2);
+  state.prevPrices[id] = oldPrice;
+  state.factors[id] = state.prices[id] / good.base;
+  event.desc = `${event.desc} 当前价 ¥${fmt(state.prices[id], 2)}`;
+  event.source = 'card';
+  state.events.push(event);
+  state.logs.unshift(`第${state.day}天：${event.title} ${event.desc}`);
+  recordCurrentPrice(id);
+  queueNotice(event.title, event.desc);
+  return event;
+}
+
+function refreshSingleGood(id) {
+  const firstAppearance = state.lastSeenPrice[id] == null;
+  const event = !firstAppearance && Math.random() < SHOP_CONFIG.SUDDEN_EVENT_CHANCE ? makeEvent(id) : null;
+  updateGoodPrice(goodById(id), event);
+  recordCurrentPrice(id);
+  if (event) {
+    event.source = 'card'; state.events.push(event);
+    state.logs.unshift(`第${state.day}天：${event.title} ${event.desc}`);
+    queueNotice(event.title, event.desc);
+  }
+}
+
+function eligibleTargetsFor(cardId) {
+  if (cardId === 'addGood') return GOODS.filter(g => !state.availableGoods.includes(g.id) && (g.tier !== 'ultra' || netWorth() >= ULTRA_UNLOCK)).map(g => g.id);
+  if (cardId === 'refreshPrice') return state.availableGoods.slice();
+  if (cardId === 'futureMarket') return GOODS.filter(g => state.lastSeenPrice[g.id] != null).map(g => g.id);
+  return [];
+}
+
+function forecastCategory(before, after) {
+  const diff = (after - before) / before * 100;
+  return diff <= -15 ? '大跌' : diff <= -5 ? '小跌' : diff <= 5 ? '平稳' : diff <= 15 ? '小涨' : '大涨';
+}
+
+function forecastCategories(goodId) {
+  const before = state.prices[goodId];
+  const realState = state;
+  const clone = JSON.parse(JSON.stringify(state));
+  const oldRandom = Math.random;
+  try {
+    state = clone;
+    Math.random = mulberry32(clone.nextDaySeed);
+    resolveNextDayState();
+  } finally {
+    Math.random = oldRandom;
+    state = realState;
+  }
+  return forecastCategory(before, clone.prices[goodId]);
+}
+
+function consumeCard(cardId) { state.cardInventory[cardId]--; }
+
+function useCard(cardId, targetId = null) {
+  if (!SHOP_CONFIG.CARDS[cardId] || (state.cardInventory[cardId] || 0) <= 0) return { ok: false, message: '没有这张卡牌' };
+  if (cardId === 'iAmTheTrend') {
+    if (state.eco || state.scheduledEco) return { ok: false, message: '当前已有生态事件' };
+    if (state.day > 82) return { ok: false, message: '剩余时间不足以触发生态事件' };
+    const keys = Object.keys(ECO_EVENTS).filter(id => !ECO_EVENTS[id].unlock || netWorth() >= ECO_EVENTS[id].unlock);
+    if (!keys.length) return { ok: false, message: '当前没有可用生态事件' };
+    state.scheduledEco = keys[Math.floor(Math.random() * keys.length)];
+    state.scheduledEcoByCard = true;
+    consumeCard(cardId);
+    return { ok: true, message: `已安排：${ECO_EVENTS[state.scheduledEco].name}` };
+  }
+  if (cardId === 'suddenRise' || cardId === 'suddenFall') {
+    if (!state.availableGoods.length) return { ok: false, message: '当前没有已上架商品' };
+    const goodId = state.availableGoods[Math.floor(Math.random() * state.availableGoods.length)];
+    const event = applyCardEvent(goodId, cardId === 'suddenRise');
+    consumeCard(cardId);
+    return { ok: true, goodId, message: event.title };
+  }
+  const targets = eligibleTargetsFor(cardId);
+  if (!targetId || !targets.includes(targetId)) return { ok: false, message: '请选择有效商品' };
+  if (cardId === 'addGood') { state.availableGoods.push(targetId); refreshSingleGood(targetId); }
+  else if (cardId === 'refreshPrice') refreshSingleGood(targetId);
+  else if (cardId === 'futureMarket') {
+    const category = forecastCategories(targetId);
+    consumeCard(cardId);
+    return { ok: true, goodId: targetId, category, message: `${goodById(targetId).name} 明日预计：${category}` };
+  }
+  consumeCard(cardId);
+  return { ok: true, goodId: targetId };
 }
 
 let cardUseId = null;
 let cardTarget = null;
 
-function queueNotice(title, desc, source) {
-  if (!state.eventNoticeQueue) state.eventNoticeQueue = [];
-  state.eventNoticeQueue.push({ title, desc, source });
-}
-
-function refreshSingleGood(id) {
-  const g = goodById(id);
-  const old = state.prices[id];
-  let logF = state.factors[id] ? Math.log(state.factors[id]) : 0;
-  logF += -logF * 0.18;
-  logF += randn() * g.vol;
-  logF = Math.max(Math.log(0.8), Math.min(Math.log(1.2), logF));
-  const newPrice = +(g.base * Math.exp(logF)).toFixed(2);
-  state.prices[id] = newPrice;
-  state.prevPrices[id] = old;
-  state.factors[id] = newPrice / g.base;
-  const hist = state.priceHistory[id];
-  if (hist.length && hist[hist.length - 1].day === state.day) hist[hist.length - 1].price = newPrice;
-  else hist.push({ day: state.day, price: newPrice });
-}
-
-function cardEventMultiplier(g, positive, rare) {
-  if (rare) {
-    return positive ? (g.tier === 'ultra' ? 15 + Math.random() * 10 : 8 + Math.random() * 8) : (g.tier === 'ultra' ? 0.03 + Math.random() * 0.07 : 0.05 + Math.random() * 0.15);
-  }
-  if (positive) {
-    if (g.tier === 'low') return 2.5 + Math.random() * 1.5;
-    if (g.tier === 'mid') return 2 + Math.random();
-    if (g.tier === 'high') return 1.5 + Math.random() * 0.5;
-    return 3 + Math.random() * 3;
-  }
-  if (g.tier === 'low') return 0.20 + Math.random() * 0.20;
-  if (g.tier === 'mid') return 0.30 + Math.random() * 0.20;
-  if (g.tier === 'high') return 0.40 + Math.random() * 0.20;
-  return 0.30 + Math.random() * 0.30;
-}
-
-function applyCardEvent(id, positive) {
-  const g = goodById(id);
-  const startPrice = state.prices[id];
-  const rare = Math.random() < SHOP_CONFIG.RARE_EVENT_CHANCE;
-  const mult = cardEventMultiplier(g, positive, rare);
-  const newPrice = +(startPrice * mult).toFixed(2);
-  state.prices[id] = newPrice;
-  state.prevPrices[id] = startPrice;
-  state.factors[id] = newPrice / g.base;
-  const hist = state.priceHistory[id];
-  if (hist.length && hist[hist.length - 1].day === state.day) hist[hist.length - 1].price = newPrice;
-  else hist.push({ day: state.day, price: newPrice });
-  state.events.push({ id: Date.now() + '-' + Math.random().toString(36).slice(2,5), goodId: id, title: (positive ? '📈 ' : '📉 ') + (rare ? (positive ? '超级风口' : '黑天鹅') : (positive ? '突发利好' : '突发利空')), desc: `${g.name} 当前价 ¥${fmt(newPrice, 2)}`, type: positive ? 'good' : 'bad', isRare: rare, source: 'card' });
-  state.popupShown = false;
-  save();
-  render();
-}
-
-function eligibleTargetsFor(cardId) {
-  if (cardId === 'addGood') {
-    return GOODS.filter(g => !state.availableGoods.includes(g.id) && (g.tier !== 'ultra' || netWorth() >= ULTRA_UNLOCK)).map(g => g.id);
-  }
-  if (cardId === 'refreshPrice' || cardId === 'suddenRise' || cardId === 'suddenFall') {
-    return state.availableGoods.slice();
-  }
-  if (cardId === 'futureMarket') {
-    return GOODS.filter(g => state.lastSeenPrice[g.id] != null).map(g => g.id);
-  }
-  if (cardId === 'iAmTheTrend') {
-    return []; // no target needed
-  }
-  return [];
-}
-
 function openCardUse(cardId) {
   if ((state.cardInventory[cardId] || 0) <= 0) return;
-  cardUseId = cardId;
-  cardTarget = null;
-  renderCardUse();
+  cardUseId = cardId; cardTarget = null; renderCardUse();
   $('cardOverlay').classList.remove('hidden');
 }
 
 function renderCardUse() {
   const card = SHOP_CONFIG.CARDS[cardUseId];
-  $('cardModalTitle').textContent = '使用卡牌：' + card.name;
+  $('cardModalTitle').textContent = `使用卡牌：${card.name}`;
   $('cardModalInfo').textContent = card.desc;
-  $('cardUseConfirmBtn').style.display = 'none';
-  const targets = eligibleTargetsFor(cardUseId);
-  if (cardUseId === 'iAmTheTrend') {
-    $('cardTargets').innerHTML = '<div style="color:var(--muted);">无需选择目标，直接安排生态事件。</div>';
-    $('cardUseConfirmBtn').style.display = 'block';
-    return;
-  }
-  if (!targets.length) {
-    $('cardTargets').innerHTML = '<div style="color:var(--red);">当前没有可用目标。</div>';
-    return;
-  }
-  $('cardTargets').innerHTML = targets.map(id => `<button class="btn btn-small btn-ghost ${cardTarget === id ? 'btn-secondary' : ''}" data-card-target="${id}">${goodById(id).name}</button>`).join('');
-}
-
-function hashString2(s) {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
-function seededCategory(id) {
-  if (!state.nextDaySeed) state.nextDaySeed = Math.floor(Math.random() * 1e9);
-  const v = (state.nextDaySeed ^ hashString2(id)) % 5;
-  return ['大跌', '小跌', '平稳', '小涨', '大涨'][v];
+  const needsTarget = !['suddenRise', 'suddenFall', 'iAmTheTrend'].includes(cardUseId);
+  const targets = needsTarget ? eligibleTargetsFor(cardUseId) : [];
+  $('cardTargets').innerHTML = needsTarget ? (targets.length ? targets.map(id => `<button class="btn btn-small btn-ghost ${cardTarget === id ? 'btn-secondary' : ''}" data-card-target="${id}">${goodById(id).name}</button>`).join('') : '<div class="card-empty">当前没有可用目标。</div>') : '<div class="card-random-note">无需选择目标，确认后立即生效。</div>';
+  $('cardUseConfirmBtn').style.display = (!needsTarget || cardTarget) ? 'block' : 'none';
 }
 
 function useCardConfirm() {
-  if (!cardUseId) return;
-  if ((state.cardInventory[cardUseId] || 0) <= 0) return;
-  if (cardUseId === 'iAmTheTrend') {
-    if (state.eco || state.scheduledEco) { toast('当前已有生态事件'); return; }
-    const keys = Object.keys(ECO_EVENTS).filter(k => !ECO_EVENTS[k].unlock || netWorth() >= ECO_EVENTS[k].unlock);
-    if (!keys.length) { toast('没有可安排的生态事件'); return; }
-    state.scheduledEco = keys[Math.floor(Math.random() * keys.length)];
-    state.nextDayPlan = null;
-    state.cardInventory[cardUseId]--;
-    toast('已安排：' + ECO_EVENTS[state.scheduledEco].name);
-    save(); render(); closeCardUse();
-    return;
-  }
-  if (!cardTarget) return;
-  const id = cardTarget;
-  if (cardUseId === 'addGood') {
-    if (state.availableGoods.includes(id)) return;
-    state.availableGoods.push(id);
-    refreshSingleGood(id);
-  } else if (cardUseId === 'refreshPrice') {
-    refreshSingleGood(id);
-  } else if (cardUseId === 'suddenRise') {
-    applyCardEvent(id, true);
-  } else if (cardUseId === 'suddenFall') {
-    applyCardEvent(id, false);
-  } else if (cardUseId === 'futureMarket') {
-    toast(goodById(id).name + ' 明日预计：' + forecastCategories(id));
-    state.cardInventory[cardUseId]--;
-    save(); render(); closeCardUse();
-    return;
-  }
-  state.nextDayPlan = null;
-  state.cardInventory[cardUseId]--;
-  save();
-  render();
-  closeCardUse();
+  const result = useCard(cardUseId, cardTarget);
+  if (!result.ok) { toast(result.message); return; }
+  toast(result.message || '卡牌已使用');
+  save(); render(); closeCardUse();
 }
 
 function closeCardUse() {
   $('cardOverlay').classList.add('hidden');
-  cardUseId = null;
-  cardTarget = null;
-}
-
-function buildPlanClone() {
-  return {
-    day: state.day + 1,
-    logs: [],
-    dailyHistory: [],
-    gameOver: null,
-    popupShown: true,
-    ecoPopup: null,
-    prices: { ...state.prices },
-    prevPrices: { ...state.prevPrices },
-    factors: { ...state.factors },
-    availableGoods: [],
-    events: [],
-    eco: state.eco ? JSON.parse(JSON.stringify(state.eco)) : null,
-    lastSeenPrice: { ...state.lastSeenPrice },
-    prevSeenPrice: { ...state.prevSeenPrice },
-    inventory: state.inventory,
-    costBasis: state.costBasis,
-    cash: state.cash,
-    loan: state.loan,
-    highestMilestone: state.highestMilestone
-  };
-}
-
-function planNextDay() {
-  const realState = state;
-  const clone = buildPlanClone();
-  state = clone;
-  const oldRandom = Math.random;
-  Math.random = mulberry32(state.nextDaySeed);
-  state.availableGoods = pickGoods(CONFIG.MARKET_SIZE);
-  spawnEvents();
-  updatePrices();
-  Math.random = oldRandom;
-  const plan = {
-    availableGoods: clone.availableGoods.slice(),
-    events: clone.events.slice(),
-    prices: { ...clone.prices },
-    factors: { ...clone.factors }
-  };
-  state = realState;
-  state.nextDayPlan = plan;
-  return plan;
-}
-
-function forecastCategories(goodId) {
-  const plan = state.nextDayPlan || planNextDay();
-  const before = state.prices[goodId];
-  const after = plan.prices[goodId];
-  const diff = (after - before) / before * 100;
-  const cat = diff <= -15 ? '大跌' : diff <= -5 ? '小跌' : diff <= 5 ? '平稳' : diff <= 15 ? '小涨' : '大涨';
-  state.nextDayPlan = plan;
-  return cat;
+  cardUseId = null; cardTarget = null;
 }
