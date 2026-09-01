@@ -64,11 +64,11 @@ function buyBestValue(api, state, stats, options = {}) {
 }
 
 function buyUsefulCards(api, state, stats, allowedCards = null) {
-  const priority = { suddenFall: 6, futureMarket: 5, addGood: 4, refreshPrice: 3, suddenRise: 2, iAmTheTrend: 1 };
+  const priority = { fateToken: 7, suddenFall: 6, futureMarket: 5, addGood: 4, refreshPrice: 3, suddenRise: 2, iAmTheTrend: 1 };
   const entries = state.shopStock.slice().sort((a, b) => priority[b.cardId] - priority[a.cardId]);
   for (const entry of entries) {
     if (allowedCards && !allowedCards.has(entry.cardId)) continue;
-    const maxCashShare = entry.cardId === 'iAmTheTrend' && allowedCards ? 0.65 : 0.22;
+    const maxCashShare = entry.cardId === 'fateToken' ? 0.95 : entry.cardId === 'iAmTheTrend' && allowedCards ? 0.65 : 0.22;
     if (entry.purchased || entry.price > state.cash * maxCashShare) continue;
     if (api.buyCard(entry.id)) {
       stats.cardSpend += entry.price;
@@ -86,6 +86,10 @@ function useCards(api, state, stats, prepareRise = false) {
     stats.cardImmediateWealthDelta += api.netWorth() - before;
     return result;
   };
+
+  while ((state.cardInventory.fateToken || 0) > 0 && api.netWorth() >= 10000) {
+    if (!use('fateToken').ok) break;
+  }
 
   while ((state.cardInventory.suddenFall || 0) > 0 && state.cash > 0) {
     const result = use('suddenFall');
@@ -149,7 +153,7 @@ function run(seed, strategy) {
         const allowed = strategy === 'shopSelective'
           ? new Set(['suddenFall', 'refreshPrice', 'addGood', 'iAmTheTrend'])
           : strategy === 'shopTail'
-            ? new Set(['suddenFall', 'suddenRise', 'refreshPrice', 'addGood', 'iAmTheTrend'])
+            ? new Set(['fateToken', 'suddenFall', 'suddenRise', 'refreshPrice', 'addGood', 'iAmTheTrend'])
             : null;
         buyUsefulCards(api, state, stats, allowed);
         useCards(api, state, stats, strategy === 'shopTail');

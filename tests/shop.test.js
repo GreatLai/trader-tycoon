@@ -148,3 +148,63 @@ test('trend card marks its scheduled ecology as player-created', () => {
   assert.equal(result.ok, true);
   assert.equal(state.scheduledEcoByCard, true);
 });
+
+test('fate token does not appear in the shop below ten thousand net worth', () => {
+  const { api } = createGame({ random: () => 0.999999 });
+  const state = api.reset();
+
+  assert.equal(api.netWorth(), 5000);
+  assert.equal(state.shopStock.some(entry => entry.cardId === 'fateToken'), false);
+});
+
+test('fate token cannot be used below ten thousand net worth', () => {
+  const { api } = createGame({ random: () => 0 });
+  const state = api.reset();
+  state.cardInventory.fateToken = 1;
+
+  const result = api.useCard('fateToken');
+
+  assert.equal(result.ok, false);
+  assert.equal(state.cardInventory.fateToken, 1);
+});
+
+test('winning fate token adds nine times current net worth as cash', () => {
+  const { api } = createGame({ random: () => 0.39 });
+  const state = api.reset();
+  state.cash = 10000;
+  state.inventory.wheat = 100;
+  state.costBasis.wheat = 400;
+  state.prices.wheat = 5;
+  state.cardInventory.fateToken = 1;
+  const before = api.netWorth();
+
+  const result = api.useCard('fateToken');
+
+  assert.equal(result.ok, true);
+  assert.equal(result.outcome, 'win');
+  assert.equal(api.netWorth(), before * 10);
+  assert.equal(state.inventory.wheat, 100);
+  assert.equal(state.cardInventory.fateToken, 0);
+});
+
+test('losing fate token reduces cash and every holding to one tenth', () => {
+  const { api } = createGame({ random: () => 0.4 });
+  const state = api.reset();
+  state.cash = 10000;
+  state.inventory.wheat = 109;
+  state.costBasis.wheat = 436;
+  state.inventory.wood = 9;
+  state.costBasis.wood = 72;
+  state.cardInventory.fateToken = 1;
+
+  const result = api.useCard('fateToken');
+
+  assert.equal(result.ok, true);
+  assert.equal(result.outcome, 'loss');
+  assert.equal(state.cash, 1000);
+  assert.equal(state.inventory.wheat, 10);
+  assert.equal(state.costBasis.wheat, 40);
+  assert.equal(state.inventory.wood || 0, 0);
+  assert.equal(state.costBasis.wood || 0, 0);
+  assert.equal(state.cardInventory.fateToken, 0);
+});

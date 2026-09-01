@@ -11,8 +11,13 @@ function shopPriceFor(cardId) {
   return Math.max(1, Math.round(card.priceRate * shopAnchor() * (min + Math.random() * (max - min))));
 }
 
+function cardUnlocked(cardId) {
+  const card = SHOP_CONFIG.CARDS[cardId];
+  return !!card && (!card.unlock || netWorth() >= card.unlock);
+}
+
 function generateShopStock() {
-  const ids = Object.keys(SHOP_CONFIG.CARDS);
+  const ids = Object.keys(SHOP_CONFIG.CARDS).filter(cardUnlocked);
   const totalWeight = ids.reduce((sum, id) => sum + SHOP_CONFIG.CARDS[id].weight, 0);
   state.shopStock = Array.from({ length: SHOP_CONFIG.STOCK_SIZE }, (_, index) => {
     let roll = Math.random() * totalWeight;
@@ -32,7 +37,7 @@ function refreshShopIfNeeded() {
 
 function buyCard(entryId) {
   const entry = state.shopStock.find(item => item.id === entryId);
-  if (!entry || entry.purchased || state.cash < entry.price) return false;
+  if (!entry || entry.purchased || !cardUnlocked(entry.cardId) || state.cash < entry.price) return false;
   state.cash = +(state.cash - entry.price).toFixed(2);
   entry.purchased = true;
   state.cardInventory[entry.cardId] = (state.cardInventory[entry.cardId] || 0) + 1;
@@ -46,12 +51,13 @@ function shopCountdownText() {
 
 function renderShop() {
   $('shopCountdown').textContent = shopCountdownText();
-  $('shopStock').innerHTML = state.shopStock.map(entry => {
+  $('shopStock').innerHTML = state.shopStock.filter(entry => cardUnlocked(entry.cardId)).map(entry => {
     const card = SHOP_CONFIG.CARDS[entry.cardId];
     const disabled = entry.purchased || state.cash < entry.price ? 'disabled' : '';
-    return `<div class="shop-entry"><div class="shop-entry-copy"><div class="shop-name">${card.name}</div><div class="shop-desc">${card.desc}</div></div><div class="shop-entry-action"><span class="shop-price">¥${fmt(entry.price, 0)}</span><button class="btn btn-small" data-shop-buy="${entry.id}" ${disabled}>${entry.purchased ? '已购买' : '购买'}</button></div></div>`;
+    const rarity = card.rarity ? `<span class="card-rarity">${card.rarity}</span>` : '';
+    return `<div class="shop-entry ${card.rarity ? 'shop-entry-legendary' : ''}"><div class="shop-entry-copy"><div class="shop-name">${card.name}${rarity}</div><div class="shop-desc">${card.desc}</div></div><div class="shop-entry-action"><span class="shop-price">¥${fmt(entry.price, 0)}</span><button class="btn btn-small" data-shop-buy="${entry.id}" ${disabled}>${entry.purchased ? '已购买' : '购买'}</button></div></div>`;
   }).join('');
-  const owned = Object.keys(SHOP_CONFIG.CARDS).filter(id => (state.cardInventory[id] || 0) > 0).map(id => `<div class="shop-owned"><span>${SHOP_CONFIG.CARDS[id].name} ×${state.cardInventory[id]}</span><button class="btn btn-small btn-ghost" data-shop-use="${id}">使用</button></div>`).join('');
+  const owned = Object.keys(SHOP_CONFIG.CARDS).filter(id => (state.cardInventory[id] || 0) > 0).map(id => `<div class="shop-owned"><span>${SHOP_CONFIG.CARDS[id].name} ×${state.cardInventory[id]}</span><button class="btn btn-small btn-ghost" data-shop-use="${id}" ${cardUnlocked(id) ? '' : 'disabled'}>使用</button></div>`).join('');
   $('cardInventory').innerHTML = owned ? `<div class="shop-inventory-title">持有卡牌</div><div class="shop-inventory-list">${owned}</div>` : '';
 }
 
@@ -124,8 +130,39 @@ function forecastCategories(goodId) {
 
 function consumeCard(cardId) { state.cardInventory[cardId]--; }
 
+function useFateToken() {
+  if (!cardUnlocked('fateToken')) return { ok: false, message: '总资产达到 ¥10,000 后才能使用' };
+  const before = netWorth();
+  const win = Math.random() < 0.40;
+  if (win) {
+    state.cash = +(state.cash + before * 9).toFixed(2);
+    state.peakNetWorth = Math.max(state.peakNetWorth || 0, netWorth());
+  } else {
+    state.cash = +(state.cash / 10).toFixed(2);
+    Object.keys(state.inventory).forEach(id => {
+      const oldQuantity = state.inventory[id] || 0;
+      const newQuantity = Math.floor(oldQuantity / 10);
+      if (newQuantity <= 0) {
+        delete state.inventory[id];
+        delete state.costBasis[id];
+        return;
+      }
+      const averageCost = (state.costBasis[id] || 0) / oldQuantity;
+      state.inventory[id] = newQuantity;
+      state.costBasis[id] = +(averageCost * newQuantity).toFixed(2);
+    });
+  }
+  consumeCard('fateToken');
+  const title = win ? '金筹大吉：身家进一位' : '金筹大凶：身家退一位';
+  const message = win ? `命数翻转，总资产从 ¥${fmt(before, 2)} 跃升至 ¥${fmt(netWorth(), 2)}。` : `命数反噬，现金与所有持仓均缩减至十分之一。`;
+  state.logs.unshift(`${title}。${message}`);
+  queueNotice(title, message, 'fateToken');
+  return { ok: true, outcome: win ? 'win' : 'loss', message: title };
+}
+
 function useCard(cardId, targetId = null) {
   if (!SHOP_CONFIG.CARDS[cardId] || (state.cardInventory[cardId] || 0) <= 0) return { ok: false, message: '没有这张卡牌' };
+  if (cardId === 'fateToken') return useFateToken();
   if (cardId === 'iAmTheTrend') {
     if (state.eco || state.scheduledEco) return { ok: false, message: '当前已有生态事件' };
     if (state.day > 82) return { ok: false, message: '剩余时间不足以触发生态事件' };
@@ -174,7 +211,7 @@ function renderCardUse() {
   const card = SHOP_CONFIG.CARDS[cardUseId];
   $('cardModalTitle').textContent = `使用卡牌：${card.name}`;
   $('cardModalInfo').textContent = card.desc;
-  const needsTarget = !['suddenFall', 'iAmTheTrend'].includes(cardUseId);
+  const needsTarget = !['suddenFall', 'iAmTheTrend', 'fateToken'].includes(cardUseId);
   const targets = needsTarget ? eligibleTargetsFor(cardUseId) : [];
   $('cardTargets').innerHTML = needsTarget ? (targets.length ? targets.map(id => `<button class="btn btn-small btn-ghost ${cardTarget === id ? 'btn-secondary' : ''}" data-card-target="${id}">${goodById(id).name}</button>`).join('') : '<div class="card-empty">当前没有可用目标。</div>') : '<div class="card-random-note">无需选择目标，确认后立即生效。</div>';
   $('cardUseConfirmBtn').style.display = (!needsTarget || cardTarget) ? 'block' : 'none';

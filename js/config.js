@@ -26,7 +26,8 @@ const SHOP_CONFIG = {
     futureMarket:  { name: '明日行情',    weight: 22, priceRate: 0.06, desc: '查看一个商品明天的涨跌区间。' },
     suddenRise:    { name: '突发利好',      weight: 10, priceRate: 0.12, desc: '强制一个已上架商品触发利好事件。' },
     suddenFall:    { name: '突发利空',      weight: 10, priceRate: 0.18, desc: '强制一个已上架商品触发利空事件。' },
-    iAmTheTrend:   { name: '趋势之主',   weight: 2,  priceRate: 1.20, desc: '主动安排一次生态事件。' }
+    iAmTheTrend:   { name: '趋势之主',   weight: 2,  priceRate: 1.20, desc: '主动安排一次生态事件。' },
+    fateToken:     { name: '改命金筹',   weight: 1,  priceRate: 0.80, unlock: 10000, rarity: '传说', desc: '五成身家进一位，五成身家退一位。' }
   }
 };
 const CAPACITY_LEVELS = [
