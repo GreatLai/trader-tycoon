@@ -49,7 +49,7 @@ function checkVersion() {
         '<div>当前版本：<b>' + APP_VERSION + '</b></div>' +
         '<div>最新版本：<b>' + latest + '</b></div>' +
         (data.notes ? '<div style="color:var(--muted);margin-top:6px;">' + data.notes + '</div>' : '') +
-        '<div style="margin-top:10px;font-weight:700;">' + (isLatest ? '✅ 已是最新版本' : '⬆️ 发现新版本，更新将清除存档并重新开始') + '</div>';
+        '<div style="margin-top:10px;font-weight:700;">' + (isLatest ? '✅ 已是最新版本' : '⬆️ 发现新版本，更新后将继续当前存档') + '</div>';
       if (!isLatest) $('versionUpdateBtn').style.display = 'block';
     })
     .catch(() => {
@@ -58,7 +58,6 @@ function checkVersion() {
 }
 
 function doVersionUpdate() {
-  try { localStorage.removeItem(CONFIG.SAVE_KEY); } catch (e) {}
   location.href = location.href.split('?')[0] + '?v=' + Date.now();
 }
 // ==================== 交互 ====================

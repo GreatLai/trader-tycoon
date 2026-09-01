@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>倒卖大亨 - 日期交易游戏</title>
-<link rel="stylesheet" href="css/style.css?v=1.4.0">
+<link rel="stylesheet" href="css/style.css?v=1.4.1">
 </head>
 <body>
 
@@ -16,12 +16,12 @@
       <h2>规则</h2>
       <ul>
         <li>💰 初始本钱 <b>¥5,000</b>，90 天内尽可能积累财富，每翻 10 倍获得新评级</li>
-        <li>📦 初始仓库容量 <b>1,000</b>，可花钱扩容</li>
+        <li>📦 初始仓库容量 <b>1,000</b>，财富评级提升后自动扩容</li>
         <li>📅 点击「进入下一天」推进日期，当天内买卖不限次数</li>
         <li>🏪 每天市场只上架 <b>5 种</b>商品，没上架的商品当天无法买卖</li>
         <li>📊 价格每天波动；低价商品更容易翻倍，高价商品更稳</li>
         <li>📰 事件会带来暴涨或暴跌，是机会也是惊吓</li>
-        <li>💸 每天有仓库费和贷款利息，现金不足会自动转贷款</li>
+        <li>💸 每天有仓库费和贷款利息，现金不足会按七折强制平仓</li>
         <li>⏰ 90 天到期或破产则结束，不会因达到某个金额提前通关</li>
       </ul>
       <button id="startBtn" class="btn btn-block">开始新游戏</button>
@@ -57,6 +57,7 @@
       </div>
       <button class="btn btn-next" id="nextDayBtn">进入下一天 ▶</button>
       <button class="btn btn-ghost" id="newGameBtn">新游戏</button>
+      <button class="btn btn-ghost" id="versionFab" title="版本更新" aria-label="版本更新">🔄</button>
     </header>
 
     <main>
@@ -74,6 +75,7 @@
           <div class="panel-title">📦 仓库 <span class="badge" id="capText">0 / 0</span></div>
           <div class="cap-bar"><div class="cap-fill" id="capFill" style="width:0%"></div></div>
           <div id="inventoryList"></div>
+        </div>
 
         <div class="panel">
           <div class="panel-title">🏦 银行</div>
@@ -193,18 +195,17 @@
   </div>
 
   <div class="toast" id="toast"></div>
-  <button id="versionFab" class="btn btn-ghost" style="position:fixed;bottom:16px;right:16px;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.15);">🔄 版本更新</button>
 
-<script src="js/config.js?v=1.4.0"></script>
-<script src="js/utils.js?v=1.4.0"></script>
-<script src="js/eco.js?v=1.4.0"></script>
-<script src="js/state.js?v=1.4.0"></script>
-<script src="js/events.js?v=1.4.0"></script>
-<script src="js/trading.js?v=1.4.0"></script>
-<script src="js/game.js?v=1.4.0"></script>
-<script src="js/save.js?v=1.4.0"></script>
-<script src="js/ui.js?v=1.4.0"></script>
-<script src="js/main.js?v=1.4.0"></script>
+<script src="js/config.js?v=1.4.1"></script>
+<script src="js/utils.js?v=1.4.1"></script>
+<script src="js/eco.js?v=1.4.1"></script>
+<script src="js/state.js?v=1.4.1"></script>
+<script src="js/events.js?v=1.4.1"></script>
+<script src="js/trading.js?v=1.4.1"></script>
+<script src="js/game.js?v=1.4.1"></script>
+<script src="js/save.js?v=1.4.1"></script>
+<script src="js/ui.js?v=1.4.1"></script>
+<script src="js/main.js?v=1.4.1"></script>
 </body>
 </html>
 

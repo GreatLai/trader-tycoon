@@ -217,8 +217,10 @@ function applyDailyCosts() {
     const shortfall = totalCost - state.cash;
     state.cash = 0;
     const ok = liquidateInventory(shortfall);
-    state.cash = +state.cash.toFixed(2);
-    if (!ok) {
+    if (ok) {
+      state.cash = +Math.max(0, state.cash - shortfall).toFixed(2);
+    } else {
+      state.cash = +state.cash.toFixed(2);
       state.gameOver = 'lose';
       state.logs.unshift('💀 游戏结束：破产（强制平仓后仍无法支付支出）');
     }

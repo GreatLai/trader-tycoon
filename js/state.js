@@ -9,7 +9,7 @@ function newState() {
     factors[g.id] = initFactor;
     prices[g.id] = +(g.base * initFactor).toFixed(2);
   });
-  const availableGoods = pickGoods(CONFIG.MARKET_SIZE);
+  const availableGoods = pickGoods(CONFIG.MARKET_SIZE, CONFIG.START_CASH, null);
   const lastSeenPrice = {};
   const prevSeenPrice = {};
   GOODS.forEach(g => {
@@ -24,6 +24,7 @@ function newState() {
     priceHistory[g.id] = [{ day: 1, price: prices[g.id] }];
   });
   return {
+    saveVersion: APP_VERSION,
     day: 1,
     cash: CONFIG.START_CASH,
     loan: 0,

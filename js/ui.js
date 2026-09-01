@@ -151,7 +151,7 @@ function render() {
 
   // 结算：破产 / 90 天到期
   if (state.gameOver) {
-    const timeUp = state.day > CONFIG.DAYS_LIMIT;
+    const timeUp = state.gameOver === 'time';
     $('overlay').classList.remove('hidden');
     $('overlayEmoji').textContent = timeUp ? '⏰' : '💀';
     $('overlayTitle').textContent = timeUp ? '时间到' : '破产了';

@@ -1,6 +1,13 @@
 // ==================== 推进日期 ====================
 function nextDay() {
   if (state.gameOver) return;
+  if (state.day >= CONFIG.DAYS_LIMIT) {
+    state.gameOver = 'time';
+    state.logs.unshift('⏰ 游戏结束：90 天到期');
+    save();
+    render();
+    return;
+  }
   state.day++;
   state.events = [];
   state.popupShown = false;
@@ -73,9 +80,6 @@ function checkEnd() {
   if (nw <= 0) {
     state.gameOver = 'lose';
     state.logs.unshift('💀 游戏结束：破产');
-  } else if (state.day > CONFIG.DAYS_LIMIT) {
-    state.gameOver = 'lose';
-    state.logs.unshift('⏰ 游戏结束：90 天到期');
   }
 }
 

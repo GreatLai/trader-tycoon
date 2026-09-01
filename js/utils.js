@@ -25,13 +25,17 @@ function shuffle(arr) {
   return a;
 }
 
-function pickGoods(count) {
+function pickGoods(count, currentNetWorth = null, activeEco = undefined) {
+  const wealth = currentNetWorth == null
+    ? (state ? netWorth() : CONFIG.START_CASH)
+    : currentNetWorth;
+  const eco = activeEco === undefined ? (state ? state.eco : null) : activeEco;
   const unlocked = GOODS.filter(g => {
-    if (g.tier === 'ultra' && typeof state !== 'undefined' && state && netWorth() < ULTRA_UNLOCK) return false;
+    if (g.tier === 'ultra' && wealth < ULTRA_UNLOCK) return false;
     return true;
   }).map(g => g.id);
-  if (state && state.eco) {
-    const affected = ECO_EVENTS[state.eco.treeId].goods.filter(id => unlocked.includes(id));
+  if (eco) {
+    const affected = ECO_EVENTS[eco.treeId].goods.filter(id => unlocked.includes(id));
     const rest = unlocked.filter(id => !affected.includes(id));
     return affected.concat(shuffle(rest).slice(0, Math.max(0, count - affected.length)));
   }
