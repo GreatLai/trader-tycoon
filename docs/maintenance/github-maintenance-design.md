@@ -17,7 +17,6 @@ Present Trader Tycoon as a professionally maintained, owner-led public project w
 - Add a current game screenshot used by the README.
 - Add a concise changelog covering v1.4.1 and v1.4.0.
 - Add structured bug and feature-request issue forms.
-- Add a GitHub Actions workflow that runs the zero-dependency regression suite.
 - Add a small repository `.gitignore` for editor and operating-system noise.
 - Update repository description, homepage, topics, and Wiki setting.
 - Publish a v1.4.1 GitHub Release from the existing stability commit.
@@ -33,7 +32,6 @@ Present Trader Tycoon as a professionally maintained, owner-led public project w
 
 - README facts match v1.4.1 source and tests.
 - All Markdown links and referenced local assets exist.
-- Issue forms and workflow parse as valid YAML.
+- Issue forms parse as valid YAML.
 - `npm test` passes locally.
 - GitHub API confirms metadata, topics, Wiki status, and v1.4.1 Release.
-

@@ -1,0 +1,41 @@
+name: 功能建议
+description: 记录玩法、平衡或维护方向建议
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: 建议范围
+      options:
+        - 核心玩法
+        - 商品与价格
+        - 生态事件
+        - 仓库与经济系统
+        - 界面与交互
+        - 存档与版本
+        - 工程维护
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: 当前问题
+      description: 说明现在的体验为什么需要调整。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议方案
+      description: 描述期望的规则、交互或维护结果。
+    validations:
+      required: true
+  - type: textarea
+    id: tradeoffs
+    attributes:
+      label: 可能影响
+      description: 可填写平衡风险、兼容性、复杂度或替代方案。
+

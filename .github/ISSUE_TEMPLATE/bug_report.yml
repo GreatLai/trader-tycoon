@@ -1,0 +1,56 @@
+name: Bug 报告
+description: 记录可以重复出现的游戏或页面问题
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: 感谢记录问题。请尽量提供稳定的复现步骤，避免仅描述结果。
+  - type: input
+    id: version
+    attributes:
+      label: 游戏版本
+      description: 可在版本更新窗口查看，例如 1.4.1。
+      placeholder: 1.4.1
+    validations:
+      required: true
+  - type: dropdown
+    id: environment
+    attributes:
+      label: 运行环境
+      options:
+        - GitHub Pages 在线版
+        - 本地直接打开 index.html
+        - 本地静态服务器
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 进入第几天或打开哪个界面
+        2. 执行什么操作
+        3. 出现什么结果
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期结果
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际结果
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: 补充信息
+      description: 可附浏览器、设备、截图、控制台错误或相关存档情况。
+
