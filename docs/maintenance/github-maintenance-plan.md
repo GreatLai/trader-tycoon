@@ -37,7 +37,7 @@
 **Files:**
 - No production file changes.
 
-- [ ] Update repository description, homepage, topics, and Wiki setting through the GitHub API.
-- [ ] Publish the v1.4.1 Release from commit `b0943d6`.
-- [ ] Verify the public repository API and live links.
-- [ ] Commit and push the maintenance files to `main`.
+- [x] Update repository description, homepage, topics, and Wiki setting through the GitHub API.
+- [x] Publish the v1.4.1 Release from commit `b0943d6`.
+- [x] Verify the public repository API and live links.
+- [x] Commit and push the maintenance files to `main`.
