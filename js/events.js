@@ -169,14 +169,6 @@ function updatePrices() {
     state.prevPrices[g.id] = oldPrice;
   });
 
-  // 生态事件宣告日：记录“事件开始价”
-  if (state.eco && !state.eco.startPrices) {
-    const sp = {};
-    ECO_EVENTS[state.eco.treeId].goods.forEach(id => {
-      sp[id] = state.prices[id];
-    });
-    state.eco.startPrices = sp;
-  }
 }
 
 function updateSeenPrices() {
@@ -190,18 +182,46 @@ function updateSeenPrices() {
   });
 }
 
+function calcDailyFee() {
+  return GOODS.reduce((sum, g) => sum + (state.inventory[g.id] || 0) * 0.001 * g.base, 0);
+}
+
+function liquidateInventory(shortfall) {
+  let need = shortfall;
+  const entries = Object.keys(state.inventory).filter(id => state.inventory[id] > 0).map(id => ({ id, qty: state.inventory[id], avg: (state.costBasis[id] || 0) / state.inventory[id] }));
+  entries.sort((a, b) => b.qty - a.qty || b.avg - a.avg);
+  for (const e of entries) {
+    if (need <= 0) break;
+    const price = knownPrice(e.id) * 0.7;
+    let qtyToSell = Math.min(e.qty, Math.ceil(need / price));
+    if (qtyToSell <= 0) continue;
+    const proceeds = qtyToSell * price;
+    state.cash += proceeds;
+    state.inventory[e.id] -= qtyToSell;
+    state.costBasis[e.id] = (state.costBasis[e.id] || 0) - e.avg * qtyToSell;
+    if (state.inventory[e.id] <= 0) { delete state.inventory[e.id]; delete state.costBasis[e.id]; }
+    need -= proceeds;
+  }
+  return need <= 0;
+}
+
 function applyDailyCosts() {
-  const fee = +(totalUnits() * CONFIG.STORAGE_FEE_PER_UNIT).toFixed(2);
+  const fee = +calcDailyFee().toFixed(2);
   const interest = +(state.loan * CONFIG.LOAN_INTEREST_RATE).toFixed(2);
   const totalCost = fee + interest;
   if (totalCost <= 0) return;
 
-  let cash = state.cash - totalCost;
-  if (cash < 0) {
-    state.loan = +(state.loan - cash).toFixed(2); // 现金不够自动转贷款
-    state.cash = 0;
+  if (state.cash >= totalCost) {
+    state.cash = +(state.cash - totalCost).toFixed(2);
   } else {
-    state.cash = +cash.toFixed(2);
+    const shortfall = totalCost - state.cash;
+    state.cash = 0;
+    const ok = liquidateInventory(shortfall);
+    state.cash = +state.cash.toFixed(2);
+    if (!ok) {
+      state.gameOver = 'lose';
+      state.logs.unshift('💀 游戏结束：破产（强制平仓后仍无法支付支出）');
+    }
   }
 }
 

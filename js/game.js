@@ -11,21 +11,21 @@ function nextDay() {
   if (state.eco) {
     const rel = ecoRel();
     const tree = ecoTree();
-    if (rel >= 8) {
-      state.eco = null;
-    } else if (rel === 2) {
-      state.eco.A = Math.floor(Math.random() * 3);
-      const A = tree.A[state.eco.A];
-      state.ecoPopup = { special: false, title: '国际新闻', desc: '此前报道的' + tree.name + '仍在持续——' + A.news, mults: A.mults };
-    } else if (rel === 4) {
-      state.eco.B = Math.floor(Math.random() * 3);
-      const B = tree.A[state.eco.A].B[state.eco.B];
-      state.ecoPopup = { special: false, title: '国际新闻', desc: tree.name + '进一步发展——' + B.news, mults: B.mults };
-    } else if (rel === 7) {
-      state.eco.C = Math.floor(Math.random() * 3);
-      const C = tree.A[state.eco.A].B[state.eco.B].C[state.eco.C];
-      state.ecoPopup = { special: false, title: '国际新闻', desc: '这场持续一周的' + tree.name + '最终——' + C.news, mults: C.mults };
-    }
+      if (rel >= 5) {
+        state.eco = null;
+      } else if (rel === 2) {
+        state.eco.A = Math.floor(Math.random() * 3);
+        const A = tree.A[state.eco.A];
+        state.ecoPopup = { special: false, title: '国际新闻', desc: '此前报道的' + tree.name + '仍在持续——' + A.news, mults: A.mults };
+      } else if (rel === 3) {
+        state.eco.B = Math.floor(Math.random() * 3);
+        const B = tree.A[state.eco.A].B[state.eco.B];
+        state.ecoPopup = { special: false, title: '国际新闻', desc: tree.name + '进一步发展——' + B.news, mults: B.mults };
+      } else if (rel === 4) {
+        state.eco.C = Math.floor(Math.random() * 3);
+        const C = tree.A[state.eco.A].B[state.eco.B].C[state.eco.C];
+        state.ecoPopup = { special: false, title: '国际新闻', desc: '这场持续一周的' + tree.name + '最终——' + C.news, mults: C.mults };
+      }
   }
 
   // 启动新的生态事件（正式规则：第 8~83 天每天 20% 概率）
@@ -33,7 +33,7 @@ function nextDay() {
     if (Math.random() < 0.20) {
       const keys = Object.keys(ECO_EVENTS).filter(k => !ECO_EVENTS[k].unlock || netWorth() >= ECO_EVENTS[k].unlock);
       const treeId = keys[Math.floor(Math.random() * keys.length)];
-      state.eco = { treeId, startDay: state.day, startPrices: null, A: null, B: null, C: null };
+      state.eco = { treeId, startDay: state.day, A: null, B: null, C: null };
       state.ecoPopup = { special: true, title: '国际新闻', desc: ECO_EVENTS[treeId].announce.desc };
     }
   }

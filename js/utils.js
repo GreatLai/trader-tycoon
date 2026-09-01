@@ -30,6 +30,11 @@ function pickGoods(count) {
     if (g.tier === 'ultra' && typeof state !== 'undefined' && state && netWorth() < ULTRA_UNLOCK) return false;
     return true;
   }).map(g => g.id);
+  if (state && state.eco) {
+    const affected = ECO_EVENTS[state.eco.treeId].goods.filter(id => unlocked.includes(id));
+    const rest = unlocked.filter(id => !affected.includes(id));
+    return affected.concat(shuffle(rest).slice(0, Math.max(0, count - affected.length)));
+  }
   return shuffle(unlocked).slice(0, count);
 }
 

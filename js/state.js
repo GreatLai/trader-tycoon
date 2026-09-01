@@ -55,7 +55,8 @@ function totalUnits() {
 }
 
 function capacity() {
-  return CAPACITY_LEVELS[state.capacityLevel].cap;
+  const idx = (state.highestMilestone == null || state.highestMilestone < 0) ? 0 : Math.min(state.highestMilestone + 1, WAREHOUSE_CAPACITY_BY_MILESTONE.length - 1);
+  return WAREHOUSE_CAPACITY_BY_MILESTONE[idx];
 }
 
 // 玩家当前“知道”的价格：今天上架用实时价，没上架用上次出现价

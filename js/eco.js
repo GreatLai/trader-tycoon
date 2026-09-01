@@ -17,17 +17,14 @@ function ecoCurrentMult(goodId) {
   const tree = ecoTree();
   const rel = ecoRel();
   const A = tree.A[state.eco.A];
-  if (rel <= 3) return A.mults[goodId];
+  if (rel <= 2) return A.mults[goodId];
   const B = A.B[state.eco.B];
-  if (rel <= 6) return B.mults[goodId];
+  if (rel === 3) return B.mults[goodId];
   return B.C[state.eco.C].mults[goodId];
 }
 
 function ecoTargetFactor(goodId) {
-  const startPrice = state.eco.startPrices[goodId];
-  const mult = ecoCurrentMult(goodId);
-  const g = goodById(goodId);
-  return (startPrice * mult) / g.base;
+  return ecoCurrentMult(goodId);
 }
 
 function describeMults(mults) {
@@ -44,4 +41,3 @@ function describeMults(mults) {
     return `${g.name} ${arrow} ${label}`;
   }).join('、');
 }
-

@@ -32,6 +32,9 @@ function render() {
   // 头部
   $('dayText').textContent = `第 ${state.day} 天 / ${CONFIG.DAYS_LIMIT}`;
   $('cashText').textContent = '¥' + fmt(state.cash, 2);
+  const feeNow = +calcDailyFee().toFixed(2);
+  const interestNow = +(state.loan * CONFIG.LOAN_INTEREST_RATE).toFixed(2);
+  $('cashExpense').textContent = `今日支出 -¥${fmt(feeNow + interestNow, 2)}`;
   $('networthText').textContent = '¥' + fmt(nw, 2);
   $('networthText').className = 'value ' + (nw >= 0 ? 'green' : 'red');
   const rankIdx = state.highestMilestone;
@@ -104,17 +107,6 @@ function render() {
   }).join('');
   $('inventoryList').innerHTML = invRows || '<div style="color:var(--muted);font-size:14px;">仓库是空的</div>';
 
-  // 升级
-  const nextLevel = CAPACITY_LEVELS[state.capacityLevel + 1];
-  if (nextLevel) {
-    $('upgradeDesc').textContent = `下一级：容量 ${nextLevel.cap}，费用 ¥${fmt(nextLevel.cost)}`;
-    $('upgradeBtn').disabled = state.cash < nextLevel.cost;
-    $('upgradeBtn').textContent = '升级';
-  } else {
-    $('upgradeDesc').textContent = '已满级';
-    $('upgradeBtn').disabled = true;
-    $('upgradeBtn').textContent = '满级';
-  }
 
   // 银行
   const maxBorrow = Math.max(0, Math.floor(creditLimit() - state.loan));
@@ -125,7 +117,7 @@ function render() {
     <div class="loan-row"><span>日利率</span><span>${(CONFIG.LOAN_INTEREST_RATE * 100).toFixed(1)}%</span></div>`;
 
   // 每日支出
-  const fee = +(used * CONFIG.STORAGE_FEE_PER_UNIT).toFixed(2);
+  const fee = +calcDailyFee().toFixed(2);
   const interest = +(state.loan * CONFIG.LOAN_INTEREST_RATE).toFixed(2);
   $('expenseInfo').innerHTML = `
     <div class="loan-row"><span>仓库管理费</span><span>¥${fmt(fee, 2)}</span></div>
@@ -174,4 +166,3 @@ function toast(msg) {
   clearTimeout(el._t);
   el._t = setTimeout(() => el.classList.remove('show'), 1600);
 }
-

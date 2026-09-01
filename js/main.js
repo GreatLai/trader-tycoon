@@ -271,40 +271,29 @@ document.addEventListener('click', (e) => {
   } else if (target.id === 'chartBtn') {
     openChart();
   } else if (target.id === 'chartCloseBtn') {
-    } else if (target.dataset.trade) {
-      openTrade(target.dataset.trade);
-    } else if (target.id === 'tradeMinus100') {
-      changeTradeQty(-100);
-    } else if (target.id === 'tradeMinus10') {
-      changeTradeQty(-10);
-    } else if (target.id === 'tradePlus10') {
-      changeTradeQty(10);
-    } else if (target.id === 'tradePlus100') {
-      changeTradeQty(100);
-    } else if (target.dataset.tradeQuick) {
-      setTradeQuick(target.dataset.tradeQuick);
-    } else if (target.id === 'tradeBuyBtn') {
-      executeTrade('buy');
-    } else if (target.id === 'tradeSellBtn') {
-      executeTrade('sell');
-    } else if (target.id === 'tradeCloseBtn') {
-      closeTrade();
     $('chartOverlay').classList.add('hidden');
   } else if (target.dataset.chartGood) {
     state.chartGood = target.dataset.chartGood;
     save();
     openChart();
-  } else if (target.id === 'upgradeBtn') {
-    const next = CAPACITY_LEVELS[state.capacityLevel + 1];
-    if (next && state.cash >= next.cost) {
-      state.cash = +(state.cash - next.cost).toFixed(2);
-      state.capacityLevel++;
-      state.logs.unshift(`仓库扩容到 ${capacity()} 容量`);
-      save();
-      render();
-    } else {
-      toast('现金不足');
-    }
+  } else if (target.dataset.trade) {
+    openTrade(target.dataset.trade);
+  } else if (target.id === 'tradeMinus100') {
+    changeTradeQty(-100);
+  } else if (target.id === 'tradeMinus10') {
+    changeTradeQty(-10);
+  } else if (target.id === 'tradePlus10') {
+    changeTradeQty(10);
+  } else if (target.id === 'tradePlus100') {
+    changeTradeQty(100);
+  } else if (target.dataset.tradeQuick) {
+    setTradeQuick(target.dataset.tradeQuick);
+  } else if (target.id === 'tradeBuyBtn') {
+    executeTrade('buy');
+  } else if (target.id === 'tradeSellBtn') {
+    executeTrade('sell');
+  } else if (target.id === 'tradeCloseBtn') {
+    closeTrade();
   } else if (target.id === 'borrowBtn') {
     const amount = Math.min(5000, Math.max(0, Math.floor(creditLimit() - state.loan)));
     borrow(amount || 0);
