@@ -6,6 +6,7 @@ const INTRO_SLIDES = [
   { emoji: '📦', title: '仓库与现金', text: '买入会占用仓库容量，现金不足可以贷款。\n每天都有仓库费和利息，破产就真的结束了。', hint: '点击“好的”开始商途' }
 ];
 let introStep = 0;
+let tradeGoodId = null;
 
 function showIntro() {
   introStep = 0;
@@ -25,6 +26,7 @@ function advanceIntro() {
   introStep++;
   if (introStep >= INTRO_SLIDES.length) {
     $('introOverlay').classList.add('hidden');
+  $('tradeOverlay').classList.add('hidden');
   $('versionOverlay').classList.add('hidden');
     startNewGame();
   } else {
@@ -60,6 +62,70 @@ function doVersionUpdate() {
   location.href = location.href.split('?')[0] + '?v=' + Date.now();
 }
 // ==================== 交互 ====================
+function maxBuyQty(id) {
+  const price = state.prices[id];
+  return Math.min(Math.floor(state.cash / price), capacity() - totalUnits());
+}
+
+function openTrade(id) {
+  tradeGoodId = id;
+  renderTrade();
+  $('tradeOverlay').classList.remove('hidden');
+}
+
+function closeTrade() {
+  $('tradeOverlay').classList.add('hidden');
+  tradeGoodId = null;
+}
+
+function renderTrade() {
+  if (!tradeGoodId) return;
+  const g = goodById(tradeGoodId);
+  const price = state.prices[tradeGoodId];
+  const owned = state.inventory[tradeGoodId] || 0;
+  const maxBuy = maxBuyQty(tradeGoodId);
+  const qtyInput = $('tradeQty');
+  let qty = parseInt(qtyInput.value, 10);
+  if (!qty || qty < 1) qty = 1;
+  $('tradeTitle').textContent = `${g.icon} ${g.name} 交易`;
+  $('tradeInfo').innerHTML = `
+    <div>现价：¥${fmt(price, 2)}</div>
+    <div>持有：${owned}</div>
+    <div>现金：¥${fmt(state.cash, 2)}</div>
+    <div>仓库可用：${capacity() - totalUnits()} 格</div>
+    <div>最多可买：${maxBuy}</div>`;
+  $('tradeQuick').innerHTML = [1,10,100,1000].map(n => `<button class="btn btn-small btn-ghost" data-trade-quick="${n}">${n}</button>`).join('') + `<button class="btn btn-small btn-ghost" data-trade-quick="max">满仓</button><button class="btn btn-small btn-ghost" data-trade-quick="all">全卖</button>`;
+  qtyInput.value = qty;
+}
+
+function changeTradeQty(delta) {
+  const input = $('tradeQty');
+  let v = parseInt(input.value, 10) || 0;
+  v = Math.max(1, v + delta);
+  input.value = v;
+  renderTrade();
+}
+
+function setTradeQuick(type) {
+  const input = $('tradeQty');
+  if (type === 'max') {
+    input.value = Math.max(1, maxBuyQty(tradeGoodId));
+  } else if (type === 'all') {
+    input.value = Math.max(1, state.inventory[tradeGoodId] || 1);
+  } else {
+    input.value = type;
+  }
+  renderTrade();
+}
+
+function executeTrade(side) {
+  const qty = parseInt($('tradeQty').value, 10) || 0;
+  if (qty <= 0) return;
+  if (side === 'buy') buy(tradeGoodId, qty);
+  else sell(tradeGoodId, qty);
+  renderTrade();
+}
+
 function renderChart() {
   const id = state.chartGood;
   const g = goodById(id);
@@ -132,6 +198,7 @@ function startNewGame() {
   $('historyOverlay').classList.add('hidden');
   $('chartOverlay').classList.add('hidden');
   $('introOverlay').classList.add('hidden');
+  $('tradeOverlay').classList.add('hidden');
   $('versionOverlay').classList.add('hidden');
   clearSave();
   save();
@@ -204,6 +271,24 @@ document.addEventListener('click', (e) => {
   } else if (target.id === 'chartBtn') {
     openChart();
   } else if (target.id === 'chartCloseBtn') {
+    } else if (target.dataset.trade) {
+      openTrade(target.dataset.trade);
+    } else if (target.id === 'tradeMinus100') {
+      changeTradeQty(-100);
+    } else if (target.id === 'tradeMinus10') {
+      changeTradeQty(-10);
+    } else if (target.id === 'tradePlus10') {
+      changeTradeQty(10);
+    } else if (target.id === 'tradePlus100') {
+      changeTradeQty(100);
+    } else if (target.dataset.tradeQuick) {
+      setTradeQuick(target.dataset.tradeQuick);
+    } else if (target.id === 'tradeBuyBtn') {
+      executeTrade('buy');
+    } else if (target.id === 'tradeSellBtn') {
+      executeTrade('sell');
+    } else if (target.id === 'tradeCloseBtn') {
+      closeTrade();
     $('chartOverlay').classList.add('hidden');
   } else if (target.dataset.chartGood) {
     state.chartGood = target.dataset.chartGood;

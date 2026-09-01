@@ -9,6 +9,7 @@ function render() {
     $('milestoneOverlay').classList.add('hidden');
     $('historyOverlay').classList.add('hidden');
     $('chartOverlay').classList.add('hidden');
+      $('tradeOverlay').classList.add('hidden');
     $('continueBtn').classList.toggle('hidden', !load());
     return;
   }
@@ -21,6 +22,7 @@ function render() {
     $('milestoneOverlay').classList.add('hidden');
     $('historyOverlay').classList.add('hidden');
     $('chartOverlay').classList.add('hidden');
+      $('tradeOverlay').classList.add('hidden');
   }
 
   const nw = netWorth();
@@ -68,14 +70,7 @@ function render() {
         </div>
         <div class="owned">持有 ${owned}</div>
         <div class="actions">
-          <button class="btn btn-small btn-green" data-action="buy" data-good="${id}" data-qty="1">买1</button>
-          <button class="btn btn-small btn-green" data-action="buy" data-good="${id}" data-qty="10">买10</button>
-          <button class="btn btn-small btn-green" data-action="buy" data-good="${id}" data-qty="100">买100</button>
-          <button class="btn btn-small btn-green" data-action="buy" data-good="${id}" data-qty="max">买满</button>
-          <button class="btn btn-small btn-red" data-action="sell" data-good="${id}" data-qty="1">卖1</button>
-          <button class="btn btn-small btn-red" data-action="sell" data-good="${id}" data-qty="10">卖10</button>
-          <button class="btn btn-small btn-red" data-action="sell" data-good="${id}" data-qty="100">卖100</button>
-          <button class="btn btn-small btn-red" data-action="sell" data-good="${id}" data-qty="all">全卖</button>
+          <button class="btn btn-small" data-trade="${id}">交易</button>
         </div>
       </div>`;
   }).join('');
