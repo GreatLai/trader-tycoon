@@ -100,11 +100,11 @@ test('loading a low-wealth save removes prematurely listed ultra goods', () => {
   assert.equal(loaded.availableGoods.some(id => ULTRA_IDS.has(id)), false);
 });
 
-test('warehouse and bank are sibling panels', () => {
+test('warehouse and shop are sibling panels', () => {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   assert.match(
     html,
-    /id="inventoryList"><\/div>\s*<\/div>\s*<div class="panel">\s*<div class="panel-title">🏦 银行/
+      /id="inventoryList"><\/div>\s*<\/div>\s*<div class="panel">\s*<div class="panel-title">🏪 奇货铺/
   );
 });
 
@@ -130,9 +130,9 @@ test('the inline trading hotfix version is consistent across delivery files', ()
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.6.0');
+  assert.equal(api.APP_VERSION, '1.7.0');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.6\.0/g) || []).length, 11);
+  assert.equal((html.match(/\?v=1\.7\.0/g) || []).length, 12);
 });
 
 test('manual version refresh preserves the existing save', () => {
