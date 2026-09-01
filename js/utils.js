@@ -8,18 +8,29 @@ function fmt(n, digits = 0) {
   });
 }
 
-function randn() {
-  // Box-Muller
+function mulberry32(a) {
+  return function() {
+    a |= 0;
+    a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function randn(rng) {
+  const r = rng || Math.random;
   let u = 0, v = 0;
-  while (u === 0) u = Math.random();
-  while (v === 0) v = Math.random();
+  while (u === 0) u = r();
+  while (v === 0) v = r();
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
 
-function shuffle(arr) {
+function shuffle(arr, rng) {
   const a = arr.slice();
+  const r = rng || Math.random;
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(r() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
@@ -49,4 +60,3 @@ function goodById(id) {
 function activeEventFor(goodId) {
   return state.events.find(e => e.goodId === goodId);
 }
-

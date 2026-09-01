@@ -52,6 +52,7 @@ function newState() {
     peakNetWorth: CONFIG.START_CASH,
     scheduledEco: null,
     nextDaySeed: Math.floor(Math.random() * 1e9),
+    nextDayPlan: null,
     eventNoticeQueue: [],
     logs: [],
     gameOver: null

@@ -195,6 +195,7 @@ function useCardConfirm() {
     const keys = Object.keys(ECO_EVENTS).filter(k => !ECO_EVENTS[k].unlock || netWorth() >= ECO_EVENTS[k].unlock);
     if (!keys.length) { toast('没有可安排的生态事件'); return; }
     state.scheduledEco = keys[Math.floor(Math.random() * keys.length)];
+    state.nextDayPlan = null;
     state.cardInventory[cardUseId]--;
     toast('已安排：' + ECO_EVENTS[state.scheduledEco].name);
     save(); render(); closeCardUse();
@@ -213,11 +214,12 @@ function useCardConfirm() {
   } else if (cardUseId === 'suddenFall') {
     applyCardEvent(id, false);
   } else if (cardUseId === 'futureMarket') {
-    toast(goodById(id).name + ' 明日预计：' + seededCategory(id));
+    toast(goodById(id).name + ' 明日预计：' + forecastCategories(id));
     state.cardInventory[cardUseId]--;
     save(); render(); closeCardUse();
     return;
   }
+  state.nextDayPlan = null;
   state.cardInventory[cardUseId]--;
   save();
   render();
@@ -228,4 +230,59 @@ function closeCardUse() {
   $('cardOverlay').classList.add('hidden');
   cardUseId = null;
   cardTarget = null;
+}
+
+function buildPlanClone() {
+  return {
+    day: state.day + 1,
+    logs: [],
+    dailyHistory: [],
+    gameOver: null,
+    popupShown: true,
+    ecoPopup: null,
+    prices: { ...state.prices },
+    prevPrices: { ...state.prevPrices },
+    factors: { ...state.factors },
+    availableGoods: [],
+    events: [],
+    eco: state.eco ? JSON.parse(JSON.stringify(state.eco)) : null,
+    lastSeenPrice: { ...state.lastSeenPrice },
+    prevSeenPrice: { ...state.prevSeenPrice },
+    inventory: state.inventory,
+    costBasis: state.costBasis,
+    cash: state.cash,
+    loan: state.loan,
+    highestMilestone: state.highestMilestone
+  };
+}
+
+function planNextDay() {
+  const realState = state;
+  const clone = buildPlanClone();
+  state = clone;
+  const oldRandom = Math.random;
+  Math.random = mulberry32(state.nextDaySeed);
+  state.availableGoods = pickGoods(CONFIG.MARKET_SIZE);
+  spawnEvents();
+  updatePrices();
+  Math.random = oldRandom;
+  const plan = {
+    availableGoods: clone.availableGoods.slice(),
+    events: clone.events.slice(),
+    prices: { ...clone.prices },
+    factors: { ...clone.factors }
+  };
+  state = realState;
+  state.nextDayPlan = plan;
+  return plan;
+}
+
+function forecastCategories(goodId) {
+  const plan = state.nextDayPlan || planNextDay();
+  const before = state.prices[goodId];
+  const after = plan.prices[goodId];
+  const diff = (after - before) / before * 100;
+  const cat = diff <= -15 ? '大跌' : diff <= -5 ? '小跌' : diff <= 5 ? '平稳' : diff <= 15 ? '小涨' : '大涨';
+  state.nextDayPlan = plan;
+  return cat;
 }

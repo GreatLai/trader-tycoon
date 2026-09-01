@@ -9,6 +9,8 @@ function nextDay() {
     return;
   }
   state.day++;
+  const oldRandom = Math.random;
+  Math.random = mulberry32(state.nextDaySeed);
   state.events = [];
   state.popupShown = false;
   state.ecoPopup = null;
@@ -56,7 +58,8 @@ function nextDay() {
   updatePrices();
   updateSeenPrices();
   state.nextDaySeed = Math.floor(Math.random() * 1e9);
-
+  Math.random = oldRandom;
+  state.nextDaySeed = Math.floor(Math.random() * 1e9);
   // 记录每日价格走势
   GOODS.forEach(g => {
     state.priceHistory[g.id].push({ day: state.day, price: state.prices[g.id] });
