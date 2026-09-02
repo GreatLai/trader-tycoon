@@ -26,7 +26,7 @@ const PROFESSIONS = Object.freeze({
     activeAbility: Object.freeze({
       id: 'raisePrice',
       name: '抬价',
-      description: '选择一个今日上架且自己持有的商品，将价格抬到锚点的 1.15 至 1.45 倍。每天一次。'
+      description: '选择一个今日上架、自己持有且当天未买入的商品，将价格抬到锚点的 1.15 至 1.45 倍。每天一次；有 20% 几率失败并禁售三天。'
     })
   })
 });

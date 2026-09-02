@@ -47,12 +47,14 @@ function buy(id, qty) {
   state.cash = +(state.cash - cost).toFixed(2);
   state.inventory[id] = (state.inventory[id] || 0) + qty;
   state.costBasis[id] = (state.costBasis[id] || 0) + cost;
+  state.goodsBoughtDay[id] = state.day;
   render();
 }
 
 function sell(id, qty) {
   if (state.gameOver) return;
   if (!state.availableGoods.includes(id)) return;
+  if (isGoodSaleLocked(id)) { toast(`该商品被锁定，第${state.saleLockUntilDay[id]}天恢复出售`); return; }
   if (!Number.isFinite(qty)) return;
   qty = Math.min(Math.floor(qty), state.inventory[id] || 0);
   if (qty <= 0) return;

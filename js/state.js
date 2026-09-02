@@ -35,6 +35,8 @@ function newState(professionId = DEFAULT_PROFESSION_ID) {
     prevSeenPrice,
     inventory: {},
     costBasis: {},
+    goodsBoughtDay: {},
+    saleLockUntilDay: {},
     events: [],
     popupShown: true,
     eco: null,
@@ -70,6 +72,11 @@ function capacity() {
   const idx = (state.highestMilestone == null || state.highestMilestone < 0) ? 0 : Math.min(state.highestMilestone + 1, WAREHOUSE_CAPACITY_BY_MILESTONE.length - 1);
   const rules = getEffectiveRules(state.profession);
   return Math.max(0, Math.floor(WAREHOUSE_CAPACITY_BY_MILESTONE[idx] * rules.warehouseCapacityMultiplier));
+}
+
+function isGoodSaleLocked(id, day = state.day) {
+  const unlockDay = Number(state.saleLockUntilDay && state.saleLockUntilDay[id]);
+  return Number.isFinite(unlockDay) && day < unlockDay;
 }
 
 // 玩家当前“知道”的价格：今天上架用实时价，没上架用上次出现价

@@ -183,5 +183,5 @@ test('useless profession has a stable deterministic market sequence after shop r
   }
 
   const digest = crypto.createHash('sha256').update(JSON.stringify(days)).digest('hex');
-  assert.equal(digest, '142065517941e5d756f111fa426b88b3d23b6280ccc672cd17c7d8c7e5be0632');
+  assert.equal(digest, '0220c0a57c8e3c1369948a18dca2ced55fcd3791aa225d655b4461b08644e0e8');
 });

@@ -1,12 +1,12 @@
 // ==================== 配置 ====================
 const ULTRA_UNLOCK = 10000000;
-const APP_VERSION = '1.8.1';
+const APP_VERSION = '1.9.0';
 
 const CONFIG = {
   DAYS_LIMIT: 90,
   TARGET: 1000000,
   START_CASH: 5000,
-  MARKET_SIZE: 5,
+  MARKET_SIZE: 6,
   ECO_MARKET_SIZE: 7,
   SAVE_KEY: 'trader-tycoon-save-v17',
   PROFILE_SAVE_KEY: 'trader-tycoon-profile-v1'

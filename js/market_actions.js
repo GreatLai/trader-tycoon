@@ -32,7 +32,11 @@ function eligibleProfessionAbilityTargets() {
   const profession = PROFESSIONS[normalizeProfessionId(state.profession && state.profession.id)];
   if (!profession.activeAbility || state.profession.activeUsedDay === state.day) return [];
   if (profession.activeAbility.id === 'raisePrice') {
-    return state.availableGoods.filter(id => (state.inventory[id] || 0) > 0);
+    return state.availableGoods.filter(id =>
+      (state.inventory[id] || 0) > 0 &&
+      state.goodsBoughtDay[id] !== state.day &&
+      !isGoodSaleLocked(id)
+    );
   }
   return [];
 }
@@ -46,12 +50,20 @@ function useProfessionAbility(targetId) {
   if (profession.activeAbility.id === 'raisePrice') {
     const good = goodById(targetId);
     const oldPrice = state.prices[targetId];
+    state.profession.activeUsedDay = state.day;
+    if (Math.random() < 0.20) {
+      const unlockDay = state.day + 3;
+      state.saleLockUntilDay[targetId] = unlockDay;
+      const desc = `${good.name}抬价失败，货物被查封；第${unlockDay}天恢复出售。`;
+      state.logs.unshift(`第${state.day}天：牙商抬价失败。${desc}`);
+      queueNotice('牙商 · 抬价失败', desc);
+      return { ok: false, reason: 'raise-failed', goodId: targetId, unlockDay };
+    }
     const factor = 1.15 + Math.random() * 0.30;
     state.prices[targetId] = +(good.base * factor).toFixed(2);
     state.prevPrices[targetId] = oldPrice;
     state.factors[targetId] = state.prices[targetId] / good.base;
     recordCurrentPrice(targetId);
-    state.profession.activeUsedDay = state.day;
     const desc = `${good.name}被抬至 ¥${fmt(state.prices[targetId], 2)}，今日可按新价格交易。`;
     state.logs.unshift(`第${state.day}天：牙商使用抬价。${desc}`);
     queueNotice('牙商 · 抬价', desc);

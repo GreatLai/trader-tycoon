@@ -234,7 +234,11 @@ function calcTotalDailyCost(day = state.day) {
 function liquidateInventory(shortfall) {
   let need = shortfall;
   const entries = Object.keys(state.inventory)
-    .filter(id => state.inventory[id] > 0 && (BALANCE_CONFIG.ALLOW_OFF_MARKET_LIQUIDATION || state.availableGoods.includes(id)))
+    .filter(id =>
+      state.inventory[id] > 0 &&
+      !isGoodSaleLocked(id) &&
+      (BALANCE_CONFIG.ALLOW_OFF_MARKET_LIQUIDATION || state.availableGoods.includes(id))
+    )
     .map(id => ({ id, qty: state.inventory[id], avg: (state.costBasis[id] || 0) / state.inventory[id] }));
   entries.sort((a, b) => b.qty - a.qty || b.avg - a.avg);
   for (const e of entries) {

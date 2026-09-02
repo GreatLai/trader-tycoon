@@ -23,6 +23,8 @@ function normalizeSave(saved) {
   saved.logs = Array.isArray(saved.logs) ? saved.logs : [];
   saved.inventory = saved.inventory || {};
   saved.costBasis = saved.costBasis || {};
+  saved.goodsBoughtDay = saved.goodsBoughtDay && typeof saved.goodsBoughtDay === 'object' ? saved.goodsBoughtDay : {};
+  saved.saleLockUntilDay = saved.saleLockUntilDay && typeof saved.saleLockUntilDay === 'object' ? saved.saleLockUntilDay : {};
   saved.priceHistory = saved.priceHistory || {};
   saved.tradeInputMode = saved.tradeInputMode === 'percentage' ? 'percentage' : 'quantity';
   const professionId = normalizeProfessionId(saved.profession && saved.profession.id);

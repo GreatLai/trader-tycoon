@@ -100,6 +100,7 @@ function createGame(options = {}) {
       parseTradeQuantity,
       getPercentageTradeQuantity: typeof getPercentageTradeQuantity === 'function' ? getPercentageTradeQuantity : undefined,
       getEffectiveRules: typeof getEffectiveRules === 'function' ? getEffectiveRules : undefined,
+      isGoodSaleLocked: typeof isGoodSaleLocked === 'function' ? isGoodSaleLocked : undefined,
       loadProfile: typeof loadProfile === 'function' ? loadProfile : undefined,
       newProfile: typeof newProfile === 'function' ? newProfile : undefined,
       newProfessionState: typeof newProfessionState === 'function' ? newProfessionState : undefined,

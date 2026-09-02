@@ -142,7 +142,7 @@ function startNewGame(professionId = DEFAULT_PROFESSION_ID) {
   const selectedId = normalizeProfessionId(professionId);
   if (!profile.unlockedProfessionIds.includes(selectedId)) return false;
   state = newState(selectedId);
-  state.logs = ['第1天：商行开张。常规市场上架5种商品，生态行情期间扩展到7种。'];
+  state.logs = ['第1天：商行开张。常规市场上架6种商品，生态行情期间扩展到7种。'];
   $('eventOverlay').classList.add('hidden');
   $('milestoneOverlay').classList.add('hidden');
   $('historyOverlay').classList.add('hidden');
@@ -279,7 +279,7 @@ document.addEventListener('click', (e) => {
     openProfessionAbility();
   } else if (target.dataset.professionAbilityTarget) {
     const result = useProfessionAbility(target.dataset.professionAbilityTarget);
-    if (result.ok) {
+    if (result.ok || result.reason === 'raise-failed') {
       $('professionAbilityOverlay').classList.add('hidden');
       save();
       render();

@@ -207,11 +207,17 @@ test('the release version is consistent across delivery files', () => {
   const changelog = fs.readFileSync(path.join(ROOT, 'CHANGELOG.md'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.8.1');
+  assert.equal(api.APP_VERSION, '1.9.0');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.8\.1/g) || []).length, 15);
-  assert.match(readme, /当前版本：\*\* v1\.8\.1/);
-  assert.match(changelog, /## \[1\.8\.1\] - 2026-09-02/);
+  assert.equal((html.match(/\?v=1\.9\.0/g) || []).length, 15);
+  assert.match(readme, /当前版本：\*\* v1\.9\.0/);
+  assert.match(changelog, /## \[1\.9\.0\] - 2026-09-02/);
+});
+
+test('standard and ecology markets list six and seven goods respectively', () => {
+  const { api } = createGame();
+  assert.equal(api.CONFIG.MARKET_SIZE, 6);
+  assert.equal(api.CONFIG.ECO_MARKET_SIZE, 7);
 });
 
 test('manual version refresh preserves the existing save', () => {
@@ -237,7 +243,7 @@ test('market rows expose immediate presets and custom buy and sell controls', ()
   assert.match(source, /data-trade-input="sell"/);
   assert.match(source, /data-custom-trade="buy"/);
   assert.match(source, /data-custom-trade="sell"/);
-  assert.match(source, /owned === 0 \? 'disabled' : ''/);
+  assert.match(source, /owned === 0 \|\| saleLocked \? 'disabled' : ''/);
 });
 
 test('new games default to quantity trading mode', () => {

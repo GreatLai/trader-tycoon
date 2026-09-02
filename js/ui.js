@@ -99,9 +99,11 @@ function render() {
     const holdColor = holdPnl >= 0 ? 'var(--green)' : 'var(--red)';
     const holdText = owned > 0 ? ` ｜ 持仓 <span style="color:${holdColor};font-weight:600;">${holdPnl >= 0 ? '+' : ''}${fmt(holdPnl, 1)}%</span>` : '';
     const ecoClass = state.eco && ECO_EVENTS[state.eco.treeId].goods.includes(id) ? ' eco-affected' : '';
+    const saleLocked = isGoodSaleLocked(id);
+    const lockLabel = saleLocked ? ` ｜ 禁售中，第${state.saleLockUntilDay[id]}天恢复` : '';
     const maxBuy = Math.min(Math.floor(state.cash / price), cap - used);
     const buyDisabled = maxBuy === 0 ? 'disabled' : '';
-    const sellDisabled = owned === 0 ? 'disabled' : '';
+    const sellDisabled = owned === 0 || saleLocked ? 'disabled' : '';
     const buyPresets = percentageMode ? percentageTradeButtons('buy', id, buyDisabled) : `
           <button class="btn btn-small trade-preset" data-action="buy" data-good="${id}" data-qty="1" ${buyDisabled}>+1</button>
           <button class="btn btn-small trade-preset" data-action="buy" data-good="${id}" data-qty="10" ${buyDisabled}>+10</button>
@@ -119,7 +121,7 @@ function render() {
           <div class="price-col">
             <div class="price">¥${fmt(price, 2)}</div>
             <div class="change ${seenCls}">${seenArrow} ${seenChange >= 0 ? '+' : ''}${fmt(seenChange, 1)}% 较上次</div>
-            <div class="base-meta">${seenText}${holdText}</div>
+            <div class="base-meta">${seenText}${holdText}<span class="red">${lockLabel}</span></div>
           </div>
           <div class="owned">持有 <strong>${owned}</strong></div>
         </div>
@@ -157,8 +159,9 @@ function render() {
       : `购入 ¥${fmt(avg, 2)} → 上次出现 ¥${fmt(cur, 2)}`;
     const stateLabel = isToday ? '' : '（今日未上架）';
     const ecoClass = state.eco && ECO_EVENTS[state.eco.treeId].goods.includes(g.id) ? ' eco-affected' : '';
+    const lockLabel = isGoodSaleLocked(g.id) ? `（禁售中，第${state.saleLockUntilDay[g.id]}天恢复）` : '';
     return `<div class="inventory-row${ecoClass}">
-      <span class="inventory-good">${goodArt(g, 'good-art-small')}<span>${g.name} <span class="qty">×${qty}</span> <span style="font-size:11px;color:var(--muted);">${stateLabel}</span></span></span>
+      <span class="inventory-good">${goodArt(g, 'good-art-small')}<span>${g.name} <span class="qty">×${qty}</span> <span style="font-size:11px;color:var(--muted);">${stateLabel}</span> <span style="font-size:11px;color:var(--red);">${lockLabel}</span></span></span>
       <span class="value">
         <div class="price-line">${priceLabel}</div>
         <div class="pnl-line" style="color:${color}">${pnlPer >= 0 ? '+' : ''}${fmt(pnlPer, 2)}/单位 (${fmt(pnlPct, 1)}%) ｜ ${pnl >= 0 ? '+' : ''}${fmt(pnl, 2)}</div>
