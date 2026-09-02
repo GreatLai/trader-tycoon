@@ -30,7 +30,7 @@ function refreshMarketGood(id, options = {}) {
 
 function eligibleProfessionAbilityTargets() {
   const profession = PROFESSIONS[normalizeProfessionId(state.profession && state.profession.id)];
-  if (!profession.activeAbility || state.profession.activeUsedDay === state.day) return [];
+  if (!profession.activeAbility || professionAbilityReadyDay(profession) > state.day) return [];
   if (profession.activeAbility.id === 'raisePrice') {
     return state.availableGoods.filter(id =>
       (state.inventory[id] || 0) > 0 &&
@@ -41,10 +41,18 @@ function eligibleProfessionAbilityTargets() {
   return [];
 }
 
+function professionAbilityReadyDay(profession = PROFESSIONS[normalizeProfessionId(state.profession && state.profession.id)]) {
+  const usedDay = state.profession && state.profession.activeUsedDay;
+  if (!profession.activeAbility || !Number.isFinite(usedDay)) return state.day;
+  return usedDay + (profession.activeAbility.cooldownDays || 1);
+}
+
 function useProfessionAbility(targetId) {
   const profession = PROFESSIONS[normalizeProfessionId(state.profession && state.profession.id)];
   if (!profession.activeAbility) return { ok: false, reason: 'no-active-ability' };
   if (state.profession.activeUsedDay === state.day) return { ok: false, reason: 'already-used' };
+  const readyDay = professionAbilityReadyDay(profession);
+  if (readyDay > state.day) return { ok: false, reason: 'cooldown', readyDay };
   if (!eligibleProfessionAbilityTargets().includes(targetId)) return { ok: false, reason: 'invalid-target' };
 
   if (profession.activeAbility.id === 'raisePrice') {

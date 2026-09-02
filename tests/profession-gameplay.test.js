@@ -36,7 +36,7 @@ test('tooth merchant is available by default and remains unlocked after progress
   assert.equal(api.loadProfile().unlockedProfessionIds.includes('toothMerchant'), true);
 });
 
-test('tooth merchant can raise one owned listed good once per day', () => {
+test('tooth merchant can raise an owned listed good once every three days', () => {
   const { api } = createGame();
   const state = api.reset();
   state.profession = api.newProfessionState('toothMerchant');
@@ -54,6 +54,16 @@ test('tooth merchant can raise one owned listed good once per day', () => {
   assert.equal(state.prices.wheat, +(api.GOODS.find(good => good.id === 'wheat').base * 1.15).toFixed(2));
   assert.equal(state.profession.activeUsedDay, state.day);
   assert.deepEqual(plain(second), { ok: false, reason: 'already-used' });
+
+  state.day = 2;
+  assert.deepEqual(plain(api.eligibleProfessionAbilityTargets()), []);
+  assert.deepEqual(plain(api.useProfessionAbility('wheat')), { ok: false, reason: 'cooldown', readyDay: 4 });
+
+  state.day = 3;
+  assert.deepEqual(plain(api.eligibleProfessionAbilityTargets()), []);
+
+  state.day = 4;
+  assert.deepEqual(plain(api.eligibleProfessionAbilityTargets()), ['wheat']);
 });
 
 test('tooth merchant cannot raise a good bought on the same day', () => {

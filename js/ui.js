@@ -65,8 +65,8 @@ function render() {
   if (!profession.activeAbility) {
     abilityButton.textContent = '无主动技能';
     abilityButton.disabled = true;
-  } else if (state.profession.activeUsedDay === state.day) {
-    abilityButton.textContent = `${profession.activeAbility.name} · 今日已使用`;
+  } else if (professionAbilityReadyDay(profession) > state.day) {
+    abilityButton.textContent = `${profession.activeAbility.name} · 第${professionAbilityReadyDay(profession)}天可用`;
     abilityButton.disabled = true;
   } else {
     abilityButton.textContent = `使用 ${profession.activeAbility.name}`;
