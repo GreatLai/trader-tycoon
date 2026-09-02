@@ -42,7 +42,22 @@ const PROFESSIONS = Object.freeze({
       id: 'marketTrip',
       name: '赶集',
       cooldownDays: 3,
-      description: '选择一个当前未上架且持有的商品，立即追加到今日货架并重新生成正常价格；有 15% 几率触发突发事件，不受生态行情定价影响。使用后第 4 天可再次发动。'
+      description: '选择一个持有商品重新报价；未上架则追加到今日货架，已上架则原地刷新。有 15% 几率触发突发事件，不受生态行情定价影响。使用后第 4 天可再次发动。'
+    })
+  }),
+  speculator: Object.freeze({
+    id: 'speculator',
+    name: '投机商',
+    description: '追着突发风声下注，把一次行情变成连续两天的机会或风险。',
+    passive: '追风：所有自然突发事件商品次日必定继续上架，占用正常货架位置。',
+    drawback: '风声放大：自然突发事件的涨跌幅度都会加深 20%，生态行情不受影响。',
+    unlock: null,
+    modifyRules: null,
+    activeAbility: Object.freeze({
+      id: 'stokeMarket',
+      name: '煽风点火',
+      cooldownDays: 3,
+      description: '指定一个今日发生自然突发事件的商品，安排次日后续报道。走势更可能延续，也可能反转；使用后第 4 天可再次发动。'
     })
   })
 });

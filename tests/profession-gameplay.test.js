@@ -9,13 +9,14 @@ function plain(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-test('the playable roster contains useless, tooth merchant, and traveling merchant', () => {
+test('the playable roster contains all four professions', () => {
   const { api } = createGame();
 
-  assert.deepEqual(Object.keys(api.PROFESSIONS), ['useless', 'toothMerchant', 'travelingMerchant']);
+  assert.deepEqual(Object.keys(api.PROFESSIONS), ['useless', 'toothMerchant', 'travelingMerchant', 'speculator']);
   assert.equal(api.PROFESSIONS.useless.activeAbility, null);
   assert.equal(api.PROFESSIONS.toothMerchant.activeAbility.id, 'raisePrice');
   assert.equal(api.PROFESSIONS.travelingMerchant.activeAbility.id, 'marketTrip');
+  assert.equal(api.PROFESSIONS.speculator.activeAbility.id, 'stokeMarket');
   assert.match(api.PROFESSIONS.toothMerchant.drawback, /高价/);
 });
 
@@ -67,9 +68,152 @@ test('tooth merchant can raise an owned listed good once every three days', () =
   assert.deepEqual(plain(api.eligibleProfessionAbilityTargets()), ['wheat']);
 });
 
+test('speculator is available by default', () => {
+  const { api } = createGame();
+  assert.equal(api.loadProfile().unlockedProfessionIds.includes('speculator'), true);
+});
+
+test('chasing momentum keeps prior natural-event goods on the next normal-sized shelf', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('speculator');
+  state.availableGoods = ['wood', 'coal', 'tea', 'coffee', 'copper', 'oil'];
+  state.factors.wood = 1.5;
+  state.factors.coal = 1.4;
+
+  const result = api.applyProfessionNextDayMarket([
+    { goodId: 'wheat', source: 'natural', type: 'good' },
+    { goodId: 'phone', source: 'profession', type: 'good' }
+  ]);
+
+  assert.equal(result.applied, true);
+  assert.equal(state.availableGoods.length, api.CONFIG.MARKET_SIZE);
+  assert.equal(state.availableGoods.includes('wheat'), true);
+  assert.equal(state.availableGoods.includes('phone'), false);
+});
+
+test('chasing momentum ignores ecology and other non-natural event sources', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('speculator');
+  const before = state.availableGoods.slice();
+
+  const result = api.applyProfessionNextDayMarket([
+    { goodId: 'wheat', source: 'ecology', type: 'good' },
+    { goodId: 'wood', source: 'profession-follow-up', type: 'bad' }
+  ]);
+
+  assert.equal(result.applied, false);
+  assert.deepEqual(plain(state.availableGoods), plain(before));
+});
+
+test('speculator natural sudden events amplify log magnitude by twenty percent in both directions', () => {
+  const baseGame = createGame();
+  const baseState = baseGame.api.reset();
+  baseState.profession = baseGame.api.newProfessionState('useless');
+  baseGame.api.setRandom(() => 0.5);
+  const baseUp = baseGame.api.makeEvent('wheat', true, { forcedByCard: false, allowRare: false });
+  baseGame.api.setRandom(() => 0.5);
+  const baseDown = baseGame.api.makeEvent('wheat', false, { forcedByCard: false, allowRare: false });
+
+  const specGame = createGame();
+  const specState = specGame.api.reset();
+  specState.profession = specGame.api.newProfessionState('speculator');
+  specGame.api.setRandom(() => 0.5);
+  const specUp = specGame.api.makeEvent('wheat', true, { forcedByCard: false, allowRare: false });
+  specGame.api.setRandom(() => 0.5);
+  const specDown = specGame.api.makeEvent('wheat', false, { forcedByCard: false, allowRare: false });
+
+  assert.equal(Math.abs(Math.log(specUp.targetMult) - Math.log(baseUp.targetMult) * 1.2) < 0.001, true);
+  assert.equal(Math.abs(Math.log(specDown.targetMult) - Math.log(baseDown.targetMult) * 1.2) < 0.001, true);
+});
+
+test('stoke market only targets today natural-event goods and does not add an event immediately', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('speculator');
+  state.day = 12;
+  state.events = [
+    { goodId: 'wheat', source: 'natural', type: 'good' },
+    { goodId: 'wood', source: 'profession', type: 'bad' }
+  ];
+
+  assert.deepEqual(plain(api.eligibleProfessionAbilityTargets()), ['wheat']);
+  const result = api.useProfessionAbility('wheat');
+
+  assert.equal(result.ok, true);
+  assert.equal(state.events.length, 2);
+  assert.deepEqual(plain(state.profession.data.pendingFollowUp), { goodId: 'wheat', originalPositive: true, dueDay: 13 });
+  state.day = 13;
+  assert.deepEqual(plain(api.useProfessionAbility('wheat')), { ok: false, reason: 'cooldown', readyDay: 15 });
+});
+
+test('stoke market follow-up continues below the seventy-percent boundary', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('speculator');
+  state.day = 13;
+  state.profession.data.pendingFollowUp = { goodId: 'wheat', originalPositive: true, dueDay: 13 };
+  api.setRandom(() => 0.6999);
+
+  const event = api.resolveProfessionScheduledEvents();
+
+  assert.equal(event.type, 'good');
+  assert.equal(event.source, 'profession-follow-up');
+  assert.equal(event.isRare, false);
+});
+
+test('stoke market follow-up reverses at the seventy-percent boundary', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('speculator');
+  state.day = 13;
+  state.profession.data.pendingFollowUp = { goodId: 'wheat', originalPositive: true, dueDay: 13 };
+  api.setRandom(() => 0.70);
+
+  const event = api.resolveProfessionScheduledEvents();
+
+  assert.equal(event.type, 'bad');
+  assert.equal(event.targetMult < 1, true);
+  assert.equal(event.targetMult < 0.2, false);
+});
+
+test('speculator follow-up target occupies a normal shelf position and pending state migrates safely', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('speculator');
+  state.day = 13;
+  state.availableGoods = ['wood', 'coal', 'tea', 'coffee', 'copper', 'oil'];
+  state.profession.data.pendingFollowUp = { goodId: 'wheat', originalPositive: false, dueDay: 13 };
+
+  const result = api.applyProfessionNextDayMarket([]);
+
+  assert.equal(result.applied, true);
+  assert.equal(state.availableGoods.length, api.CONFIG.MARKET_SIZE);
+  assert.equal(state.availableGoods.includes('wheat'), true);
+
+  state.profession.data.pendingFollowUp = { goodId: 'missing', originalPositive: 'yes', dueDay: 'tomorrow' };
+  const { api: loadedApi } = createGame({ savedState: state });
+  const loaded = loadedApi.loadSave();
+  assert.equal(loaded.profession.id, 'speculator');
+  assert.equal(loaded.profession.data.pendingFollowUp, undefined);
+});
+
+test('speculator UI describes uncertainty without publishing exact follow-up odds', () => {
+  const professions = fs.readFileSync(path.join(ROOT, 'js/professions.js'), 'utf8');
+  const ui = fs.readFileSync(path.join(ROOT, 'js/ui.js'), 'utf8');
+
+  assert.match(professions, /追风/);
+  assert.match(professions, /风声放大/);
+  assert.match(professions, /煽风点火/);
+  assert.match(professions, /更可能延续，也可能反转/);
+  assert.doesNotMatch(professions, /70%|30%/);
+  assert.match(ui, /professionAbilityReadyDay/);
+});
+
 test('traveling merchant is available by default', () => {
   const { api } = createGame();
-  assert.deepEqual(plain(api.loadProfile().unlockedProfessionIds), ['useless', 'toothMerchant', 'travelingMerchant']);
+  assert.deepEqual(plain(api.loadProfile().unlockedProfessionIds), ['useless', 'toothMerchant', 'travelingMerchant', 'speculator']);
 });
 
 test('familiar route brings back the highest-cost holding when no inventory is naturally listed', () => {
@@ -130,6 +274,27 @@ test('market trip refreshes and adds an unlisted holding with a fifteen-percent 
   assert.equal(state.events.length, 0);
   state.day = 9;
   assert.deepEqual(plain(api.useProfessionAbility('wheat')), { ok: false, reason: 'cooldown', readyDay: 11 });
+});
+
+test('market trip can reprice an already listed holding instead of having no target after familiar route', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('travelingMerchant');
+  state.availableGoods = ['wheat'];
+  state.inventory.wheat = 10;
+  state.costBasis.wheat = 50;
+  state.lastSeenPrice.wheat = 5;
+  state.prices.wheat = 5;
+  state.factors.wheat = 1;
+  api.setRandom(() => 0.5);
+
+  assert.deepEqual(plain(api.eligibleProfessionAbilityTargets()), ['wheat']);
+  const result = api.useProfessionAbility('wheat');
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(plain(state.availableGoods), ['wheat']);
+  assert.notEqual(state.prices.wheat, 5);
+  assert.equal(state.profession.data.marketTripGoodId, 'wheat');
 });
 
 test('market trip can trigger a sudden event but bypasses active ecology pricing', () => {

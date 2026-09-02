@@ -12,7 +12,7 @@ test('useless profession remains the neutral default', () => {
   const { api } = createGame();
 
   assert.equal(api.DEFAULT_PROFESSION_ID, 'useless');
-  assert.deepEqual(Object.keys(api.PROFESSIONS), ['useless', 'toothMerchant', 'travelingMerchant']);
+  assert.deepEqual(Object.keys(api.PROFESSIONS), ['useless', 'toothMerchant', 'travelingMerchant', 'speculator']);
   assert.equal(api.normalizeProfessionId('useless'), 'useless');
   assert.equal(api.normalizeProfessionId('unknown'), 'useless');
   assert.deepEqual(plain(api.newProfessionState()), {
@@ -101,7 +101,7 @@ test('career profile starts with every current profession unlocked', () => {
   const profile = api.newProfile();
 
   assert.equal(profile.version, 1);
-  assert.deepEqual(plain(profile.unlockedProfessionIds), ['useless', 'toothMerchant', 'travelingMerchant']);
+  assert.deepEqual(plain(profile.unlockedProfessionIds), ['useless', 'toothMerchant', 'travelingMerchant', 'speculator']);
   assert.deepEqual(plain(profile.records), {});
 });
 

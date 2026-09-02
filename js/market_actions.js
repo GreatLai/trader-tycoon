@@ -42,11 +42,61 @@ function eligibleProfessionAbilityTargets() {
   }
   if (profession.activeAbility.id === 'marketTrip') {
     return Object.keys(state.inventory).filter(id =>
-      (state.inventory[id] || 0) > 0 &&
-      !state.availableGoods.includes(id)
+      (state.inventory[id] || 0) > 0
     );
   }
+  if (profession.activeAbility.id === 'stokeMarket') {
+    return [...new Set(state.events
+      .filter(event => event.source === 'natural')
+      .map(event => event.goodId))];
+  }
   return [];
+}
+
+function forceGoodsIntoMarket(goodIds) {
+  const requiredIds = [...new Set(goodIds)].filter(id => goodById(id));
+  const protectedIds = new Set(requiredIds);
+  const added = [];
+  requiredIds.forEach(id => {
+    if (state.availableGoods.includes(id)) return;
+    const candidates = state.availableGoods
+      .filter(candidateId => !protectedIds.has(candidateId))
+      .sort((a, b) => (state.factors[b] || 0) - (state.factors[a] || 0) || a.localeCompare(b));
+    if (!candidates.length) return;
+    const replaceIndex = state.availableGoods.indexOf(candidates[0]);
+    state.availableGoods.splice(replaceIndex, 1, id);
+    added.push(id);
+  });
+  return added;
+}
+
+function applyProfessionNextDayMarket(previousEvents = []) {
+  if (!state.profession || state.profession.id !== 'speculator') return { applied: false, reason: 'unsupported-profession' };
+  const requiredIds = previousEvents
+    .filter(event => event.source === 'natural')
+    .map(event => event.goodId);
+  const pending = state.profession.data.pendingFollowUp;
+  if (pending && pending.dueDay === state.day) requiredIds.push(pending.goodId);
+  const addedGoodIds = forceGoodsIntoMarket(requiredIds);
+  return addedGoodIds.length
+    ? { applied: true, addedGoodIds }
+    : { applied: false, reason: 'no-follow-targets' };
+}
+
+function resolveProfessionScheduledEvents() {
+  if (!state.profession || state.profession.id !== 'speculator') return null;
+  const pending = state.profession.data.pendingFollowUp;
+  if (!pending || pending.dueDay !== state.day) return null;
+  const continues = Math.random() < 0.70;
+  const positive = continues ? pending.originalPositive : !pending.originalPositive;
+  const event = makeEvent(pending.goodId, positive, { forcedByCard: false, allowRare: false, guaranteedMovement: true });
+  event.source = 'profession-follow-up';
+  event.title = positive ? '📈 后续报道 · 风声续涨' : '📉 后续报道 · 风向突变';
+  event.desc = `${goodById(pending.goodId).name}的后续消息落地，行情${positive ? '继续走高' : '转向下跌'}。`;
+  state.events.push(event);
+  state.logs.unshift(`第${state.day}天：${event.title} ${event.desc}`);
+  delete state.profession.data.pendingFollowUp;
+  return event;
 }
 
 function applyProfessionMarketPassive() {
@@ -120,7 +170,7 @@ function useProfessionAbility(targetId) {
 
   if (profession.activeAbility.id === 'marketTrip') {
     state.profession.activeUsedDay = state.day;
-    state.availableGoods.push(targetId);
+    if (!state.availableGoods.includes(targetId)) state.availableGoods.push(targetId);
     state.profession.data.marketTripGoodId = targetId;
     state.profession.data.marketTripDay = state.day;
     const refresh = refreshMarketGood(targetId, { eventChance: 0.15, guaranteedEvent: true, source: 'profession', skipEcology: true });
@@ -129,6 +179,21 @@ function useProfessionAbility(targetId) {
     state.logs.unshift(`第${state.day}天：行商使用赶集。${desc}`);
     queueNotice('行商 · 赶集', desc);
     return { ok: true, goodId: targetId, price: state.prices[targetId], event: refresh.event };
+  }
+
+  if (profession.activeAbility.id === 'stokeMarket') {
+    const sourceEvent = state.events.find(event => event.source === 'natural' && event.goodId === targetId);
+    state.profession.activeUsedDay = state.day;
+    state.profession.data.pendingFollowUp = {
+      goodId: targetId,
+      originalPositive: sourceEvent.type === 'good',
+      dueDay: state.day + 1
+    };
+    const good = goodById(targetId);
+    const desc = `${good.name}已安排次日后续报道，风向可能延续，也可能反转。`;
+    state.logs.unshift(`第${state.day}天：投机商使用煽风点火。${desc}`);
+    queueNotice('投机商 · 煽风点火', desc);
+    return { ok: true, goodId: targetId, dueDay: state.day + 1 };
   }
 
   return { ok: false, reason: 'unsupported-ability' };

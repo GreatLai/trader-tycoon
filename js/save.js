@@ -33,6 +33,11 @@ function normalizeSave(saved) {
     activeUsedDay: Number.isFinite(saved.profession && saved.profession.activeUsedDay) ? saved.profession.activeUsedDay : null,
     data: saved.profession && saved.profession.data && typeof saved.profession.data === 'object' ? saved.profession.data : {}
   };
+  if (professionId === 'speculator') {
+    const pending = saved.profession.data.pendingFollowUp;
+    const validPending = pending && goodById(pending.goodId) && typeof pending.originalPositive === 'boolean' && Number.isFinite(pending.dueDay);
+    if (!validPending) delete saved.profession.data.pendingFollowUp;
+  }
   saved.runStats = saved.runStats && typeof saved.runStats === 'object' ? saved.runStats : {};
   saved.runStats.maxDayReached = Math.max(saved.day || 1, Number(saved.runStats.maxDayReached) || 1);
   saved.runStats.peakNetWorth = Math.max(saved.peakNetWorth || CONFIG.START_CASH, Number(saved.runStats.peakNetWorth) || CONFIG.START_CASH);

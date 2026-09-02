@@ -2,7 +2,7 @@
 const INTRO_SLIDES = [
   { emoji: '🧳', title: '旧商行，新掌柜', text: '港口重新开市，这间旧商行和账上仅剩的 ¥5,000 都交到了你手里。\n九十天后封账，能留下多少身家，只看你的眼光。', hint: '接下这间商行', button: '接下委托' },
   { emoji: '📈', title: '先看价，再下手', text: '每天只有一部分商品摆上货架。价格低时收货，行情起来后卖出，现金和仓位都要留有余地。\n经营费前期温和，却会在第 16、31、61 天进入更高压力阶段；国际生态行情出现时，市场会扩展到 7 种商品。', hint: '每次推进日期，市场都会重新洗牌', button: '记住了' },
-  { emoji: '⚖️', title: '选一条生意路', text: '三种职业从开局起全部开放。\n无用之人遵循标准市场，牙商用风险换高价，行商让库存重新遇见货架和买主。', hint: '职业只能在开局时选择', button: '选择职业' }
+  { emoji: '⚖️', title: '选一条生意路', text: '四种职业从开局起全部开放。\n无用之人守常规，牙商用风险换高价，行商让库存重新报价，投机商则追着突发风声下注。', hint: '职业只能在开局时选择', button: '选择职业' }
 ];
 let introStep = 0;
 
@@ -171,8 +171,10 @@ function openProfessionAbility() {
   $('professionAbilityTitle').textContent = `${profession.name} · ${profession.activeAbility.name}`;
   $('professionAbilityInfo').textContent = profession.activeAbility.description;
   const emptyTargetText = profession.activeAbility.id === 'marketTrip'
-    ? '当前没有未上架且持有库存的商品。'
-    : '当前没有既已上架又持有库存的商品。';
+    ? '当前没有库存商品。'
+    : profession.activeAbility.id === 'stokeMarket'
+      ? '今天还没有可利用的自然突发事件。'
+      : '当前没有既已上架又持有库存的商品。';
   $('professionAbilityTargets').innerHTML = targets.length
     ? targets.map(id => `<button class="btn btn-small" data-profession-ability-target="${id}">${goodById(id).name}${profession.activeAbility.id === 'marketTrip' ? '' : ` · ¥${fmt(state.prices[id], 2)}`}</button>`).join('')
     : `<div style="grid-column:1/-1;color:var(--muted);font-size:13px;">${emptyTargetText}</div>`;

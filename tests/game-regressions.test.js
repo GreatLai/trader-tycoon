@@ -186,7 +186,7 @@ test('start screen presents five immersive operating principles including profes
   assert.match(ruleList, /逐利/);
   assert.match(ruleList, /观势/);
   assert.match(ruleList, /择业/);
-  assert.match(ruleList, /三种职业默认开放/);
+  assert.match(ruleList, /四种职业默认开放/);
   assert.match(ruleList, /守仓/);
   assert.match(ruleList, /经营费会分阶段加速上涨/);
   assert.match(html, /现金不足时只能按七折强平今日上架的库存/);
@@ -216,11 +216,11 @@ test('the release version is consistent across delivery files', () => {
   const changelog = fs.readFileSync(path.join(ROOT, 'CHANGELOG.md'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.11.0');
+  assert.equal(api.APP_VERSION, '1.12.0');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.11\.0/g) || []).length, 15);
-  assert.match(readme, /当前版本：\*\* v1\.11\.0/);
-  assert.match(changelog, /## \[1\.11\.0\] - 2026-09-02/);
+  assert.equal((html.match(/\?v=1\.12\.0/g) || []).length, 15);
+  assert.match(readme, /当前版本：\*\* v1\.12\.0/);
+  assert.match(changelog, /## \[1\.12\.0\] - 2026-09-02/);
 });
 
 test('standard and ecology markets list six and seven goods respectively', () => {

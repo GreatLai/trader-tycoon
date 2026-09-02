@@ -42,6 +42,7 @@ function recordDayHistory() {
 }
 
 function resolveNextDayState() {
+  const previousEvents = state.events.slice();
   state.day++;
   state.events = [];
   state.popupShown = false;
@@ -51,6 +52,8 @@ function resolveNextDayState() {
   advanceEcology();
   const rules = getEffectiveRules(state.profession);
   state.availableGoods = pickGoods(state.eco ? rules.ecoMarketSize : rules.marketSize);
+  applyProfessionNextDayMarket(previousEvents);
+  resolveProfessionScheduledEvents();
   spawnEvents();
   updatePrices();
   applyProfessionMarketPassive();

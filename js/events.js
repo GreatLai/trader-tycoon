@@ -2,9 +2,10 @@
 function makeEvent(goodId, forcedPositive = null, options = {}) {
   const target = goodById(goodId);
   if (!target) return null;
-    const forcedByCard = forcedPositive != null;
-    if (!forcedByCard && !options.guaranteedMovement && Math.random() >= eventMovementChance(target.tier)) return null;
-    const rare = Math.random() < eventRareChance(forcedByCard);
+    const forcedDirection = forcedPositive != null;
+    const forcedByCard = forcedDirection && options.forcedByCard !== false;
+    if (!forcedDirection && !options.guaranteedMovement && Math.random() >= eventMovementChance(target.tier)) return null;
+    const rare = options.allowRare === false ? false : Math.random() < eventRareChance(forcedByCard);
     const positive = forcedPositive == null ? Math.random() < eventPositiveChance(target.tier, rare, target) : forcedPositive;
 
   let targetMult;
@@ -73,7 +74,7 @@ function makeEvent(goodId, forcedPositive = null, options = {}) {
     goodId: target.id,
     title,
     desc,
-    targetMult: +Math.pow(targetMult, (forcedByCard ? 1 : BALANCE_CONFIG.SUDDEN_EVENT_SCALE) * target.market.eventImpact).toFixed(3),
+    targetMult: +Math.pow(targetMult, (forcedByCard ? 1 : BALANCE_CONFIG.SUDDEN_EVENT_SCALE) * target.market.eventImpact * professionNaturalEventIntensity()).toFixed(3),
     type: targetMult >= 1 ? 'good' : 'bad',
     isRare: rare
   };
@@ -98,7 +99,8 @@ function spawnEvents() {
   // 每天 0~3 个事件，只作用于今天可交易的商品
   // 生态事件第 2 天起，受影响商品不再参与普通突发事件
   // 从未出现过的商品，第一次出现当天不触发突发事件
-  let pool = state.availableGoods.filter(id => state.lastSeenPrice[id] != null);
+  const existingTargets = new Set(state.events.map(event => event.goodId));
+  let pool = state.availableGoods.filter(id => state.lastSeenPrice[id] != null && !existingTargets.has(id));
   if (ecoRel() >= 2 && state.eco) {
     const affected = ECO_EVENTS[state.eco.treeId].goods;
     pool = pool.filter(id => !affected.includes(id));
@@ -116,6 +118,7 @@ function spawnEvents() {
   for (const goodId of targets) {
     const ev = makeEvent(goodId);
     if (!ev) continue;
+    ev.source = 'natural';
     state.events.push(ev);
     state.logs.unshift(`第${state.day}天：${ev.title} ${ev.desc}`);
   }
@@ -198,6 +201,10 @@ function calcOperatingCost(day = state.day) {
   const safeDay = Math.max(1, Math.min(CONFIG.DAYS_LIMIT, Math.floor(Number(day) || 1)));
   const stage = BALANCE_CONFIG.OPERATING_COST_STAGES.find(item => safeDay >= item.startDay && safeDay <= item.endDay);
   return stage.base * Math.pow(stage.growth, safeDay - stage.startDay);
+}
+
+function professionNaturalEventIntensity() {
+  return state && state.profession && state.profession.id === 'speculator' ? 1.2 : 1;
 }
 
 function calcRemainingOperatingCost(day = state.day) {
