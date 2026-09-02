@@ -16,8 +16,10 @@ function refreshMarketGood(id, options = {}) {
 
   const firstAppearance = state.lastSeenPrice[id] == null;
   const eventChance = Number.isFinite(options.eventChance) ? Math.max(0, options.eventChance) : 0;
-  const event = !firstAppearance && Math.random() < eventChance ? makeEvent(id) : null;
-  updateGoodPrice(good, event);
+  const event = !firstAppearance && Math.random() < eventChance
+    ? makeEvent(id, null, { guaranteedMovement: options.guaranteedEvent === true })
+    : null;
+  updateGoodPrice(good, event, { skipEcology: options.skipEcology === true });
   recordCurrentPrice(id);
   if (event) {
     event.source = options.source || 'system';
@@ -38,7 +40,45 @@ function eligibleProfessionAbilityTargets() {
       !isGoodSaleLocked(id)
     );
   }
+  if (profession.activeAbility.id === 'marketTrip') {
+    return Object.keys(state.inventory).filter(id =>
+      (state.inventory[id] || 0) > 0 &&
+      !state.availableGoods.includes(id)
+    );
+  }
   return [];
+}
+
+function applyProfessionMarketPassive() {
+  const professionId = normalizeProfessionId(state.profession && state.profession.id);
+  if (professionId !== 'travelingMerchant') return { applied: false, reason: 'unsupported-profession' };
+
+  const heldIds = Object.keys(state.inventory).filter(id => (state.inventory[id] || 0) > 0);
+  if (heldIds.some(id => state.availableGoods.includes(id))) return { applied: false, reason: 'inventory-listed' };
+  if (!heldIds.length) return { applied: false, reason: 'no-inventory' };
+  if (Math.random() >= 0.65) return { applied: false, reason: 'roll-failed' };
+
+  const broughtGoodId = heldIds.sort((a, b) =>
+    (state.costBasis[b] || 0) - (state.costBasis[a] || 0) || a.localeCompare(b)
+  )[0];
+  const replaceable = state.availableGoods.filter(id => !(state.inventory[id] > 0));
+  if (!replaceable.length) return { applied: false, reason: 'no-replacement' };
+  const replacedGoodId = replaceable.sort((a, b) =>
+    (state.factors[b] || 0) - (state.factors[a] || 0) || a.localeCompare(b)
+  )[0];
+  const index = state.availableGoods.indexOf(replacedGoodId);
+  state.availableGoods.splice(index, 1, broughtGoodId);
+  state.logs.unshift(`第${state.day}天：行商沿熟路带回${goodById(broughtGoodId).name}。`);
+  return { applied: true, broughtGoodId, replacedGoodId };
+}
+
+function calculateSaleSettlement(id, qty, unitPrice) {
+  const gross = +(qty * unitPrice).toFixed(2);
+  const data = state.profession && state.profession.data || {};
+  const feeRate = state.profession && state.profession.id === 'travelingMerchant' &&
+    data.marketTripGoodId === id && data.marketTripDay === state.day ? 0.05 : 0;
+  const fee = +(gross * feeRate).toFixed(2);
+  return { gross, fee, net: +(gross - fee).toFixed(2), feeRate };
 }
 
 function professionAbilityReadyDay(profession = PROFESSIONS[normalizeProfessionId(state.profession && state.profession.id)]) {
@@ -76,6 +116,19 @@ function useProfessionAbility(targetId) {
     state.logs.unshift(`第${state.day}天：牙商使用抬价。${desc}`);
     queueNotice('牙商 · 抬价', desc);
     return { ok: true, goodId: targetId, price: state.prices[targetId] };
+  }
+
+  if (profession.activeAbility.id === 'marketTrip') {
+    state.profession.activeUsedDay = state.day;
+    state.availableGoods.push(targetId);
+    state.profession.data.marketTripGoodId = targetId;
+    state.profession.data.marketTripDay = state.day;
+    const refresh = refreshMarketGood(targetId, { eventChance: 0.15, guaranteedEvent: true, source: 'profession', skipEcology: true });
+    const good = goodById(targetId);
+    const desc = `${good.name}已赶集上架，今日成交收入将扣除 5% 路费。`;
+    state.logs.unshift(`第${state.day}天：行商使用赶集。${desc}`);
+    queueNotice('行商 · 赶集', desc);
+    return { ok: true, goodId: targetId, price: state.prices[targetId], event: refresh.event };
   }
 
   return { ok: false, reason: 'unsupported-ability' };

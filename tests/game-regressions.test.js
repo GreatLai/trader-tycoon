@@ -70,26 +70,35 @@ test('forced liquidation cannot sell holdings that are absent from the market', 
   assert.equal(state.gameOver, 'lose');
 });
 
-test('operating costs follow the configured ninety-day geometric pressure curve', () => {
+test('operating costs follow the configured four-stage ninety-day pressure curve', () => {
   const { api } = createGame();
   const costs = Array.from({ length: api.CONFIG.DAYS_LIMIT }, (_, index) => api.calcOperatingCost(index + 1));
 
   assert.equal(costs[0], 50);
-  assert.equal(Math.abs(costs.at(-1) - 450.1881137507703) < 0.001, true);
-  assert.equal(Math.abs(costs.reduce((sum, value) => sum + value, 0) - 16457.71266378164) < 0.01, true);
-  assert.equal(Math.abs(api.BALANCE_CONFIG.OPERATING_COST_TOTAL - 16457.71266378164) < 0.01, true);
-  assert.equal(Math.abs(api.calcRemainingOperatingCost(1) - 16457.71266378164) < 0.01, true);
+  assert.equal(Math.abs(costs[14] - 50 * 1.025 ** 14) < 0.001, true);
+  assert.equal(costs[15], 80);
+  assert.equal(Math.abs(costs[29] - 80 * 1.08 ** 14) < 0.001, true);
+  assert.equal(costs[30], 300);
+  assert.equal(Math.abs(costs[59] - 300 * 1.10 ** 29) < 0.001, true);
+  assert.equal(costs[60], 6000);
+  assert.equal(Math.abs(costs.at(-1) - 6000 * 1.08 ** 29) < 0.001, true);
+  assert.equal(Math.abs(costs.reduce((sum, value) => sum + value, 0) - 732116.2389343618) < 0.01, true);
+  assert.equal(Math.abs(api.BALANCE_CONFIG.OPERATING_COST_TOTAL - 732116.2389343618) < 0.01, true);
+  assert.equal(Math.abs(api.calcRemainingOperatingCost(1) - 732116.2389343618) < 0.01, true);
+  assert.equal(Math.abs(api.calcRemainingOperatingCost(16) - costs.slice(15).reduce((sum, value) => sum + value, 0)) < 0.01, true);
+  assert.equal(Math.abs(api.calcRemainingOperatingCost(31) - costs.slice(30).reduce((sum, value) => sum + value, 0)) < 0.01, true);
+  assert.equal(Math.abs(api.calcRemainingOperatingCost(61) - costs.slice(60).reduce((sum, value) => sum + value, 0)) < 0.01, true);
   assert.equal(Math.abs(api.calcRemainingOperatingCost(90) - costs.at(-1)) < 0.01, true);
 });
 
-test('a merchant who never trades fails on day fifty-one under the gentler baseline pressure', () => {
+test('a merchant who never trades fails under the staged operating pressure', () => {
   const { api } = createGame();
   const state = api.reset();
 
   while (!state.gameOver) api.nextDay();
 
   assert.equal(state.gameOver, 'lose');
-  assert.equal(state.day, 51);
+  assert.equal(state.day > 30 && state.day < 61, true);
 });
 
 test('day ninety charges its own costs before a successful time settlement', () => {
@@ -177,9 +186,9 @@ test('start screen presents five immersive operating principles including profes
   assert.match(ruleList, /逐利/);
   assert.match(ruleList, /观势/);
   assert.match(ruleList, /择业/);
-  assert.match(ruleList, /职业同时带来特长/);
+  assert.match(ruleList, /三种职业默认开放/);
   assert.match(ruleList, /守仓/);
-  assert.match(ruleList, /经营费逐日上涨/);
+  assert.match(ruleList, /经营费会分阶段加速上涨/);
   assert.match(html, /现金不足时只能按七折强平今日上架的库存/);
   assert.match(ruleList, /登阶/);
 });
@@ -207,11 +216,11 @@ test('the release version is consistent across delivery files', () => {
   const changelog = fs.readFileSync(path.join(ROOT, 'CHANGELOG.md'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.10.0');
+  assert.equal(api.APP_VERSION, '1.11.0');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.10\.0/g) || []).length, 15);
-  assert.match(readme, /当前版本：\*\* v1\.10\.0/);
-  assert.match(changelog, /## \[1\.10\.0\] - 2026-09-02/);
+  assert.equal((html.match(/\?v=1\.11\.0/g) || []).length, 15);
+  assert.match(readme, /当前版本：\*\* v1\.11\.0/);
+  assert.match(changelog, /## \[1\.11\.0\] - 2026-09-02/);
 });
 
 test('standard and ecology markets list six and seven goods respectively', () => {
@@ -461,7 +470,7 @@ test('a deterministic no-trade run fails from operating pressure without invalid
     assert.equal(api.totalUnits() <= api.capacity(), true);
   }
 
-  assert.equal(state.day, 51);
+  assert.equal(state.day, 36);
   assert.equal(state.gameOver, 'lose');
 });
 
@@ -587,11 +596,11 @@ test('forced sudden events can use a higher rare-outcome chance', () => {
   assert.equal(api.eventRareChance(true), 0.20);
 });
 
-test('opening story introduces the gentler but growing operating pressure', () => {
+test('opening story introduces the staged operating pressure', () => {
   const source = fs.readFileSync(path.join(ROOT, 'js', 'main.js'), 'utf8');
 
-  assert.match(source, /首日经营费只需.*¥50/);
-  assert.match(source, /每天都会比前一天增加/);
+  assert.match(source, /第 16、31、61 天/);
+  assert.match(source, /更高压力阶段/);
 });
 
 test('the market defines twenty complete and distinct commodity profiles', () => {

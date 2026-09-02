@@ -59,9 +59,9 @@ function sell(id, qty) {
   qty = Math.min(Math.floor(qty), state.inventory[id] || 0);
   if (qty <= 0) return;
   const price = state.prices[id];
-  const proceeds = +(price * qty).toFixed(2);
+  const settlement = calculateSaleSettlement(id, qty, price);
   const avg = (state.costBasis[id] || 0) / state.inventory[id];
-  state.cash = +(state.cash + proceeds).toFixed(2);
+  state.cash = +(state.cash + settlement.net).toFixed(2);
   state.inventory[id] -= qty;
   state.costBasis[id] = +(state.costBasis[id] - avg * qty).toFixed(2);
   if (state.inventory[id] <= 0) {

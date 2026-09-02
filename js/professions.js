@@ -29,6 +29,21 @@ const PROFESSIONS = Object.freeze({
       cooldownDays: 3,
       description: '选择一个今日上架、自己持有且当天未买入的商品，将价格抬到锚点的 1.15 至 1.45 倍。使用后第 4 天可再次发动；有 20% 几率失败并禁售三天。'
     })
+  }),
+  travelingMerchant: Object.freeze({
+    id: 'travelingMerchant',
+    name: '行商',
+    description: '走熟路、赶大集，让压在仓里的货重新遇见买主。',
+    passive: '熟路：每日自然货架没有任何持货时，65%概率带回成本总额最高的库存商品，并替换当日价格相对锚点最高的非库存商品。',
+    drawback: '赶集带回的商品若在当天卖出，成交收入扣除 5% 路费。',
+    unlock: null,
+    modifyRules: null,
+    activeAbility: Object.freeze({
+      id: 'marketTrip',
+      name: '赶集',
+      cooldownDays: 3,
+      description: '选择一个当前未上架且持有的商品，立即追加到今日货架并重新生成正常价格；有 15% 几率触发突发事件，不受生态行情定价影响。使用后第 4 天可再次发动。'
+    })
   })
 });
 

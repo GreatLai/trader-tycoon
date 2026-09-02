@@ -101,6 +101,8 @@ function render() {
     const ecoClass = state.eco && ECO_EVENTS[state.eco.treeId].goods.includes(id) ? ' eco-affected' : '';
     const saleLocked = isGoodSaleLocked(id);
     const lockLabel = saleLocked ? ` ｜ 禁售中，第${state.saleLockUntilDay[id]}天恢复` : '';
+    const marketTripToday = state.profession.id === 'travelingMerchant' && state.profession.data.marketTripGoodId === id && state.profession.data.marketTripDay === state.day;
+    const travelFeeLabel = marketTripToday ? ' ｜ 赶集路费 5%' : '';
     const maxBuy = Math.min(Math.floor(state.cash / price), cap - used);
     const buyDisabled = maxBuy === 0 ? 'disabled' : '';
     const sellDisabled = owned === 0 || saleLocked ? 'disabled' : '';
@@ -121,7 +123,7 @@ function render() {
           <div class="price-col">
             <div class="price">¥${fmt(price, 2)}</div>
             <div class="change ${seenCls}">${seenArrow} ${seenChange >= 0 ? '+' : ''}${fmt(seenChange, 1)}% 较上次</div>
-            <div class="base-meta">${seenText}${holdText}<span class="red">${lockLabel}</span></div>
+            <div class="base-meta">${seenText}${holdText}<span class="red">${lockLabel}${travelFeeLabel}</span></div>
           </div>
           <div class="owned">持有 <strong>${owned}</strong></div>
         </div>

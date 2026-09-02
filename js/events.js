@@ -1,9 +1,9 @@
 // ==================== 价格 / 事件 ====================
-function makeEvent(goodId, forcedPositive = null) {
+function makeEvent(goodId, forcedPositive = null, options = {}) {
   const target = goodById(goodId);
   if (!target) return null;
     const forcedByCard = forcedPositive != null;
-    if (!forcedByCard && Math.random() >= eventMovementChance(target.tier)) return null;
+    if (!forcedByCard && !options.guaranteedMovement && Math.random() >= eventMovementChance(target.tier)) return null;
     const rare = Math.random() < eventRareChance(forcedByCard);
     const positive = forcedPositive == null ? Math.random() < eventPositiveChance(target.tier, rare, target) : forcedPositive;
 
@@ -122,12 +122,12 @@ function spawnEvents() {
   state.logs = state.logs.slice(0, 50);
 }
 
-function updateGoodPrice(g, forcedEvent = null) {
+function updateGoodPrice(g, forcedEvent = null, options = {}) {
     const oldPrice = state.prices[g.id];
     const oldFactor = state.factors[g.id] || 1;
     let logF = Math.log(Math.max(0.001, oldFactor));
 
-    const ecoOn = !forcedEvent && state.eco && ecoAffected(g.id) && ecoRel() >= 2;
+    const ecoOn = !options.skipEcology && !forcedEvent && state.eco && ecoAffected(g.id) && ecoRel() >= 2;
     if (ecoOn) {
       // 生态事件：围绕“事件开始价 × 累计倍率”逐步过渡
       const targetLog = Math.log(ecoTargetFactor(g.id));
@@ -196,15 +196,15 @@ function calcDailyFee() {
 
 function calcOperatingCost(day = state.day) {
   const safeDay = Math.max(1, Math.min(CONFIG.DAYS_LIMIT, Math.floor(Number(day) || 1)));
-  return BALANCE_CONFIG.OPERATING_COST_FIRST_DAY * Math.pow(BALANCE_CONFIG.OPERATING_COST_DAILY_GROWTH, safeDay - 1);
+  const stage = BALANCE_CONFIG.OPERATING_COST_STAGES.find(item => safeDay >= item.startDay && safeDay <= item.endDay);
+  return stage.base * Math.pow(stage.growth, safeDay - stage.startDay);
 }
 
 function calcRemainingOperatingCost(day = state.day) {
   const safeDay = Math.max(1, Math.min(CONFIG.DAYS_LIMIT, Math.floor(Number(day) || 1)));
-  const count = CONFIG.DAYS_LIMIT - safeDay + 1;
-  const first = calcOperatingCost(safeDay);
-  const growth = BALANCE_CONFIG.OPERATING_COST_DAILY_GROWTH;
-  return first * (Math.pow(growth, count) - 1) / (growth - 1);
+  let total = 0;
+  for (let currentDay = safeDay; currentDay <= CONFIG.DAYS_LIMIT; currentDay++) total += calcOperatingCost(currentDay);
+  return total;
 }
 
 function calcTotalDailyCost(day = state.day) {
@@ -224,14 +224,15 @@ function liquidateInventory(shortfall) {
   for (const e of entries) {
     if (need <= 0) break;
     const price = knownPrice(e.id) * BALANCE_CONFIG.LIQUIDATION_RATE;
-    let qtyToSell = Math.min(e.qty, Math.ceil(need / price));
+    const netUnitPrice = calculateSaleSettlement(e.id, 1, price).net;
+    let qtyToSell = Math.min(e.qty, Math.ceil(need / netUnitPrice));
     if (qtyToSell <= 0) continue;
-    const proceeds = qtyToSell * price;
-    state.cash += proceeds;
+    const settlement = calculateSaleSettlement(e.id, qtyToSell, price);
+    state.cash += settlement.net;
     state.inventory[e.id] -= qtyToSell;
     state.costBasis[e.id] = (state.costBasis[e.id] || 0) - e.avg * qtyToSell;
     if (state.inventory[e.id] <= 0) { delete state.inventory[e.id]; delete state.costBasis[e.id]; }
-    need -= proceeds;
+    need -= settlement.net;
   }
   return need <= 0;
 }

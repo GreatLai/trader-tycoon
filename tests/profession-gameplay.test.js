@@ -9,12 +9,13 @@ function plain(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-test('the first playable roster contains useless and tooth merchant', () => {
+test('the playable roster contains useless, tooth merchant, and traveling merchant', () => {
   const { api } = createGame();
 
-  assert.deepEqual(Object.keys(api.PROFESSIONS), ['useless', 'toothMerchant']);
+  assert.deepEqual(Object.keys(api.PROFESSIONS), ['useless', 'toothMerchant', 'travelingMerchant']);
   assert.equal(api.PROFESSIONS.useless.activeAbility, null);
   assert.equal(api.PROFESSIONS.toothMerchant.activeAbility.id, 'raisePrice');
+  assert.equal(api.PROFESSIONS.travelingMerchant.activeAbility.id, 'marketTrip');
   assert.match(api.PROFESSIONS.toothMerchant.drawback, /高价/);
 });
 
@@ -64,6 +65,168 @@ test('tooth merchant can raise an owned listed good once every three days', () =
 
   state.day = 4;
   assert.deepEqual(plain(api.eligibleProfessionAbilityTargets()), ['wheat']);
+});
+
+test('traveling merchant is available by default', () => {
+  const { api } = createGame();
+  assert.deepEqual(plain(api.loadProfile().unlockedProfessionIds), ['useless', 'toothMerchant', 'travelingMerchant']);
+});
+
+test('familiar route brings back the highest-cost holding when no inventory is naturally listed', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('travelingMerchant');
+  state.availableGoods = ['coal', 'tea'];
+  state.inventory.wheat = 20;
+  state.costBasis.wheat = 100;
+  state.inventory.wood = 20;
+  state.costBasis.wood = 300;
+  state.factors.coal = 1.4;
+  state.factors.tea = 0.9;
+  const woodPrice = state.prices.wood;
+  api.setRandom(() => 0.64);
+
+  const result = api.applyProfessionMarketPassive();
+
+  assert.deepEqual(plain(result), { applied: true, broughtGoodId: 'wood', replacedGoodId: 'coal' });
+  assert.deepEqual(plain(state.availableGoods), ['wood', 'tea']);
+  assert.equal(state.prices.wood, woodPrice);
+});
+
+test('familiar route does nothing when inventory is already listed or its roll fails', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('travelingMerchant');
+  state.inventory.wheat = 10;
+  state.costBasis.wheat = 50;
+  state.availableGoods = ['wheat', 'wood'];
+  api.setRandom(() => 0.1);
+  assert.deepEqual(plain(api.applyProfessionMarketPassive()), { applied: false, reason: 'inventory-listed' });
+
+  state.availableGoods = ['wood', 'coal'];
+  api.setRandom(() => 0.65);
+  assert.deepEqual(plain(api.applyProfessionMarketPassive()), { applied: false, reason: 'roll-failed' });
+});
+
+test('market trip refreshes and adds an unlisted holding with a fifteen-percent event chance', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('travelingMerchant');
+  state.day = 8;
+  state.availableGoods = ['wood'];
+  state.inventory.wheat = 10;
+  state.costBasis.wheat = 50;
+  state.lastSeenPrice.wheat = 5;
+  const rolls = [0.20, 0.5, 0.5, 0.5, 0.5];
+  api.setRandom(() => rolls.shift() ?? 0.5);
+
+  const result = api.useProfessionAbility('wheat');
+
+  assert.equal(result.ok, true);
+  assert.equal(state.availableGoods.includes('wheat'), true);
+  assert.equal(state.profession.activeUsedDay, 8);
+  assert.equal(state.profession.data.marketTripGoodId, 'wheat');
+  assert.equal(state.profession.data.marketTripDay, 8);
+  assert.equal(state.events.length, 0);
+  state.day = 9;
+  assert.deepEqual(plain(api.useProfessionAbility('wheat')), { ok: false, reason: 'cooldown', readyDay: 11 });
+});
+
+test('market trip can trigger a sudden event but bypasses active ecology pricing', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('travelingMerchant');
+  state.day = 8;
+  state.availableGoods = ['wood'];
+  state.inventory.wheat = 10;
+  state.costBasis.wheat = 50;
+  state.lastSeenPrice.wheat = 5;
+  const ecology = Object.entries(api.ECO_EVENTS).find(([, event]) => event.goods.includes('wheat'));
+  state.eco = { treeId: ecology[0], startDay: 7, A: 0, B: null, C: null, byCard: false };
+  api.setRandom(() => 0.1);
+
+  const result = api.useProfessionAbility('wheat');
+
+  assert.equal(result.ok, true);
+  assert.equal(state.events.length, 1);
+  assert.equal(state.events[0].goodId, 'wheat');
+});
+
+test('market trip fifteen-percent roll guarantees an event without a second movement gate', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('travelingMerchant');
+  state.availableGoods = ['wood'];
+  state.inventory.wheat = 10;
+  state.costBasis.wheat = 50;
+  state.lastSeenPrice.wheat = 5;
+  const rolls = [0.14];
+  api.setRandom(() => rolls.shift() ?? 0.99);
+
+  const result = api.useProfessionAbility('wheat');
+
+  assert.equal(result.ok, true);
+  assert.equal(state.events.length, 1);
+});
+
+test('selling a same-day market trip good deducts five percent travel costs', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('travelingMerchant');
+  state.availableGoods = ['wheat'];
+  state.inventory.wheat = 10;
+  state.costBasis.wheat = 50;
+  state.prices.wheat = 10;
+  state.profession.data.marketTripGoodId = 'wheat';
+  state.profession.data.marketTripDay = state.day;
+  const cashBefore = state.cash;
+
+  assert.deepEqual(plain(api.calculateSaleSettlement('wheat', 10, 10)), { gross: 100, fee: 5, net: 95, feeRate: 0.05 });
+  api.sell('wheat', 10);
+  assert.equal(state.cash, cashBefore + 95);
+});
+
+test('forced liquidation also deducts market trip travel costs', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('travelingMerchant');
+  state.availableGoods = ['wheat'];
+  state.inventory.wheat = 100;
+  state.costBasis.wheat = 500;
+  state.prices.wheat = 10;
+  state.profession.data.marketTripGoodId = 'wheat';
+  state.profession.data.marketTripDay = state.day;
+  state.cash = 0;
+
+  api.applyDailyCosts(1);
+
+  assert.equal(state.inventory.wheat, 92);
+  assert.equal(state.cash, 2.7);
+});
+
+test('legacy traveling merchant saves normalize market trip state', () => {
+  const { api } = createGame();
+  const legacy = api.newState();
+  legacy.profession = { id: 'travelingMerchant', activeUsedDay: null, data: null };
+  const { api: loadedApi } = createGame({ savedState: legacy });
+
+  const loaded = loadedApi.loadSave();
+
+  assert.equal(loaded.profession.id, 'travelingMerchant');
+  assert.deepEqual(plain(loaded.profession.data), {});
+});
+
+test('traveling merchant UI exposes description, targets, cooldown, and travel fee text', () => {
+  const professions = fs.readFileSync(path.join(ROOT, 'js/professions.js'), 'utf8');
+  const marketActions = fs.readFileSync(path.join(ROOT, 'js/market_actions.js'), 'utf8');
+  const ui = fs.readFileSync(path.join(ROOT, 'js/ui.js'), 'utf8');
+
+  assert.match(professions, /熟路/);
+  assert.match(professions, /赶集/);
+  assert.match(professions, /5%/);
+  assert.match(marketActions, /marketTrip/);
+  assert.match(ui, /路费 5%/);
+  assert.match(ui, /professionAbilityReadyDay/);
 });
 
 test('tooth merchant cannot raise a good bought on the same day', () => {

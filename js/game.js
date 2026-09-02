@@ -53,6 +53,7 @@ function resolveNextDayState() {
   state.availableGoods = pickGoods(state.eco ? rules.ecoMarketSize : rules.marketSize);
   spawnEvents();
   updatePrices();
+  applyProfessionMarketPassive();
   updateSeenPrices();
   recordDayHistory();
   state.logs.unshift(`进入第${state.day}天，仓库管理费已结算`);

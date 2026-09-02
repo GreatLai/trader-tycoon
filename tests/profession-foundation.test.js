@@ -12,7 +12,7 @@ test('useless profession remains the neutral default', () => {
   const { api } = createGame();
 
   assert.equal(api.DEFAULT_PROFESSION_ID, 'useless');
-  assert.deepEqual(Object.keys(api.PROFESSIONS), ['useless', 'toothMerchant']);
+  assert.deepEqual(Object.keys(api.PROFESSIONS), ['useless', 'toothMerchant', 'travelingMerchant']);
   assert.equal(api.normalizeProfessionId('useless'), 'useless');
   assert.equal(api.normalizeProfessionId('unknown'), 'useless');
   assert.deepEqual(plain(api.newProfessionState()), {
@@ -101,7 +101,7 @@ test('career profile starts with every current profession unlocked', () => {
   const profile = api.newProfile();
 
   assert.equal(profile.version, 1);
-  assert.deepEqual(plain(profile.unlockedProfessionIds), ['useless', 'toothMerchant']);
+  assert.deepEqual(plain(profile.unlockedProfessionIds), ['useless', 'toothMerchant', 'travelingMerchant']);
   assert.deepEqual(plain(profile.records), {});
 });
 
@@ -183,5 +183,5 @@ test('useless profession has a stable deterministic market sequence after shop r
   }
 
   const digest = crypto.createHash('sha256').update(JSON.stringify(days)).digest('hex');
-  assert.equal(digest, '6e02dfa5c4dadc69b0fe881faf57f4815c658dc8ce468aee36f11a2def43ed99');
+  assert.equal(digest, '5a39e223fd89aceeb6653bd4705f82864221625f7559c17c309ed136e767404e');
 });

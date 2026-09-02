@@ -61,7 +61,7 @@ test('baseline simulation includes operating pressure and no-trade failure', () 
   const result = runSimulation({ seed: 2026090204, strategyId: 'wait' });
 
   assert.equal(result.survived, false);
-  assert.equal(result.bankruptcyDay, 51);
+  assert.equal(result.bankruptcyDay, 36);
   assert.equal(result.profitSources.operatingFees < 0, true);
 });
 
@@ -125,7 +125,7 @@ test('archived pre-pressure report preserves its card-free baseline and is label
   assert.equal(skilled.survivorFinalWorth.median <= 125000000, true);
   assert.equal(report.sensitivity.some(item => item.name === '商品基础锚点'), true);
   assert.equal(Object.hasOwn(skilled.profitSources, 'operatingFees'), false);
-  assert.match(framework, /加入固定经营压力之前的基准/);
+  assert.match(framework, /加入现行经营压力之前的历史基准/);
 });
 
 test('balance simulator source does not call card purchase or use APIs', () => {
