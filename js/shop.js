@@ -101,7 +101,7 @@ function refreshSingleGood(id) {
 }
 
 function eligibleTargetsFor(cardId) {
-  if (cardId === 'addGood') return GOODS.filter(g => !state.availableGoods.includes(g.id) && (g.tier !== 'ultra' || netWorth() >= ULTRA_UNLOCK)).map(g => g.id);
+  if (cardId === 'addGood') return GOODS.filter(g => !state.availableGoods.includes(g.id) && (g.tier !== 'ultra' || ultraGoodsUnlocked())).map(g => g.id);
   if (cardId === 'refreshPrice' || cardId === 'suddenRise') return state.availableGoods.slice();
   if (cardId === 'futureMarket') return GOODS.filter(g => state.lastSeenPrice[g.id] != null).map(g => g.id);
   return [];

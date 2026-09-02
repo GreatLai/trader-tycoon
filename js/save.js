@@ -32,12 +32,13 @@ function normalizeSave(saved) {
   });
 
   const wealth = savedNetWorth(saved);
+  const unlockWealth = Math.max(wealth, saved.peakNetWorth || 0);
   const hasLockedMarketGood = saved.availableGoods.some(id => {
     const good = goodById(id);
-    return good && good.tier === 'ultra' && wealth < ULTRA_UNLOCK;
+    return good && good.tier === 'ultra' && unlockWealth < ULTRA_UNLOCK;
   });
   if (hasLockedMarketGood) {
-    saved.availableGoods = pickGoods(CONFIG.MARKET_SIZE, wealth, saved.eco);
+    saved.availableGoods = pickGoods(CONFIG.MARKET_SIZE, unlockWealth, saved.eco);
   }
 
   if (saved.day > CONFIG.DAYS_LIMIT) {

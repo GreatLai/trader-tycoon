@@ -25,6 +25,17 @@ test('a fresh game never lists ultra goods before the unlock threshold', () => {
   assert.equal(state.availableGoods.some(id => ULTRA_IDS.has(id)), false);
 });
 
+test('ultra goods stay unlocked after peak wealth reaches ten million', () => {
+  const { api } = createGame({ random: () => 0.999999 });
+  const state = api.reset();
+  state.cash = 1000;
+  state.peakNetWorth = 10000000;
+
+  const picks = api.pickGoods(api.GOODS.length);
+
+  assert.equal(picks.some(id => ULTRA_IDS.has(id)), true);
+});
+
 test('forced liquidation pays the shortfall and keeps only the surplus', () => {
   const { api } = createGame();
   const state = api.reset();

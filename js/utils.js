@@ -38,7 +38,7 @@ function shuffle(arr, rng) {
 
 function pickGoods(count, currentNetWorth = null, activeEco = undefined) {
   const wealth = currentNetWorth == null
-    ? (state ? netWorth() : CONFIG.START_CASH)
+    ? (state ? Math.max(netWorth(), state.peakNetWorth || 0) : CONFIG.START_CASH)
     : currentNetWorth;
   const eco = activeEco === undefined ? (state ? state.eco : null) : activeEco;
   const unlocked = GOODS.filter(g => {
@@ -51,6 +51,10 @@ function pickGoods(count, currentNetWorth = null, activeEco = undefined) {
     return affected.concat(shuffle(rest).slice(0, Math.max(0, count - affected.length)));
   }
   return shuffle(unlocked).slice(0, count);
+}
+
+function ultraGoodsUnlocked() {
+  return !!state && Math.max(netWorth(), state.peakNetWorth || 0) >= ULTRA_UNLOCK;
 }
 
 function goodById(id) {
