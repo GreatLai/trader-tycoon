@@ -49,25 +49,78 @@ test('forced liquidation pays the shortfall and keeps only the surplus', () => {
   assert.equal(api.calcDailyFee(), 5);
   api.applyDailyCosts();
 
-  assert.equal(state.inventory.wheat, 998);
-  assert.equal(state.cash, 2);
+  assert.equal(state.inventory.wheat, 855);
+  assert.equal(state.cash, 2.5);
   assert.equal(state.gameOver, null);
+});
+
+test('forced liquidation cannot sell holdings that are absent from the market', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.cash = 0;
+  state.inventory = { wheat: 1000 };
+  state.costBasis = { wheat: 5000 };
+  state.prices.wheat = 5;
+  state.lastSeenPrice.wheat = 5;
+  state.availableGoods = ['wood'];
+
+  api.applyDailyCosts();
+
+  assert.equal(state.inventory.wheat, 1000);
+  assert.equal(state.gameOver, 'lose');
+});
+
+test('operating costs follow the configured ninety-day geometric pressure curve', () => {
+  const { api } = createGame();
+  const costs = Array.from({ length: api.CONFIG.DAYS_LIMIT }, (_, index) => api.calcOperatingCost(index + 1));
+
+  assert.equal(costs[0], 500);
+  assert.equal(Math.abs(costs.at(-1) - 85864.84381049295) < 0.001, true);
+  assert.equal(Math.abs(costs.reduce((sum, value) => sum + value, 0) - 1520000) < 0.01, true);
+  assert.equal(Math.abs(api.calcRemainingOperatingCost(1) - 1520000) < 0.01, true);
+  assert.equal(Math.abs(api.calcRemainingOperatingCost(90) - costs.at(-1)) < 0.01, true);
+});
+
+test('a merchant who never trades fails on day nine from operating costs', () => {
+  const { api } = createGame();
+  const state = api.reset();
+
+  while (!state.gameOver) api.nextDay();
+
+  assert.equal(state.gameOver, 'lose');
+  assert.equal(state.day, 9);
+  assert.equal(state.cash < api.calcOperatingCost(9), true);
+});
+
+test('day ninety charges its own costs before a successful time settlement', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.day = api.CONFIG.DAYS_LIMIT;
+  state.cash = 100000;
+  const expected = +(state.cash - api.calcOperatingCost(api.CONFIG.DAYS_LIMIT)).toFixed(2);
+
+  api.nextDay();
+
+  assert.equal(state.day, api.CONFIG.DAYS_LIMIT);
+  assert.equal(state.gameOver, 'time');
+  assert.equal(state.cash, expected);
 });
 
 test('ending day 90 does not create or charge day 91', () => {
   const { api } = createGame();
   const state = api.reset();
   state.day = api.CONFIG.DAYS_LIMIT;
-  state.cash = 100;
+  state.cash = 200000;
   state.inventory = { wheat: 1000 };
   state.costBasis = { wheat: 5000 };
   const historyLength = state.priceHistory.wheat.length;
+  const expectedCash = +(state.cash - api.calcOperatingCost(90) - api.calcDailyFee()).toFixed(2);
 
   api.nextDay();
 
   assert.equal(state.day, api.CONFIG.DAYS_LIMIT);
   assert.equal(state.gameOver, 'time');
-  assert.equal(state.cash, 100);
+  assert.equal(state.cash, expectedCash);
   assert.equal(state.inventory.wheat, 1000);
   assert.equal(state.priceHistory.wheat.length, historyLength);
 });
@@ -107,15 +160,15 @@ test('loading a low-wealth save removes prematurely listed ultra goods', () => {
   assert.equal(loaded.availableGoods.some(id => ULTRA_IDS.has(id)), false);
 });
 
-test('warehouse and shop are sibling panels', () => {
+test('warehouse and profession are sibling panels', () => {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   assert.match(
     html,
-      /id="inventoryList"><\/div>\s*<\/div>\s*<div class="panel">\s*<div class="panel-title">🏪 奇货铺/
+      /id="inventoryList"><\/div>\s*<\/div>\s*<div class="panel" id="professionPanel">/
   );
 });
 
-test('start screen presents five immersive operating principles including the shop', () => {
+test('start screen presents five immersive operating principles including professions', () => {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   const ruleList = html.match(/<ul class="start-rules">([\s\S]*?)<\/ul>/)?.[1] || '';
 
@@ -123,10 +176,11 @@ test('start screen presents five immersive operating principles including the sh
   assert.match(html, /只剩.*¥5,000.*旧商行/);
   assert.match(ruleList, /逐利/);
   assert.match(ruleList, /观势/);
-  assert.match(ruleList, /借势/);
-  assert.match(ruleList, /奇货铺每 7 天/);
+  assert.match(ruleList, /择业/);
+  assert.match(ruleList, /职业同时带来特长/);
   assert.match(ruleList, /守仓/);
-  assert.match(html, /现金不足会按七折强制平仓/);
+  assert.match(ruleList, /经营费逐日上涨/);
+  assert.match(html, /现金不足时只能按七折强平今日上架的库存/);
   assert.match(ruleList, /登阶/);
 });
 
@@ -153,11 +207,17 @@ test('the release version is consistent across delivery files', () => {
   const changelog = fs.readFileSync(path.join(ROOT, 'CHANGELOG.md'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.8.1');
+  assert.equal(api.APP_VERSION, '1.9.0');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.8\.1/g) || []).length, 12);
-  assert.match(readme, /当前版本：\*\* v1\.8\.1/);
-  assert.match(changelog, /## \[1\.8\.1\] - 2026-09-02/);
+  assert.equal((html.match(/\?v=1\.9\.0/g) || []).length, 15);
+  assert.match(readme, /当前版本：\*\* v1\.9\.0/);
+  assert.match(changelog, /## \[1\.9\.0\] - 2026-09-02/);
+});
+
+test('standard and ecology markets list six and seven goods respectively', () => {
+  const { api } = createGame();
+  assert.equal(api.CONFIG.MARKET_SIZE, 6);
+  assert.equal(api.CONFIG.ECO_MARKET_SIZE, 7);
 });
 
 test('manual version refresh preserves the existing save', () => {
@@ -183,7 +243,7 @@ test('market rows expose immediate presets and custom buy and sell controls', ()
   assert.match(source, /data-trade-input="sell"/);
   assert.match(source, /data-custom-trade="buy"/);
   assert.match(source, /data-custom-trade="sell"/);
-  assert.match(source, /owned === 0 \? 'disabled' : ''/);
+  assert.match(source, /owned === 0 \|\| saleLocked \? 'disabled' : ''/);
 });
 
 test('new games default to quantity trading mode', () => {
@@ -381,7 +441,7 @@ test('every ecological event has complete A/B/C multipliers', () => {
   }
 });
 
-test('a deterministic no-trade run finishes without invalid state', () => {
+test('a deterministic no-trade run fails from operating pressure without invalid state', () => {
   let seed = 123456789;
   const random = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
   const { api } = createGame({ random });
@@ -401,8 +461,17 @@ test('a deterministic no-trade run finishes without invalid state', () => {
     assert.equal(api.totalUnits() <= api.capacity(), true);
   }
 
-  assert.equal(state.day, api.CONFIG.DAYS_LIMIT);
-  assert.equal(state.gameOver, 'time');
+  assert.equal(state.day, 9);
+  assert.equal(state.gameOver, 'lose');
+});
+
+test('expense panel shows operating cost, storage cost, and remaining pressure', () => {
+  const source = fs.readFileSync(path.join(ROOT, 'js', 'ui.js'), 'utf8');
+
+  assert.match(source, /calcOperatingCost\(\)/);
+  assert.match(source, /calcRemainingOperatingCost\(\)/);
+  assert.match(source, /基础经营费/);
+  assert.match(source, /剩余经营压力/);
 });
 
 test('natural sudden event count keeps the original daily distribution', () => {
@@ -439,7 +508,7 @@ test('ecological news expands the market to seven goods until the event ends', (
   const { api } = createGame({ random: () => 0.5 });
   const state = api.reset();
   state.day = 7;
-  state.scheduledEco = 'globalDrought';
+  state.eco = { treeId: 'globalDrought', startDay: 7, A: null, B: null, C: null, byCard: false };
 
   api.nextDay();
   assert.notEqual(state.eco, null);
@@ -474,13 +543,16 @@ test('warehouse growth stays below fourfold per late wealth tier', () => {
   assert.equal(levels.at(-1), 16000000);
 });
 
-test('ecological events retain their configured multiplier', () => {
+test('ecological event scale transforms the configured multiplier', () => {
   const { api } = createGame();
   const state = api.reset();
   state.day = 9;
   state.eco = { treeId: 'globalDrought', startDay: 8, A: 0, B: null, C: null };
 
-  assert.equal(api.ecoCurrentMult('wheat'), api.ECO_EVENTS.globalDrought.A[0].mults.wheat);
+  assert.equal(
+    api.ecoCurrentMult('wheat'),
+    Math.pow(api.ECO_EVENTS.globalDrought.A[0].mults.wheat, api.BALANCE_CONFIG.ECO_EVENT_SCALE)
+  );
 });
 
 test('extreme ecological branches receive less selection weight', () => {
@@ -508,7 +580,7 @@ test('most natural event targets resolve as an ordinary flat market', () => {
   assert.equal(api.eventMovementChance('ultra'), 0.55);
 });
 
-test('paid sudden-event cards have a higher rare-outcome chance', () => {
+test('forced sudden events can use a higher rare-outcome chance', () => {
   const { api } = createGame();
 
   assert.equal(api.eventRareChance(false), 0.06);

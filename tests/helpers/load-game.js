@@ -7,8 +7,11 @@ const SCRIPT_FILES = [
   'js/config.js',
   'js/utils.js',
   'js/eco.js',
+  'js/professions.js',
+  'js/rules.js',
+  'js/profile.js',
   'js/state.js',
-  'js/shop.js',
+  'js/market_actions.js',
   'js/events.js',
   'js/trading.js',
   'js/game.js',
@@ -64,25 +67,31 @@ function createGame(options = {}) {
     function render() { checkMilestones(); }
     globalThis.gameApi = {
       APP_VERSION,
+      BALANCE_CONFIG,
       CONFIG,
+      DEFAULT_PROFESSION_ID: typeof DEFAULT_PROFESSION_ID === 'undefined' ? undefined : DEFAULT_PROFESSION_ID,
       ECO_EVENTS,
       GOODS,
+      PROFESSIONS: typeof PROFESSIONS === 'undefined' ? undefined : PROFESSIONS,
       WAREHOUSE_CAPACITY_BY_MILESTONE,
       applyDailyCosts,
+      applyProfessionRules: typeof applyProfessionRules === 'function' ? applyProfessionRules : undefined,
       buy,
-      buyCard,
       calcDailyFee,
+      calcOperatingCost: typeof calcOperatingCost === 'function' ? calcOperatingCost : undefined,
+      calcRemainingOperatingCost: typeof calcRemainingOperatingCost === 'function' ? calcRemainingOperatingCost : undefined,
+      calcTotalDailyCost: typeof calcTotalDailyCost === 'function' ? calcTotalDailyCost : undefined,
       capacity,
+      clearSave,
+      createBaseRules: typeof createBaseRules === 'function' ? createBaseRules : undefined,
       ecoCurrentMult,
       ecoBranchWeight,
       ecoVolatileBranchWeight,
       ecoRel,
-      forecastCategories,
-      generateShopStock,
       eventPositiveChance,
       eventMovementChance,
       eventRareChance,
-      refreshShopIfNeeded,
+      refreshMarketGood: typeof refreshMarketGood === 'function' ? refreshMarketGood : undefined,
       getState() { return state; },
       loadSave: load,
       netWorth,
@@ -90,8 +99,30 @@ function createGame(options = {}) {
       nextDay,
       parseTradeQuantity,
       getPercentageTradeQuantity: typeof getPercentageTradeQuantity === 'function' ? getPercentageTradeQuantity : undefined,
+      getEffectiveRules: typeof getEffectiveRules === 'function' ? getEffectiveRules : undefined,
+      isGoodSaleLocked: typeof isGoodSaleLocked === 'function' ? isGoodSaleLocked : undefined,
+      loadProfile: typeof loadProfile === 'function' ? loadProfile : undefined,
+      newProfile: typeof newProfile === 'function' ? newProfile : undefined,
+      newProfessionState: typeof newProfessionState === 'function' ? newProfessionState : undefined,
+      normalizeProfessionId: typeof normalizeProfessionId === 'function' ? normalizeProfessionId : undefined,
+      recordRunResult: typeof recordRunResult === 'function' ? recordRunResult : undefined,
+      saveProfile: typeof saveProfile === 'function' ? saveProfile : undefined,
       pickGoods,
-      reset() { state = null; state = newState(); generateShopStock(); return state; },
+      reset() { state = null; state = newState(); return state; },
+      advanceBaselineDay(seed) {
+        if (state.gameOver) return;
+        applyDailyCosts(state.day);
+        if (state.gameOver) return;
+        if (state.day >= CONFIG.DAYS_LIMIT) {
+          state.gameOver = 'time';
+          return;
+        }
+        const oldRandom = Math.random;
+        Math.random = mulberry32(seed);
+        resolveNextDayState();
+        Math.random = oldRandom;
+        render();
+      },
       sell,
       setTradeInputMode: typeof setTradeInputMode === 'function' ? setTradeInputMode : undefined,
       setRandom(value) { Math.random = value; },
@@ -99,7 +130,9 @@ function createGame(options = {}) {
       spawnEvents,
       totalUnits,
       updateGoodPrice,
-      useCard
+      eligibleProfessionAbilityTargets: typeof eligibleProfessionAbilityTargets === 'function' ? eligibleProfessionAbilityTargets : undefined,
+      unlockEligibleProfessions: typeof unlockEligibleProfessions === 'function' ? unlockEligibleProfessions : undefined,
+      useProfessionAbility: typeof useProfessionAbility === 'function' ? useProfessionAbility : undefined
     };
   `, context);
 

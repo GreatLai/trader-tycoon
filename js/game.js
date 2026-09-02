@@ -22,17 +22,13 @@ function advanceEcology() {
   }
 
   if (!state.eco && state.day >= 8 && state.day <= 83) {
-    let treeId = state.scheduledEco;
-    let byCard = !!state.scheduledEcoByCard;
-    if (!treeId && Math.random() < 0.20) {
+    let treeId = null;
+    if (Math.random() < BALANCE_CONFIG.ECO_EVENT_CHANCE) {
       const keys = Object.keys(ECO_EVENTS).filter(id => !ECO_EVENTS[id].unlock || netWorth() >= ECO_EVENTS[id].unlock);
       treeId = keys[Math.floor(Math.random() * keys.length)];
-      byCard = false;
     }
     if (treeId) {
-      state.scheduledEco = null;
-      state.scheduledEcoByCard = false;
-      state.eco = { treeId, startDay: state.day, A: null, B: null, C: null, byCard };
+      state.eco = { treeId, startDay: state.day, A: null, B: null, C: null, byCard: false };
       state.ecoPopup = { special: true, title: '国际新闻', desc: ECO_EVENTS[treeId].announce.desc };
     }
   }
@@ -53,8 +49,8 @@ function resolveNextDayState() {
   state.ecoPopupShown = false;
   state.eventNoticeQueue = [];
   advanceEcology();
-  applyDailyCosts();
-  state.availableGoods = pickGoods(state.eco ? CONFIG.ECO_MARKET_SIZE : CONFIG.MARKET_SIZE);
+  const rules = getEffectiveRules(state.profession);
+  state.availableGoods = pickGoods(state.eco ? rules.ecoMarketSize : rules.marketSize);
   spawnEvents();
   updatePrices();
   updateSeenPrices();
@@ -62,14 +58,23 @@ function resolveNextDayState() {
   state.logs.unshift(`进入第${state.day}天，仓库管理费已结算`);
   state.logs = state.logs.slice(0, 50);
   state.peakNetWorth = Math.max(state.peakNetWorth || CONFIG.START_CASH, netWorth());
+  state.runStats.maxDayReached = Math.max(state.runStats.maxDayReached, state.day);
+  state.runStats.peakNetWorth = Math.max(state.runStats.peakNetWorth, state.peakNetWorth);
+  unlockEligibleProfessions({ peakNetWorth: state.peakNetWorth });
   checkEnd();
 }
 
 function nextDay() {
   if (state.gameOver) return;
+  applyDailyCosts(state.day);
+  if (state.gameOver) {
+    save(); render();
+    return;
+  }
   if (state.day >= CONFIG.DAYS_LIMIT) {
     state.gameOver = 'time';
     state.logs.unshift('⏰ 游戏结束：90 天到期');
+    recordFinishedRun();
     save(); render();
     return;
   }
@@ -78,8 +83,20 @@ function nextDay() {
   resolveNextDayState();
   Math.random = oldRandom;
   state.nextDaySeed = Math.floor(Math.random() * 1e9);
-  refreshShopIfNeeded();
+  recordFinishedRun();
   save(); render();
+}
+
+function recordFinishedRun() {
+  if (!state.gameOver || state.resultRecorded) return false;
+  recordRunResult({
+    professionId: state.profession.id,
+    survived: state.gameOver === 'time',
+    finalNetWorth: netWorth(),
+    peakNetWorth: state.runStats.peakNetWorth
+  });
+  state.resultRecorded = true;
+  return true;
 }
 
 function checkEnd() {
@@ -93,6 +110,7 @@ function checkMilestones() {
   if (state.gameOver) return;
   const nw = netWorth();
   state.peakNetWorth = Math.max(state.peakNetWorth || CONFIG.START_CASH, nw);
+  unlockEligibleProfessions({ peakNetWorth: state.peakNetWorth });
   let idx = state.highestMilestone;
   while (idx + 1 < MILESTONES.length && nw >= MILESTONES[idx + 1].value) idx++;
   if (idx > state.highestMilestone) {

@@ -2,7 +2,7 @@
 const INTRO_SLIDES = [
   { emoji: '🧳', title: '旧商行，新掌柜', text: '港口重新开市，这间旧商行和账上仅剩的 ¥5,000 都交到了你手里。\n九十天后封账，能留下多少身家，只看你的眼光。', hint: '接下这间商行', button: '接下委托' },
   { emoji: '📈', title: '先看价，再下手', text: '每天只有一部分商品摆上货架。价格低时收货，行情起来后卖出，现金和仓位都要留有余地。\n国际生态行情出现时，市场会扩展到 7 种商品。', hint: '每次推进日期，市场都会重新洗牌', button: '记住了' },
-  { emoji: '🏪', title: '等行情，也造行情', text: '新闻会制造突发机会，奇货铺则每七天带来一批道具。\n买消息、刷新价格、制造低价，或让选中的持仓迎来风口。真正的掌柜不会只靠运气。', hint: '留些现金，机会出现时才买得起', button: '开张营业' }
+  { emoji: '⚖️', title: '选一条生意路', text: '职业会同时带来特长、主动手段和无法回避的缺陷。\n无用之人遵循标准市场，其他职业则要靠自己的长处解决自己的麻烦。', hint: '职业只能在开局时选择', button: '选择职业' }
 ];
 let introStep = 0;
 
@@ -26,8 +26,7 @@ function advanceIntro() {
   if (introStep >= INTRO_SLIDES.length) {
     $('introOverlay').classList.add('hidden');
     $('versionOverlay').classList.add('hidden');
-  $('cardOverlay').classList.add('hidden');
-    startNewGame();
+    openProfessionSelect();
   } else {
     renderIntroSlide();
   }
@@ -124,27 +123,57 @@ function openHistory() {
   $('historyOverlay').classList.remove('hidden');
 }
 
-function startNewGame() {
-  state = newState();
-  generateShopStock();
-  state.logs = ['第1天：商行开张。常规市场上架5种商品，生态行情期间扩展到7种。'];
+function openProfessionSelect() {
+  const profile = loadProfile();
+  $('professionChoices').innerHTML = Object.values(PROFESSIONS).map(profession => {
+    const unlocked = profile.unlockedProfessionIds.includes(profession.id);
+    const active = profession.activeAbility ? `主动：${profession.activeAbility.name}` : '主动：无';
+    return `<button class="profession-choice" data-profession-select="${profession.id}" ${unlocked ? '' : 'disabled'}>
+      <div class="profession-choice-name">${profession.name}</div>
+      <div class="profession-choice-copy">${profession.description}<br>${active} ｜ 缺陷：${profession.drawback}</div>
+      ${unlocked ? '' : `<div class="profession-choice-lock">解锁：${profession.unlock.text}</div>`}
+    </button>`;
+  }).join('');
+  $('professionOverlay').classList.remove('hidden');
+}
+
+function startNewGame(professionId = DEFAULT_PROFESSION_ID) {
+  const profile = loadProfile();
+  const selectedId = normalizeProfessionId(professionId);
+  if (!profile.unlockedProfessionIds.includes(selectedId)) return false;
+  state = newState(selectedId);
+  state.logs = ['第1天：商行开张。常规市场上架6种商品，生态行情期间扩展到7种。'];
   $('eventOverlay').classList.add('hidden');
   $('milestoneOverlay').classList.add('hidden');
   $('historyOverlay').classList.add('hidden');
   $('chartOverlay').classList.add('hidden');
   $('introOverlay').classList.add('hidden');
   $('versionOverlay').classList.add('hidden');
-  $('cardOverlay').classList.add('hidden');
+  $('professionOverlay').classList.add('hidden');
+  $('professionAbilityOverlay').classList.add('hidden');
   clearSave();
   save();
   render();
+  return true;
 }
 
 function returnToStartScreen() {
   clearSave();
   state = null;
-  ['overlay', 'eventOverlay', 'milestoneOverlay', 'historyOverlay', 'chartOverlay', 'introOverlay', 'versionOverlay', 'cardOverlay'].forEach(id => $(id).classList.add('hidden'));
+  ['overlay', 'eventOverlay', 'milestoneOverlay', 'historyOverlay', 'chartOverlay', 'introOverlay', 'versionOverlay', 'professionOverlay', 'professionAbilityOverlay'].forEach(id => $(id).classList.add('hidden'));
   render();
+}
+
+function openProfessionAbility() {
+  const profession = PROFESSIONS[state.profession.id];
+  if (!profession.activeAbility) return;
+  const targets = eligibleProfessionAbilityTargets();
+  $('professionAbilityTitle').textContent = `${profession.name} · ${profession.activeAbility.name}`;
+  $('professionAbilityInfo').textContent = profession.activeAbility.description;
+  $('professionAbilityTargets').innerHTML = targets.length
+    ? targets.map(id => `<button class="btn btn-small" data-profession-ability-target="${id}">${goodById(id).name} · ¥${fmt(state.prices[id], 2)}</button>`).join('')
+    : '<div style="grid-column:1/-1;color:var(--muted);font-size:13px;">当前没有既已上架又持有库存的商品。</div>';
+  $('professionAbilityOverlay').classList.remove('hidden');
 }
 
 function handleClick(e) {
@@ -206,7 +235,7 @@ document.addEventListener('click', (e) => {
   if (!target) return;
 
   if (target.id === 'startBtn') {
-    showIntro();
+    openProfessionSelect();
   } else if (target.id === 'continueBtn') {
     const s = load();
     if (s) { state = s; render(); }
@@ -224,7 +253,6 @@ document.addEventListener('click', (e) => {
     doVersionUpdate();
   } else if (target.id === 'versionCloseBtn') {
     $('versionOverlay').classList.add('hidden');
-  $('cardOverlay').classList.add('hidden');
   } else if (target.id === 'eventCloseBtn') {
     closeEventNotice();
   } else if (target.id === 'milestoneCloseBtn') {
@@ -243,19 +271,23 @@ document.addEventListener('click', (e) => {
     openChart();
   } else if (target.dataset.tradeMode) {
     setTradeInputMode(target.dataset.tradeMode);
+  } else if (target.dataset.professionSelect) {
+    startNewGame(target.dataset.professionSelect);
+  } else if (target.id === 'professionSelectCloseBtn') {
+    $('professionOverlay').classList.add('hidden');
+  } else if (target.id === 'professionAbilityBtn') {
+    openProfessionAbility();
+  } else if (target.dataset.professionAbilityTarget) {
+    const result = useProfessionAbility(target.dataset.professionAbilityTarget);
+    if (result.ok || result.reason === 'raise-failed') {
+      $('professionAbilityOverlay').classList.add('hidden');
+      save();
+      render();
+    }
+  } else if (target.id === 'professionAbilityCloseBtn') {
+    $('professionAbilityOverlay').classList.add('hidden');
   } else if (target.dataset.customTrade) {
     executeCustomTrade(target);
-  } else if (target.dataset.shopBuy) {
-    if (!buyCard(target.dataset.shopBuy)) toast('现金不足或商品已售出');
-  } else if (target.dataset.shopUse) {
-    openCardUse(target.dataset.shopUse);
-  } else if (target.dataset.cardTarget) {
-    cardTarget = target.dataset.cardTarget;
-    renderCardUse();
-  } else if (target.id === 'cardUseConfirmBtn') {
-    useCardConfirm();
-  } else if (target.id === 'cardUseCloseBtn') {
-    closeCardUse();
   } else {
     handleClick(e);
   }

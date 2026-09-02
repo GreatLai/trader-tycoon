@@ -22,7 +22,7 @@ function render() {
     $('milestoneOverlay').classList.add('hidden');
     $('historyOverlay').classList.add('hidden');
     $('chartOverlay').classList.add('hidden');
-    $('cardOverlay').classList.add('hidden');
+    $('professionAbilityOverlay').classList.add('hidden');
     $('continueBtn').classList.toggle('hidden', !load());
     return;
   }
@@ -35,7 +35,7 @@ function render() {
     $('milestoneOverlay').classList.add('hidden');
     $('historyOverlay').classList.add('hidden');
     $('chartOverlay').classList.add('hidden');
-    $('cardOverlay').classList.add('hidden');
+    $('professionAbilityOverlay').classList.add('hidden');
   }
 
   const nw = netWorth();
@@ -45,8 +45,8 @@ function render() {
   // 头部
   $('dayText').textContent = `第 ${state.day} 天 / ${CONFIG.DAYS_LIMIT}`;
   $('cashText').textContent = '¥' + fmt(state.cash, 2);
-  const feeNow = +calcDailyFee().toFixed(2);
-  $('cashExpense').textContent = `今日支出 -¥${fmt(feeNow, 2)}`;
+  const totalCostNow = +calcTotalDailyCost().toFixed(2);
+  $('cashExpense').textContent = `今日支出 -¥${fmt(totalCostNow, 2)}`;
   $('networthText').textContent = '¥' + fmt(nw, 2);
   $('networthText').className = 'value ' + (nw >= 0 ? 'green' : 'red');
   const rankIdx = state.highestMilestone;
@@ -55,6 +55,23 @@ function render() {
   $('targetText').textContent = nextMilestone ? '¥' + fmt(nextMilestone.value, 0) : '已登神坛';
   $('nextDayBtn').disabled = !!state.gameOver;
   checkMilestones();
+
+  const profession = PROFESSIONS[state.profession.id];
+  $('professionName').textContent = profession.name;
+  $('professionDescription').textContent = profession.description;
+  $('professionPassive').textContent = profession.passive;
+  $('professionDrawback').textContent = profession.drawback;
+  const abilityButton = $('professionAbilityBtn');
+  if (!profession.activeAbility) {
+    abilityButton.textContent = '无主动技能';
+    abilityButton.disabled = true;
+  } else if (state.profession.activeUsedDay === state.day) {
+    abilityButton.textContent = `${profession.activeAbility.name} · 今日已使用`;
+    abilityButton.disabled = true;
+  } else {
+    abilityButton.textContent = `使用 ${profession.activeAbility.name}`;
+    abilityButton.disabled = eligibleProfessionAbilityTargets().length === 0;
+  }
 
   // 市场
   $('marketCount').textContent = `${state.availableGoods.length} / ${GOODS.length}`;
@@ -82,9 +99,11 @@ function render() {
     const holdColor = holdPnl >= 0 ? 'var(--green)' : 'var(--red)';
     const holdText = owned > 0 ? ` ｜ 持仓 <span style="color:${holdColor};font-weight:600;">${holdPnl >= 0 ? '+' : ''}${fmt(holdPnl, 1)}%</span>` : '';
     const ecoClass = state.eco && ECO_EVENTS[state.eco.treeId].goods.includes(id) ? ' eco-affected' : '';
+    const saleLocked = isGoodSaleLocked(id);
+    const lockLabel = saleLocked ? ` ｜ 禁售中，第${state.saleLockUntilDay[id]}天恢复` : '';
     const maxBuy = Math.min(Math.floor(state.cash / price), cap - used);
     const buyDisabled = maxBuy === 0 ? 'disabled' : '';
-    const sellDisabled = owned === 0 ? 'disabled' : '';
+    const sellDisabled = owned === 0 || saleLocked ? 'disabled' : '';
     const buyPresets = percentageMode ? percentageTradeButtons('buy', id, buyDisabled) : `
           <button class="btn btn-small trade-preset" data-action="buy" data-good="${id}" data-qty="1" ${buyDisabled}>+1</button>
           <button class="btn btn-small trade-preset" data-action="buy" data-good="${id}" data-qty="10" ${buyDisabled}>+10</button>
@@ -102,7 +121,7 @@ function render() {
           <div class="price-col">
             <div class="price">¥${fmt(price, 2)}</div>
             <div class="change ${seenCls}">${seenArrow} ${seenChange >= 0 ? '+' : ''}${fmt(seenChange, 1)}% 较上次</div>
-            <div class="base-meta">${seenText}${holdText}</div>
+            <div class="base-meta">${seenText}${holdText}<span class="red">${lockLabel}</span></div>
           </div>
           <div class="owned">持有 <strong>${owned}</strong></div>
         </div>
@@ -140,8 +159,9 @@ function render() {
       : `购入 ¥${fmt(avg, 2)} → 上次出现 ¥${fmt(cur, 2)}`;
     const stateLabel = isToday ? '' : '（今日未上架）';
     const ecoClass = state.eco && ECO_EVENTS[state.eco.treeId].goods.includes(g.id) ? ' eco-affected' : '';
+    const lockLabel = isGoodSaleLocked(g.id) ? `（禁售中，第${state.saleLockUntilDay[g.id]}天恢复）` : '';
     return `<div class="inventory-row${ecoClass}">
-      <span class="inventory-good">${goodArt(g, 'good-art-small')}<span>${g.name} <span class="qty">×${qty}</span> <span style="font-size:11px;color:var(--muted);">${stateLabel}</span></span></span>
+      <span class="inventory-good">${goodArt(g, 'good-art-small')}<span>${g.name} <span class="qty">×${qty}</span> <span style="font-size:11px;color:var(--muted);">${stateLabel}</span> <span style="font-size:11px;color:var(--red);">${lockLabel}</span></span></span>
       <span class="value">
         <div class="price-line">${priceLabel}</div>
         <div class="pnl-line" style="color:${color}">${pnlPer >= 0 ? '+' : ''}${fmt(pnlPer, 2)}/单位 (${fmt(pnlPct, 1)}%) ｜ ${pnl >= 0 ? '+' : ''}${fmt(pnl, 2)}</div>
@@ -150,16 +170,16 @@ function render() {
   }).join('');
   $('inventoryList').innerHTML = invRows || '<div style="color:var(--muted);font-size:14px;">仓库是空的</div>';
 
-
-  // 商店
-  refreshShopIfNeeded();
-  renderShop();
-
   // 每日支出
+  const operatingCost = +calcOperatingCost().toFixed(2);
   const fee = +calcDailyFee().toFixed(2);
+  const totalCost = +(operatingCost + fee).toFixed(2);
+  const remainingPressure = +calcRemainingOperatingCost().toFixed(2);
   $('expenseInfo').innerHTML = `
+    <div class="expense-row"><span>基础经营费</span><span>¥${fmt(operatingCost, 2)}</span></div>
     <div class="expense-row"><span>仓库管理费</span><span>¥${fmt(fee, 2)}</span></div>
-    <div class="expense-row" style="font-weight:700;"><span>今日合计</span><span>¥${fmt(fee, 2)}</span></div>`;
+    <div class="expense-row" style="font-weight:700;"><span>今日合计</span><span>¥${fmt(totalCost, 2)}</span></div>
+    <div class="expense-row"><span>剩余经营压力</span><span>¥${fmt(remainingPressure, 2)}</span></div>`;
 
   // 今日突发 + 国际新闻（生态事件）
   const suddenNewsHtml = state.events.map(ev => `
@@ -177,7 +197,7 @@ function render() {
   const news = (suddenNewsHtml + ecoNewsHtml) || '<div style="color:var(--muted);font-size:14px;">今天没有突发新闻。</div>';
   $('newsList').innerHTML = news;
 
-  // 卡牌事件逐条播报；每日自然事件仍合并播报。
+  // 主动技能事件逐条播报；每日自然事件仍合并播报。
   const popupHtml = suddenNewsHtml + ecoNewsHtml;
   if (state.eventNoticeQueue.length && !state.gameOver) {
     const notice = state.eventNoticeQueue[0];

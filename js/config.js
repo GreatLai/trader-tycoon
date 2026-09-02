@@ -1,34 +1,29 @@
 // ==================== 配置 ====================
 const ULTRA_UNLOCK = 10000000;
-const APP_VERSION = '1.8.1';
+const APP_VERSION = '1.9.0';
 
 const CONFIG = {
   DAYS_LIMIT: 90,
   TARGET: 1000000,
   START_CASH: 5000,
-  MARKET_SIZE: 5,
+  MARKET_SIZE: 6,
   ECO_MARKET_SIZE: 7,
-  STORAGE_FEE_PER_UNIT: 0.05,
-  SAVE_KEY: 'trader-tycoon-save-v17'
+  SAVE_KEY: 'trader-tycoon-save-v17',
+  PROFILE_SAVE_KEY: 'trader-tycoon-profile-v1'
 };
 
-// ==================== 商店配置 ====================
-const SHOP_CONFIG = {
-  REFRESH_INTERVAL: 7,
-  FIRST_REFRESH_DAY: 1,
-  STOCK_SIZE: 4,
-  PRICE_VARIATION: [0.85, 1.15],
-  SUDDEN_EVENT_CHANCE: 0.26,
-  RARE_EVENT_CHANCE: 0.06,
-  CARDS: {
-    addGood:       { name: '添货',         weight: 29, priceRate: 0.04, desc: '把一个已解锁商品加入今日市场，并刷新一次。' },
-    refreshPrice:  { name: '刷新行情',    weight: 27, priceRate: 0.08, desc: '刷新一个已上架商品的当前价格。' },
-    futureMarket:  { name: '明日行情',    weight: 22, priceRate: 0.06, desc: '查看一个商品明天的涨跌区间。' },
-    suddenRise:    { name: '突发利好',      weight: 10, priceRate: 0.12, desc: '强制一个已上架商品触发利好事件。' },
-    suddenFall:    { name: '突发利空',      weight: 10, priceRate: 0.18, desc: '强制一个已上架商品触发利空事件。' },
-    iAmTheTrend:   { name: '趋势之主',   weight: 2,  priceRate: 1.20, desc: '主动安排一次生态事件。' },
-    fateToken:     { name: '改命金筹',   weight: 1,  priceRate: 0.80, unlock: 10000, rarity: '传说', desc: '五成身家进一位，五成身家退一位。' }
-  }
+// 纯交易规则的可校准参数；仓储费率保留 v1.8.0 的实际结算值。
+const BALANCE_CONFIG = {
+  OPERATING_COST_FIRST_DAY: 500,
+  OPERATING_COST_DAILY_GROWTH: 1.0595235696175997,
+  OPERATING_COST_TOTAL: 1520000,
+  STORAGE_FEE_RATE: 0.001,
+  LIQUIDATION_RATE: 0.70,
+  ALLOW_OFF_MARKET_LIQUIDATION: false,
+  ECO_EVENT_CHANCE: 0.20,
+  NATURAL_VOLATILITY_SCALE: 1,
+  SUDDEN_EVENT_SCALE: 0.76,
+  ECO_EVENT_SCALE: 0.92
 };
 const CAPACITY_LEVELS = [
   { cap: 1000, cost: 0 },

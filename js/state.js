@@ -1,7 +1,7 @@
 // ==================== 游戏状态 ====================
 let state = null;
 
-function newState() {
+function newState(professionId = DEFAULT_PROFESSION_ID) {
   const prices = {};
   const factors = {};
   GOODS.forEach(g => {
@@ -35,6 +35,8 @@ function newState() {
     prevSeenPrice,
     inventory: {},
     costBasis: {},
+    goodsBoughtDay: {},
+    saleLockUntilDay: {},
     events: [],
     popupShown: true,
     eco: null,
@@ -45,16 +47,19 @@ function newState() {
     chartGood: GOODS[0].id,
     highestMilestone: -1,
     availableGoods,
-    shopStock: [],
-    shopRefreshDay: 1,
-    cardInventory: {},
     peakNetWorth: CONFIG.START_CASH,
-    scheduledEco: null,
-    scheduledEcoByCard: false,
     nextDaySeed: Math.floor(Math.random() * 1e9),
     eventNoticeQueue: [],
     logs: [],
     tradeInputMode: 'quantity',
+    profession: newProfessionState(professionId),
+    runStats: {
+      maxDayReached: 1,
+      peakNetWorth: CONFIG.START_CASH,
+      forcedLiquidations: 0,
+      totalFeesPaid: 0
+    },
+    resultRecorded: false,
     gameOver: null
   };
 }
@@ -65,7 +70,13 @@ function totalUnits() {
 
 function capacity() {
   const idx = (state.highestMilestone == null || state.highestMilestone < 0) ? 0 : Math.min(state.highestMilestone + 1, WAREHOUSE_CAPACITY_BY_MILESTONE.length - 1);
-  return WAREHOUSE_CAPACITY_BY_MILESTONE[idx];
+  const rules = getEffectiveRules(state.profession);
+  return Math.max(0, Math.floor(WAREHOUSE_CAPACITY_BY_MILESTONE[idx] * rules.warehouseCapacityMultiplier));
+}
+
+function isGoodSaleLocked(id, day = state.day) {
+  const unlockDay = Number(state.saleLockUntilDay && state.saleLockUntilDay[id]);
+  return Number.isFinite(unlockDay) && day < unlockDay;
 }
 
 // 玩家当前“知道”的价格：今天上架用实时价，没上架用上次出现价

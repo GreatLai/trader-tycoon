@@ -23,8 +23,22 @@ function normalizeSave(saved) {
   saved.logs = Array.isArray(saved.logs) ? saved.logs : [];
   saved.inventory = saved.inventory || {};
   saved.costBasis = saved.costBasis || {};
+  saved.goodsBoughtDay = saved.goodsBoughtDay && typeof saved.goodsBoughtDay === 'object' ? saved.goodsBoughtDay : {};
+  saved.saleLockUntilDay = saved.saleLockUntilDay && typeof saved.saleLockUntilDay === 'object' ? saved.saleLockUntilDay : {};
   saved.priceHistory = saved.priceHistory || {};
   saved.tradeInputMode = saved.tradeInputMode === 'percentage' ? 'percentage' : 'quantity';
+  const professionId = normalizeProfessionId(saved.profession && saved.profession.id);
+  saved.profession = {
+    id: professionId,
+    activeUsedDay: Number.isFinite(saved.profession && saved.profession.activeUsedDay) ? saved.profession.activeUsedDay : null,
+    data: saved.profession && saved.profession.data && typeof saved.profession.data === 'object' ? saved.profession.data : {}
+  };
+  saved.runStats = saved.runStats && typeof saved.runStats === 'object' ? saved.runStats : {};
+  saved.runStats.maxDayReached = Math.max(saved.day || 1, Number(saved.runStats.maxDayReached) || 1);
+  saved.runStats.peakNetWorth = Math.max(saved.peakNetWorth || CONFIG.START_CASH, Number(saved.runStats.peakNetWorth) || CONFIG.START_CASH);
+  saved.runStats.forcedLiquidations = Math.max(0, Math.floor(Number(saved.runStats.forcedLiquidations) || 0));
+  saved.runStats.totalFeesPaid = Math.max(0, Number(saved.runStats.totalFeesPaid) || 0);
+  saved.resultRecorded = saved.resultRecorded === true;
 
   GOODS.forEach(g => {
     if (!Array.isArray(saved.priceHistory[g.id])) {
