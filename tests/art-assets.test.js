@@ -8,8 +8,9 @@ const assert = require('node:assert/strict');
 const { ROOT } = require('./helpers/load-game');
 
 const GOOD_IDS = [
-  'wheat', 'wood', 'coal', 'tea', 'coffee', 'copper', 'oil',
-  'chip', 'phone', 'gold', 'diamond', 'antique', 'spacecraft'
+  'wheat', 'salt', 'wood', 'coal', 'tea', 'coffee', 'cloth', 'copper',
+  'steel', 'oil', 'chip', 'medicine', 'phone', 'car', 'gold', 'machine-tool',
+  'diamond', 'antique', 'spacecraft', 'lunar-soil'
 ];
 
 function runPython(args) {
@@ -19,7 +20,7 @@ function runPython(args) {
   });
 }
 
-test('art manifest defines the complete nineteen-asset source set', () => {
+test('art manifest defines the complete twenty-good source set', () => {
   const manifestPath = path.join(ROOT, 'assets', 'art', 'manifest.json');
   assert.equal(fs.existsSync(manifestPath), true);
 

@@ -20,8 +20,8 @@ const PROFESSIONS = Object.freeze({
     unlock: { peakNetWorth: 10000, text: '任意一局总资产达到 ¥10,000' },
     modifyRules(rules) {
       rules.price.ordinaryLogBias = -0.035;
-      rules.price.ordinaryMinFactor = 0.65;
-      rules.price.ordinaryMaxFactor = 1.10;
+      rules.price.ordinaryFloorShift = -0.08;
+      rules.price.ordinaryCeilingCap = 1.10;
     },
     activeAbility: Object.freeze({
       id: 'raisePrice',

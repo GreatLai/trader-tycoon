@@ -252,6 +252,8 @@
   }
   .good-name { grid-area: name; display: flex; align-items: center; gap: 8px; min-width: 0; font-weight: 600; white-space: nowrap; }
   .good-name span { overflow: hidden; text-overflow: ellipsis; }
+  .good-name .good-traits { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; overflow: visible; }
+  .good-traits small { color: var(--muted); font-size: 9px; line-height: 1.2; border-bottom: 1px dotted currentColor; white-space: nowrap; }
   .good-icon { font-size: 22px; }
   .good-icon-btn {
     font-size: 22px;

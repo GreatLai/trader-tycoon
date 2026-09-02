@@ -89,7 +89,14 @@
       "master": "assets/art/runtime/goods/good-spacecraft-512.png",
       "webp128": "assets/art/runtime/goods/good-spacecraft-128.webp",
       "webp256": "assets/art/runtime/goods/good-spacecraft-256.webp"
-    }
+    },
+    "salt": { "source":"assets/art/source/goods/good-salt.png", "master":"assets/art/runtime/goods/good-salt-512.png", "webp128":"assets/art/runtime/goods/good-salt-128.webp", "webp256":"assets/art/runtime/goods/good-salt-256.webp" },
+    "cloth": { "source":"assets/art/source/goods/good-cloth.png", "master":"assets/art/runtime/goods/good-cloth-512.png", "webp128":"assets/art/runtime/goods/good-cloth-128.webp", "webp256":"assets/art/runtime/goods/good-cloth-256.webp" },
+    "steel": { "source":"assets/art/source/goods/good-steel.png", "master":"assets/art/runtime/goods/good-steel-512.png", "webp128":"assets/art/runtime/goods/good-steel-128.webp", "webp256":"assets/art/runtime/goods/good-steel-256.webp" },
+    "medicine": { "source":"assets/art/source/goods/good-medicine.png", "master":"assets/art/runtime/goods/good-medicine-512.png", "webp128":"assets/art/runtime/goods/good-medicine-128.webp", "webp256":"assets/art/runtime/goods/good-medicine-256.webp" },
+    "car": { "source":"assets/art/source/goods/good-car.png", "master":"assets/art/runtime/goods/good-car-512.png", "webp128":"assets/art/runtime/goods/good-car-128.webp", "webp256":"assets/art/runtime/goods/good-car-256.webp" },
+    "machine-tool": { "source":"assets/art/source/goods/good-machine-tool.png", "master":"assets/art/runtime/goods/good-machine-tool-512.png", "webp128":"assets/art/runtime/goods/good-machine-tool-128.webp", "webp256":"assets/art/runtime/goods/good-machine-tool-256.webp" },
+    "lunar-soil": { "source":"assets/art/source/goods/good-lunar-soil.png", "master":"assets/art/runtime/goods/good-lunar-soil-512.png", "webp128":"assets/art/runtime/goods/good-lunar-soil-128.webp", "webp256":"assets/art/runtime/goods/good-lunar-soil-256.webp" }
   },
   "environment": {
     "paper": {

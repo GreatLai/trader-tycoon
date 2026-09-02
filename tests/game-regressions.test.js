@@ -207,11 +207,11 @@ test('the release version is consistent across delivery files', () => {
   const changelog = fs.readFileSync(path.join(ROOT, 'CHANGELOG.md'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.9.0');
+  assert.equal(api.APP_VERSION, '1.10.0');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.9\.0/g) || []).length, 15);
-  assert.match(readme, /当前版本：\*\* v1\.9\.0/);
-  assert.match(changelog, /## \[1\.9\.0\] - 2026-09-02/);
+  assert.equal((html.match(/\?v=1\.10\.0/g) || []).length, 15);
+  assert.match(readme, /当前版本：\*\* v1\.10\.0/);
+  assert.match(changelog, /## \[1\.10\.0\] - 2026-09-02/);
 });
 
 test('standard and ecology markets list six and seven goods respectively', () => {
@@ -585,4 +585,23 @@ test('forced sudden events can use a higher rare-outcome chance', () => {
 
   assert.equal(api.eventRareChance(false), 0.06);
   assert.equal(api.eventRareChance(true), 0.20);
+});
+
+test('the market defines twenty complete and distinct commodity profiles', () => {
+  const { api } = createGame();
+  const required = [
+    'volatility', 'meanReversion', 'momentum', 'positiveBias',
+    'eventWeight', 'eventImpact', 'listingWeight',
+    'ordinaryFloor', 'ordinaryCeiling'
+  ];
+
+  assert.equal(api.GOODS.length, 20);
+  assert.equal(new Set(api.GOODS.map(good => good.id)).size, 20);
+  for (const good of api.GOODS) {
+    assert.equal(Array.isArray(good.tags), true, good.id);
+    assert.equal(good.tags.length > 0 && good.tags.length <= 3, true, good.id);
+    for (const field of required) assert.equal(Number.isFinite(good.market[field]), true, `${good.id}.${field}`);
+    assert.equal(good.market.ordinaryFloor < 1, true, good.id);
+    assert.equal(good.market.ordinaryCeiling > 1, true, good.id);
+  }
 });
