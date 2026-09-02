@@ -107,15 +107,15 @@ test('loading a low-wealth save removes prematurely listed ultra goods', () => {
   assert.equal(loaded.availableGoods.some(id => ULTRA_IDS.has(id)), false);
 });
 
-test('warehouse and shop are sibling panels', () => {
+test('warehouse and profession are sibling panels', () => {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   assert.match(
     html,
-      /id="inventoryList"><\/div>\s*<\/div>\s*<div class="panel">\s*<div class="panel-title">🏪 奇货铺/
+      /id="inventoryList"><\/div>\s*<\/div>\s*<div class="panel" id="professionPanel">/
   );
 });
 
-test('start screen presents five immersive operating principles including the shop', () => {
+test('start screen presents five immersive operating principles including professions', () => {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   const ruleList = html.match(/<ul class="start-rules">([\s\S]*?)<\/ul>/)?.[1] || '';
 
@@ -123,8 +123,8 @@ test('start screen presents five immersive operating principles including the sh
   assert.match(html, /只剩.*¥5,000.*旧商行/);
   assert.match(ruleList, /逐利/);
   assert.match(ruleList, /观势/);
-  assert.match(ruleList, /借势/);
-  assert.match(ruleList, /奇货铺每 7 天/);
+  assert.match(ruleList, /择业/);
+  assert.match(ruleList, /职业同时带来特长/);
   assert.match(ruleList, /守仓/);
   assert.match(html, /现金不足会按七折强制平仓/);
   assert.match(ruleList, /登阶/);
@@ -155,7 +155,7 @@ test('the release version is consistent across delivery files', () => {
 
   assert.equal(api.APP_VERSION, '1.8.1');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.8\.1/g) || []).length, 16);
+  assert.equal((html.match(/\?v=1\.8\.1/g) || []).length, 15);
   assert.match(readme, /当前版本：\*\* v1\.8\.1/);
   assert.match(changelog, /## \[1\.8\.1\] - 2026-09-02/);
 });
@@ -439,7 +439,7 @@ test('ecological news expands the market to seven goods until the event ends', (
   const { api } = createGame({ random: () => 0.5 });
   const state = api.reset();
   state.day = 7;
-  state.scheduledEco = 'globalDrought';
+  state.eco = { treeId: 'globalDrought', startDay: 7, A: null, B: null, C: null, byCard: false };
 
   api.nextDay();
   assert.notEqual(state.eco, null);
@@ -508,7 +508,7 @@ test('most natural event targets resolve as an ordinary flat market', () => {
   assert.equal(api.eventMovementChance('ultra'), 0.55);
 });
 
-test('paid sudden-event cards have a higher rare-outcome chance', () => {
+test('forced sudden events can use a higher rare-outcome chance', () => {
   const { api } = createGame();
 
   assert.equal(api.eventRareChance(false), 0.06);

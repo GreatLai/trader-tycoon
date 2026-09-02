@@ -12,7 +12,6 @@ const SCRIPT_FILES = [
   'js/profile.js',
   'js/state.js',
   'js/market_actions.js',
-  'js/shop.js',
   'js/events.js',
   'js/trading.js',
   'js/game.js',
@@ -77,7 +76,6 @@ function createGame(options = {}) {
       applyDailyCosts,
       applyProfessionRules: typeof applyProfessionRules === 'function' ? applyProfessionRules : undefined,
       buy,
-      buyCard,
       calcDailyFee,
       capacity,
       clearSave,
@@ -86,12 +84,9 @@ function createGame(options = {}) {
       ecoBranchWeight,
       ecoVolatileBranchWeight,
       ecoRel,
-      forecastCategories,
-      generateShopStock,
       eventPositiveChance,
       eventMovementChance,
       eventRareChance,
-      refreshShopIfNeeded,
       refreshMarketGood: typeof refreshMarketGood === 'function' ? refreshMarketGood : undefined,
       getState() { return state; },
       loadSave: load,
@@ -108,7 +103,7 @@ function createGame(options = {}) {
       recordRunResult: typeof recordRunResult === 'function' ? recordRunResult : undefined,
       saveProfile: typeof saveProfile === 'function' ? saveProfile : undefined,
       pickGoods,
-      reset() { state = null; state = newState(); generateShopStock(); return state; },
+      reset() { state = null; state = newState(); return state; },
       sell,
       setTradeInputMode: typeof setTradeInputMode === 'function' ? setTradeInputMode : undefined,
       setRandom(value) { Math.random = value; },
@@ -116,7 +111,9 @@ function createGame(options = {}) {
       spawnEvents,
       totalUnits,
       updateGoodPrice,
-      useCard
+      eligibleProfessionAbilityTargets: typeof eligibleProfessionAbilityTargets === 'function' ? eligibleProfessionAbilityTargets : undefined,
+      unlockEligibleProfessions: typeof unlockEligibleProfessions === 'function' ? unlockEligibleProfessions : undefined,
+      useProfessionAbility: typeof useProfessionAbility === 'function' ? useProfessionAbility : undefined
     };
   `, context);
 

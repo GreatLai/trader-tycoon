@@ -8,11 +8,11 @@ function plain(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-test('useless profession is the neutral default', () => {
+test('useless profession remains the neutral default', () => {
   const { api } = createGame();
 
   assert.equal(api.DEFAULT_PROFESSION_ID, 'useless');
-  assert.deepEqual(Object.keys(api.PROFESSIONS), ['useless']);
+  assert.deepEqual(Object.keys(api.PROFESSIONS), ['useless', 'toothMerchant']);
   assert.equal(api.normalizeProfessionId('useless'), 'useless');
   assert.equal(api.normalizeProfessionId('unknown'), 'useless');
   assert.deepEqual(plain(api.newProfessionState()), {
@@ -161,7 +161,7 @@ test('shared market refresh validates targets and updates a good through the nor
   assert.equal(state.lastSeenPrice[listedId], state.prices[listedId]);
 });
 
-test('useless profession preserves the v1.8.1 deterministic market sequence', () => {
+test('useless profession has a stable deterministic market sequence after shop removal', () => {
   let seed = 246813579;
   const random = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
   const { api } = createGame({ random });
@@ -181,5 +181,5 @@ test('useless profession preserves the v1.8.1 deterministic market sequence', ()
   }
 
   const digest = crypto.createHash('sha256').update(JSON.stringify(days)).digest('hex');
-  assert.equal(digest, '6199b6ca888739a613a9c02ef07e78304a5cb1e8ba6c32d6dac25aae086eade6');
+  assert.equal(digest, 'c4a237ae6aa2583f0d201b15f8b7227ee9b384a7bcab47d4e9451b616f61793e');
 });

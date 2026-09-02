@@ -22,17 +22,13 @@ function advanceEcology() {
   }
 
   if (!state.eco && state.day >= 8 && state.day <= 83) {
-    let treeId = state.scheduledEco;
-    let byCard = !!state.scheduledEcoByCard;
-    if (!treeId && Math.random() < 0.20) {
+    let treeId = null;
+    if (Math.random() < 0.20) {
       const keys = Object.keys(ECO_EVENTS).filter(id => !ECO_EVENTS[id].unlock || netWorth() >= ECO_EVENTS[id].unlock);
       treeId = keys[Math.floor(Math.random() * keys.length)];
-      byCard = false;
     }
     if (treeId) {
-      state.scheduledEco = null;
-      state.scheduledEcoByCard = false;
-      state.eco = { treeId, startDay: state.day, A: null, B: null, C: null, byCard };
+      state.eco = { treeId, startDay: state.day, A: null, B: null, C: null, byCard: false };
       state.ecoPopup = { special: true, title: '国际新闻', desc: ECO_EVENTS[treeId].announce.desc };
     }
   }
@@ -65,6 +61,7 @@ function resolveNextDayState() {
   state.peakNetWorth = Math.max(state.peakNetWorth || CONFIG.START_CASH, netWorth());
   state.runStats.maxDayReached = Math.max(state.runStats.maxDayReached, state.day);
   state.runStats.peakNetWorth = Math.max(state.runStats.peakNetWorth, state.peakNetWorth);
+  unlockEligibleProfessions({ peakNetWorth: state.peakNetWorth });
   checkEnd();
 }
 
@@ -82,7 +79,6 @@ function nextDay() {
   resolveNextDayState();
   Math.random = oldRandom;
   state.nextDaySeed = Math.floor(Math.random() * 1e9);
-  refreshShopIfNeeded();
   recordFinishedRun();
   save(); render();
 }
@@ -92,7 +88,8 @@ function recordFinishedRun() {
   recordRunResult({
     professionId: state.profession.id,
     survived: state.gameOver === 'time',
-    finalNetWorth: netWorth()
+    finalNetWorth: netWorth(),
+    peakNetWorth: state.runStats.peakNetWorth
   });
   state.resultRecorded = true;
   return true;
@@ -109,6 +106,7 @@ function checkMilestones() {
   if (state.gameOver) return;
   const nw = netWorth();
   state.peakNetWorth = Math.max(state.peakNetWorth || CONFIG.START_CASH, nw);
+  unlockEligibleProfessions({ peakNetWorth: state.peakNetWorth });
   let idx = state.highestMilestone;
   while (idx + 1 < MILESTONES.length && nw >= MILESTONES[idx + 1].value) idx++;
   if (idx > state.highestMilestone) {

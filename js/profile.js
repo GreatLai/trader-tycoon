@@ -44,6 +44,20 @@ function saveProfile(profile) {
   return normalized;
 }
 
+function unlockEligibleProfessions(progress) {
+  const profile = loadProfile();
+  let changed = false;
+  Object.values(PROFESSIONS).forEach(profession => {
+    if (!profession.unlock || profile.unlockedProfessionIds.includes(profession.id)) return;
+    if ((Number(progress && progress.peakNetWorth) || 0) >= profession.unlock.peakNetWorth) {
+      profile.unlockedProfessionIds.push(profession.id);
+      changed = true;
+    }
+  });
+  if (changed) saveProfile(profile);
+  return profile;
+}
+
 function recordRunResult(result) {
   const profile = loadProfile();
   const professionId = normalizeProfessionId(result && result.professionId);
@@ -54,6 +68,6 @@ function recordRunResult(result) {
     wins: previous.wins + (result && result.survived ? 1 : 0),
     bestNetWorth: Math.max(previous.bestNetWorth, finalNetWorth)
   };
-  return saveProfile(profile);
+  const saved = saveProfile(profile);
+  return unlockEligibleProfessions({ peakNetWorth: result && result.peakNetWorth });
 }
-

@@ -22,7 +22,7 @@ function render() {
     $('milestoneOverlay').classList.add('hidden');
     $('historyOverlay').classList.add('hidden');
     $('chartOverlay').classList.add('hidden');
-    $('cardOverlay').classList.add('hidden');
+    $('professionAbilityOverlay').classList.add('hidden');
     $('continueBtn').classList.toggle('hidden', !load());
     return;
   }
@@ -35,7 +35,7 @@ function render() {
     $('milestoneOverlay').classList.add('hidden');
     $('historyOverlay').classList.add('hidden');
     $('chartOverlay').classList.add('hidden');
-    $('cardOverlay').classList.add('hidden');
+    $('professionAbilityOverlay').classList.add('hidden');
   }
 
   const nw = netWorth();
@@ -55,6 +55,23 @@ function render() {
   $('targetText').textContent = nextMilestone ? '¥' + fmt(nextMilestone.value, 0) : '已登神坛';
   $('nextDayBtn').disabled = !!state.gameOver;
   checkMilestones();
+
+  const profession = PROFESSIONS[state.profession.id];
+  $('professionName').textContent = profession.name;
+  $('professionDescription').textContent = profession.description;
+  $('professionPassive').textContent = profession.passive;
+  $('professionDrawback').textContent = profession.drawback;
+  const abilityButton = $('professionAbilityBtn');
+  if (!profession.activeAbility) {
+    abilityButton.textContent = '无主动技能';
+    abilityButton.disabled = true;
+  } else if (state.profession.activeUsedDay === state.day) {
+    abilityButton.textContent = `${profession.activeAbility.name} · 今日已使用`;
+    abilityButton.disabled = true;
+  } else {
+    abilityButton.textContent = `使用 ${profession.activeAbility.name}`;
+    abilityButton.disabled = eligibleProfessionAbilityTargets().length === 0;
+  }
 
   // 市场
   $('marketCount').textContent = `${state.availableGoods.length} / ${GOODS.length}`;
@@ -150,11 +167,6 @@ function render() {
   }).join('');
   $('inventoryList').innerHTML = invRows || '<div style="color:var(--muted);font-size:14px;">仓库是空的</div>';
 
-
-  // 商店
-  refreshShopIfNeeded();
-  renderShop();
-
   // 每日支出
   const fee = +calcDailyFee().toFixed(2);
   $('expenseInfo').innerHTML = `
@@ -177,7 +189,7 @@ function render() {
   const news = (suddenNewsHtml + ecoNewsHtml) || '<div style="color:var(--muted);font-size:14px;">今天没有突发新闻。</div>';
   $('newsList').innerHTML = news;
 
-  // 卡牌事件逐条播报；每日自然事件仍合并播报。
+  // 主动技能事件逐条播报；每日自然事件仍合并播报。
   const popupHtml = suddenNewsHtml + ecoNewsHtml;
   if (state.eventNoticeQueue.length && !state.gameOver) {
     const notice = state.eventNoticeQueue[0];

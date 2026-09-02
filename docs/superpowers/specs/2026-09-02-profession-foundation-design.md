@@ -9,7 +9,7 @@ Prepare the game engine for unlockable professions without changing the current 
 - This branch adds architecture only. It does not implement the proposed merchant professions or tune balance numbers.
 - A run stores only the selected profession id and serializable profession runtime data.
 - Permanent unlocks and per-profession records live in a separate profile save.
-- Cards and professions must call shared market operations instead of duplicating price refresh or listing behavior.
+- Profession active abilities call shared market operations instead of embedding price mutation inside UI handlers.
 - Market, event, fee, and capacity rules are exposed through one rule context. Default rules reproduce the current constants exactly.
 
 ## Modules
@@ -24,7 +24,7 @@ Builds the effective rules for the current run. Base values come from `CONFIG`; 
 
 ### `js/market_actions.js`
 
-Owns reusable commands that intentionally mutate the market, beginning with single-good price refresh. Cards and future profession active abilities use the same command and validation path.
+Owns reusable commands that intentionally mutate the market, including single-good refresh and profession active abilities.
 
 ### `js/profile.js`
 
@@ -74,7 +74,7 @@ Empty price and event sections reserve stable extension points. They do not alte
 - Existing gameplay with `useless` uses the same random calls in the same order.
 - Base market sizes remain five and seven.
 - Base fees and warehouse capacities remain unchanged.
-- Shop price-refresh behavior remains unchanged after moving to the shared market command.
+- Market mutation commands validate targets before changing prices or consuming an active ability.
 - Profile data is never removed by `clearSave()`.
 
 ## Verification
@@ -82,4 +82,3 @@ Empty price and event sections reserve stable extension points. They do not alte
 - Unit tests cover profession validation, default rules, legacy run normalization, profile separation, run statistics, and shared market actions.
 - A same-seed regression compares a standard run before and after rule-context integration.
 - The complete existing test suite must pass without changed balance expectations.
-

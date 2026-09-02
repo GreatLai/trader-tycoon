@@ -1,7 +1,7 @@
 // ==================== 游戏状态 ====================
 let state = null;
 
-function newState() {
+function newState(professionId = DEFAULT_PROFESSION_ID) {
   const prices = {};
   const factors = {};
   GOODS.forEach(g => {
@@ -45,17 +45,12 @@ function newState() {
     chartGood: GOODS[0].id,
     highestMilestone: -1,
     availableGoods,
-    shopStock: [],
-    shopRefreshDay: 1,
-    cardInventory: {},
     peakNetWorth: CONFIG.START_CASH,
-    scheduledEco: null,
-    scheduledEcoByCard: false,
     nextDaySeed: Math.floor(Math.random() * 1e9),
     eventNoticeQueue: [],
     logs: [],
     tradeInputMode: 'quantity',
-    profession: newProfessionState(),
+    profession: newProfessionState(professionId),
     runStats: {
       maxDayReached: 1,
       peakNetWorth: CONFIG.START_CASH,

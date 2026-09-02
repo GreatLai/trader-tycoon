@@ -168,7 +168,11 @@ function updateGoodPrice(g, forcedEvent = null) {
         }
 
       if (!inEventAftershock) {
-        logF = Math.max(Math.log(0.8), Math.min(Math.log(1.2), logF));
+        const priceRules = getEffectiveRules(state.profession).price;
+        logF += priceRules.ordinaryLogBias || 0;
+        const minFactor = priceRules.ordinaryMinFactor || 0.8;
+        const maxFactor = priceRules.ordinaryMaxFactor || 1.2;
+        logF = Math.max(Math.log(minFactor), Math.min(Math.log(maxFactor), logF));
       }
 
       // 4. 事件影响：以基础价为锚直接落点

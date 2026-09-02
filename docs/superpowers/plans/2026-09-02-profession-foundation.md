@@ -73,14 +73,12 @@
 
 **Files:**
 - Create: `js/market_actions.js`
-- Modify: `js/shop.js`
 - Modify: `index.html`
 - Modify: `tests/helpers/load-game.js`
 - Test: `tests/profession-foundation.test.js`
 
-- [ ] Add failing tests for refreshing a listed good, rejecting unavailable goods, preserving event notifications, and matching existing refresh-card behavior.
-- [ ] Move the single-good refresh implementation from `shop.js` into `market_actions.js` with an options object for future callers.
-- [ ] Keep card consumption and card-specific messaging in `shop.js`.
+- [ ] Add failing tests for refreshing a listed good, rejecting unavailable goods, and preserving event notifications.
+- [ ] Keep market mutation and profession ability validation outside the UI layer.
 - [ ] Run focused and full tests.
 - [ ] Commit with `git commit -m "refactor: share market mutation commands"`.
 
@@ -95,4 +93,3 @@
 - [ ] Run `npm test` and require all existing and new tests to pass.
 - [ ] Inspect `git diff main...HEAD` for balance changes, random-call changes, and accidental UI additions.
 - [ ] Commit with `git commit -m "docs: document profession architecture"`.
-
