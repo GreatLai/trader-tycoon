@@ -394,6 +394,21 @@ test('traveling merchant UI exposes description, targets, cooldown, and travel f
   assert.match(ui, /professionAbilityReadyDay/);
 });
 
+test('profession selection presents passive, active, and cost as separate readable facts', () => {
+  const main = fs.readFileSync(path.join(ROOT, 'js/main.js'), 'utf8');
+  const professions = fs.readFileSync(path.join(ROOT, 'js/professions.js'), 'utf8');
+
+  assert.match(main, /profession-choice-label">被动/);
+  assert.match(main, /profession-choice-label">主动/);
+  assert.match(main, /profession-choice-label cost">代价/);
+  assert.doesNotMatch(main, /主动：\$\{profession\.activeAbility\.name\}.*｜ 缺陷/);
+  assert.match(professions, /失败商品当天起连续 3 天禁售/);
+  assert.match(professions, /未卖出不收费/);
+  assert.match(professions, /生存提升有限，冲分能力强/);
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  assert.match(html, /id="professionOverlay"[\s\S]*?max-height:calc\(100vh - 32px\);overflow:auto/);
+});
+
 test('tooth merchant cannot raise a good bought on the same day', () => {
   const { api } = createGame();
   const state = api.reset();

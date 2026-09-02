@@ -60,6 +60,9 @@ function render() {
   $('professionName').textContent = profession.name;
   $('professionDescription').textContent = profession.description;
   $('professionPassive').textContent = profession.passive;
+  $('professionActive').textContent = profession.activeAbility
+    ? `${profession.activeAbility.name}：${profession.activeAbility.description}`
+    : '无主动技能。';
   $('professionDrawback').textContent = profession.drawback;
   const abilityButton = $('professionAbilityBtn');
   if (!profession.activeAbility) {

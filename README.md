@@ -3,7 +3,7 @@
 一款以 90 天为周期的纯前端经营交易游戏。玩家从 5,000 元启动资金开始，在随机行情、突发新闻和持续性国际事件中低买高卖，尽可能提高最终资产。
 
 - **在线体验：** [https://greatlai.github.io/trader-tycoon/](https://greatlai.github.io/trader-tycoon/)
-- **当前版本：** v1.12.0
+- **当前版本：** v1.12.1
 - **维护状态：** 由仓库所有者持续维护
 
 ![倒卖大亨游戏界面](docs/assets/trader-tycoon-preview.png)

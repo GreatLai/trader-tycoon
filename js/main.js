@@ -127,10 +127,17 @@ function openProfessionSelect() {
   const profile = loadProfile();
   $('professionChoices').innerHTML = Object.values(PROFESSIONS).map(profession => {
     const unlocked = profile.unlockedProfessionIds.includes(profession.id);
-    const active = profession.activeAbility ? `主动：${profession.activeAbility.name}` : '主动：无';
+    const active = profession.activeAbility
+      ? `<strong>${profession.activeAbility.name}</strong>：${profession.activeAbility.description}`
+      : '无主动技能。';
     return `<button class="profession-choice" data-profession-select="${profession.id}" ${unlocked ? '' : 'disabled'}>
       <div class="profession-choice-name">${profession.name}</div>
-      <div class="profession-choice-copy">${profession.description}<br>${active} ｜ 缺陷：${profession.drawback}</div>
+      <div class="profession-choice-copy">${profession.description}</div>
+      <div class="profession-choice-facts">
+        <div><span class="profession-choice-label">被动</span><span>${profession.passive}</span></div>
+        <div><span class="profession-choice-label">主动</span><span>${active}</span></div>
+        <div><span class="profession-choice-label cost">代价</span><span>${profession.drawback}</span></div>
+      </div>
       ${unlocked ? '' : `<div class="profession-choice-lock">解锁：${profession.unlock.text}</div>`}
     </button>`;
   }).join('');

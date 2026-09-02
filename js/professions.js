@@ -4,9 +4,9 @@ const PROFESSIONS = Object.freeze({
   useless: Object.freeze({
     id: 'useless',
     name: '无用之人',
-    description: '没有缺陷，也没有特长。完全依靠市场判断活过九十天。',
-    passive: '标准行情、标准仓储、标准事件。',
-    drawback: '无',
+    description: '标准规则。没有职业加成，也没有额外代价。',
+    passive: '无。商品、事件、经营费和仓库均按标准规则运行。',
+    drawback: '无。',
     unlock: null,
     modifyRules: null,
     activeAbility: null
@@ -14,9 +14,9 @@ const PROFESSIONS = Object.freeze({
   toothMerchant: Object.freeze({
     id: 'toothMerchant',
     name: '牙商',
-    description: '擅长在低迷市场压价收货，再亲自为手中的货抬价出手。',
-    passive: '普通行情整体偏低，低价机会更多。',
-    drawback: '普通行情的自然高价更少，买得容易，卖得更难。',
+    description: '低价收货，再用抬价主动创造卖点。收益高，但失败会锁住库存。',
+    passive: '普通行情更偏低，更容易遇到低价。',
+    drawback: '普通行情的自然高价更少；抬价有 20% 几率失败。失败商品当天起连续 3 天禁售，第 4 天恢复。',
     unlock: { peakNetWorth: 10000, text: '任意一局总资产达到 ¥10,000' },
     modifyRules(rules) {
       rules.price.ordinaryLogBias = -0.035;
@@ -27,37 +27,37 @@ const PROFESSIONS = Object.freeze({
       id: 'raisePrice',
       name: '抬价',
       cooldownDays: 3,
-      description: '选择一个今日上架、自己持有且当天未买入的商品，将价格抬到锚点的 1.15 至 1.45 倍。使用后第 4 天可再次发动；有 20% 几率失败并禁售三天。'
+      description: '每 3 天可用 1 次。选择今日上架、持有且今天未买入的商品，将价格抬至锚点的 115%～145%。'
     })
   }),
   travelingMerchant: Object.freeze({
     id: 'travelingMerchant',
     name: '行商',
-    description: '走熟路、赶大集，让压在仓里的货重新遇见买主。',
-    passive: '熟路：每日自然货架没有任何持货时，65%概率带回成本总额最高的库存商品，并替换当日价格相对锚点最高的非库存商品。',
-    drawback: '赶集带回的商品若在当天卖出，成交收入扣除 5% 路费。',
+    description: '优先盘活库存，减少有货无市；也能主动让持货重新报价。',
+    passive: '熟路：若当天没有任何库存自然上架，有 65% 几率带回压货金额最高的商品。',
+    drawback: '赶集商品当天卖出时扣除成交收入的 5% 作为路费；未卖出不收费。',
     unlock: null,
     modifyRules: null,
     activeAbility: Object.freeze({
       id: 'marketTrip',
       name: '赶集',
       cooldownDays: 3,
-      description: '选择一个持有商品重新报价；未上架则追加到今日货架，已上架则原地刷新。有 15% 几率触发突发事件，不受生态行情定价影响。使用后第 4 天可再次发动。'
+      description: '每 3 天可用 1 次。选择任意持货重新报价：未上架则追加到货架，已上架则原地刷新；有 15% 几率触发普通突发事件。'
     })
   }),
   speculator: Object.freeze({
     id: 'speculator',
     name: '投机商',
-    description: '追着突发风声下注，把一次行情变成连续两天的机会或风险。',
-    passive: '追风：所有自然突发事件商品次日必定继续上架，占用正常货架位置。',
-    drawback: '风声放大：自然突发事件的涨跌幅度都会加深 20%，生态行情不受影响。',
+    description: '围绕突发事件连续下注。生存提升有限，冲分能力强。',
+    passive: '追风：发生自然突发事件的商品，次日必定占用一个正常货架位置继续上架。',
+    drawback: '风声放大：自然突发事件的涨跌幅度都会加深 20%；生态行情不受影响。',
     unlock: null,
     modifyRules: null,
     activeAbility: Object.freeze({
       id: 'stokeMarket',
       name: '煽风点火',
       cooldownDays: 3,
-      description: '指定一个今日发生自然突发事件的商品，安排次日后续报道。走势更可能延续，也可能反转；使用后第 4 天可再次发动。'
+      description: '每 3 天可用 1 次。指定今日发生自然突发事件的商品，安排次日后续行情；走势更可能延续，也可能反转。'
     })
   })
 });

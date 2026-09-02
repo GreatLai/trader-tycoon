@@ -216,11 +216,11 @@ test('the release version is consistent across delivery files', () => {
   const changelog = fs.readFileSync(path.join(ROOT, 'CHANGELOG.md'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.12.0');
+  assert.equal(api.APP_VERSION, '1.12.1');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.12\.0/g) || []).length, 15);
-  assert.match(readme, /当前版本：\*\* v1\.12\.0/);
-  assert.match(changelog, /## \[1\.12\.0\] - 2026-09-02/);
+  assert.equal((html.match(/\?v=1\.12\.1/g) || []).length, 15);
+  assert.match(readme, /当前版本：\*\* v1\.12\.1/);
+  assert.match(changelog, /## \[1\.12\.1\] - 2026-09-02/);
 });
 
 test('standard and ecology markets list six and seven goods respectively', () => {
