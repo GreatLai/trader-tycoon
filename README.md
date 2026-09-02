@@ -80,8 +80,11 @@ trader-tycoon/
 核心脚本按以下顺序加载：
 
 ```text
-config -> utils -> eco -> state -> events -> trading -> game -> save -> ui -> main
+config -> utils -> eco -> professions -> rules -> profile -> state -> market_actions
+       -> shop -> events -> trading -> game -> save -> ui -> main
 ```
+
+职业扩展采用独立规则上下文：单局只保存职业 ID 和运行数据，永久解锁与各职业最高成绩保存在独立生涯档案中。当前架构基线只注册“无用之人”，不会改变标准市场的概率、价格或随机调用顺序。
 
 更多资料见 [docs/README.md](docs/README.md)。
 

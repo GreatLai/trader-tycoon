@@ -9,7 +9,8 @@ const CONFIG = {
   MARKET_SIZE: 5,
   ECO_MARKET_SIZE: 7,
   STORAGE_FEE_PER_UNIT: 0.05,
-  SAVE_KEY: 'trader-tycoon-save-v17'
+  SAVE_KEY: 'trader-tycoon-save-v17',
+  PROFILE_SAVE_KEY: 'trader-tycoon-profile-v1'
 };
 
 // ==================== 商店配置 ====================

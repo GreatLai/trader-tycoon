@@ -65,13 +65,6 @@ function queueNotice(title, desc, source = 'card') {
   state.eventNoticeQueue.push({ title, desc, source });
 }
 
-function recordCurrentPrice(id) {
-  const history = state.priceHistory[id];
-  if (history.length && history[history.length - 1].day === state.day) history[history.length - 1].price = state.prices[id];
-  else history.push({ day: state.day, price: state.prices[id] });
-  if (state.availableGoods.includes(id)) state.lastSeenPrice[id] = state.prices[id];
-}
-
 function applyCardEvent(id, positive) {
   const good = goodById(id);
   const event = makeEvent(id, positive);
@@ -89,15 +82,10 @@ function applyCardEvent(id, positive) {
 }
 
 function refreshSingleGood(id) {
-  const firstAppearance = state.lastSeenPrice[id] == null;
-  const event = !firstAppearance && Math.random() < SHOP_CONFIG.SUDDEN_EVENT_CHANCE ? makeEvent(id) : null;
-  updateGoodPrice(goodById(id), event);
-  recordCurrentPrice(id);
-  if (event) {
-    event.source = 'card'; state.events.push(event);
-    state.logs.unshift(`第${state.day}天：${event.title} ${event.desc}`);
-    queueNotice(event.title, event.desc);
-  }
+  return refreshMarketGood(id, {
+    eventChance: SHOP_CONFIG.SUDDEN_EVENT_CHANCE,
+    source: 'card'
+  });
 }
 
 function eligibleTargetsFor(cardId) {

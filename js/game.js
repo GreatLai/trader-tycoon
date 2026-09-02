@@ -54,7 +54,8 @@ function resolveNextDayState() {
   state.eventNoticeQueue = [];
   advanceEcology();
   applyDailyCosts();
-  state.availableGoods = pickGoods(state.eco ? CONFIG.ECO_MARKET_SIZE : CONFIG.MARKET_SIZE);
+  const rules = getEffectiveRules(state.profession);
+  state.availableGoods = pickGoods(state.eco ? rules.ecoMarketSize : rules.marketSize);
   spawnEvents();
   updatePrices();
   updateSeenPrices();
@@ -62,6 +63,8 @@ function resolveNextDayState() {
   state.logs.unshift(`进入第${state.day}天，仓库管理费已结算`);
   state.logs = state.logs.slice(0, 50);
   state.peakNetWorth = Math.max(state.peakNetWorth || CONFIG.START_CASH, netWorth());
+  state.runStats.maxDayReached = Math.max(state.runStats.maxDayReached, state.day);
+  state.runStats.peakNetWorth = Math.max(state.runStats.peakNetWorth, state.peakNetWorth);
   checkEnd();
 }
 
@@ -70,6 +73,7 @@ function nextDay() {
   if (state.day >= CONFIG.DAYS_LIMIT) {
     state.gameOver = 'time';
     state.logs.unshift('⏰ 游戏结束：90 天到期');
+    recordFinishedRun();
     save(); render();
     return;
   }
@@ -79,7 +83,19 @@ function nextDay() {
   Math.random = oldRandom;
   state.nextDaySeed = Math.floor(Math.random() * 1e9);
   refreshShopIfNeeded();
+  recordFinishedRun();
   save(); render();
+}
+
+function recordFinishedRun() {
+  if (!state.gameOver || state.resultRecorded) return false;
+  recordRunResult({
+    professionId: state.profession.id,
+    survived: state.gameOver === 'time',
+    finalNetWorth: netWorth()
+  });
+  state.resultRecorded = true;
+  return true;
 }
 
 function checkEnd() {

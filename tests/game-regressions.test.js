@@ -155,7 +155,7 @@ test('the release version is consistent across delivery files', () => {
 
   assert.equal(api.APP_VERSION, '1.8.1');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.8\.1/g) || []).length, 12);
+  assert.equal((html.match(/\?v=1\.8\.1/g) || []).length, 16);
   assert.match(readme, /当前版本：\*\* v1\.8\.1/);
   assert.match(changelog, /## \[1\.8\.1\] - 2026-09-02/);
 });

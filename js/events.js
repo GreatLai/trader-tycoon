@@ -206,7 +206,8 @@ function updateSeenPrices() {
 }
 
 function calcDailyFee() {
-  return GOODS.reduce((sum, g) => sum + (state.inventory[g.id] || 0) * 0.001 * g.base, 0);
+  const baseFee = GOODS.reduce((sum, g) => sum + (state.inventory[g.id] || 0) * 0.001 * g.base, 0);
+  return baseFee * getEffectiveRules(state.profession).dailyFeeMultiplier;
 }
 
 function liquidateInventory(shortfall) {
@@ -232,10 +233,12 @@ function applyDailyCosts() {
   const fee = +calcDailyFee().toFixed(2);
   const totalCost = fee;
   if (totalCost <= 0) return;
+  state.runStats.totalFeesPaid = +(state.runStats.totalFeesPaid + fee).toFixed(2);
 
   if (state.cash >= totalCost) {
     state.cash = +(state.cash - totalCost).toFixed(2);
   } else {
+    state.runStats.forcedLiquidations++;
     const shortfall = totalCost - state.cash;
     state.cash = 0;
     const ok = liquidateInventory(shortfall);
