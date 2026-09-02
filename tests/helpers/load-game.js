@@ -64,6 +64,7 @@ function createGame(options = {}) {
     function render() { checkMilestones(); }
     globalThis.gameApi = {
       APP_VERSION,
+      BALANCE_CONFIG,
       CONFIG,
       ECO_EVENTS,
       GOODS,
@@ -90,7 +91,19 @@ function createGame(options = {}) {
       nextDay,
       parseTradeQuantity,
       pickGoods,
-      reset() { state = null; state = newState(); generateShopStock(); return state; },
+      reset(options = {}) { state = null; state = newState(); if (!options.skipShop) generateShopStock(); return state; },
+      advanceBaselineDay(seed) {
+        if (state.gameOver) return;
+        if (state.day >= CONFIG.DAYS_LIMIT) {
+          state.gameOver = 'time';
+          return;
+        }
+        const oldRandom = Math.random;
+        Math.random = mulberry32(seed);
+        resolveNextDayState();
+        Math.random = oldRandom;
+        render();
+      },
       sell,
       setRandom(value) { Math.random = value; },
       setState(value) { state = value; },

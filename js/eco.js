@@ -16,11 +16,12 @@ function ecoAffected(goodId) {
 function ecoCurrentMult(goodId) {
   const tree = ecoTree();
   const rel = ecoRel();
+  const scale = state.eco.byCard ? 1 : BALANCE_CONFIG.ECO_EVENT_SCALE;
   const A = tree.A[state.eco.A];
-  if (rel <= 2) return A.mults[goodId];
+  if (rel <= 2) return Math.pow(A.mults[goodId], scale);
   const B = A.B[state.eco.B];
-  if (rel === 3) return B.mults[goodId];
-  return B.C[state.eco.C].mults[goodId];
+  if (rel === 3) return Math.pow(B.mults[goodId], scale);
+  return Math.pow(B.C[state.eco.C].mults[goodId], scale);
 }
 
 function ecoBranchWeight(stage) {

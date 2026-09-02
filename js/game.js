@@ -24,7 +24,7 @@ function advanceEcology() {
   if (!state.eco && state.day >= 8 && state.day <= 83) {
     let treeId = state.scheduledEco;
     let byCard = !!state.scheduledEcoByCard;
-    if (!treeId && Math.random() < 0.20) {
+    if (!treeId && Math.random() < BALANCE_CONFIG.ECO_EVENT_CHANCE) {
       const keys = Object.keys(ECO_EVENTS).filter(id => !ECO_EVENTS[id].unlock || netWorth() >= ECO_EVENTS[id].unlock);
       treeId = keys[Math.floor(Math.random() * keys.length)];
       byCard = false;

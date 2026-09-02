@@ -73,7 +73,7 @@ function makeEvent(goodId, forcedPositive = null) {
     goodId: target.id,
     title,
     desc,
-    targetMult: +targetMult.toFixed(3),
+    targetMult: +(forcedByCard ? targetMult : Math.pow(targetMult, BALANCE_CONFIG.SUDDEN_EVENT_SCALE)).toFixed(3),
     type: targetMult >= 1 ? 'good' : 'bad',
     isRare: rare
   };
@@ -136,7 +136,7 @@ function updateGoodPrice(g, forcedEvent = null) {
       const inEventAftershock = oldFactor < 0.8 || oldFactor > 1.2;
       // 事件极端价分数日消化，避免利空后下一天必然跳回基础价。
       logF += -logF * (inEventAftershock ? 0.35 : 0.18);
-      logF += randn() * g.vol * (inEventAftershock ? 0.25 : 1);
+      logF += randn() * g.vol * BALANCE_CONFIG.NATURAL_VOLATILITY_SCALE * (inEventAftershock ? 0.25 : 1);
 
       // 3. 日常涨跌：幅度控制在小波动，真正的大涨大跌留给事件
       if (!inEventAftershock && g.tier === 'low') {
@@ -206,16 +206,18 @@ function updateSeenPrices() {
 }
 
 function calcDailyFee() {
-  return GOODS.reduce((sum, g) => sum + (state.inventory[g.id] || 0) * 0.001 * g.base, 0);
+  return GOODS.reduce((sum, g) => sum + (state.inventory[g.id] || 0) * BALANCE_CONFIG.STORAGE_FEE_RATE * g.base, 0);
 }
 
 function liquidateInventory(shortfall) {
   let need = shortfall;
-  const entries = Object.keys(state.inventory).filter(id => state.inventory[id] > 0).map(id => ({ id, qty: state.inventory[id], avg: (state.costBasis[id] || 0) / state.inventory[id] }));
+  const entries = Object.keys(state.inventory)
+    .filter(id => state.inventory[id] > 0 && (BALANCE_CONFIG.ALLOW_OFF_MARKET_LIQUIDATION || state.availableGoods.includes(id)))
+    .map(id => ({ id, qty: state.inventory[id], avg: (state.costBasis[id] || 0) / state.inventory[id] }));
   entries.sort((a, b) => b.qty - a.qty || b.avg - a.avg);
   for (const e of entries) {
     if (need <= 0) break;
-    const price = knownPrice(e.id) * 0.7;
+    const price = knownPrice(e.id) * BALANCE_CONFIG.LIQUIDATION_RATE;
     let qtyToSell = Math.min(e.qty, Math.ceil(need / price));
     if (qtyToSell <= 0) continue;
     const proceeds = qtyToSell * price;

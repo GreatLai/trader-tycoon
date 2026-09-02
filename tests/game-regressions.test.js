@@ -54,6 +54,22 @@ test('forced liquidation pays the shortfall and keeps only the surplus', () => {
   assert.equal(state.gameOver, null);
 });
 
+test('forced liquidation cannot sell holdings that are absent from the market', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.cash = 0;
+  state.inventory = { wheat: 1000 };
+  state.costBasis = { wheat: 5000 };
+  state.prices.wheat = 5;
+  state.lastSeenPrice.wheat = 5;
+  state.availableGoods = ['wood'];
+
+  api.applyDailyCosts();
+
+  assert.equal(state.inventory.wheat, 1000);
+  assert.equal(state.gameOver, 'lose');
+});
+
 test('ending day 90 does not create or charge day 91', () => {
   const { api } = createGame();
   const state = api.reset();
@@ -383,11 +399,23 @@ test('warehouse growth stays below fourfold per late wealth tier', () => {
   assert.equal(levels.at(-1), 16000000);
 });
 
-test('ecological events retain their configured multiplier', () => {
+test('ecological event scale transforms the configured multiplier', () => {
   const { api } = createGame();
   const state = api.reset();
   state.day = 9;
   state.eco = { treeId: 'globalDrought', startDay: 8, A: 0, B: null, C: null };
+
+  assert.equal(
+    api.ecoCurrentMult('wheat'),
+    Math.pow(api.ECO_EVENTS.globalDrought.A[0].mults.wheat, api.BALANCE_CONFIG.ECO_EVENT_SCALE)
+  );
+});
+
+test('card-created ecological events keep their configured multiplier', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.day = 9;
+  state.eco = { treeId: 'globalDrought', startDay: 8, A: 0, B: null, C: null, byCard: true };
 
   assert.equal(api.ecoCurrentMult('wheat'), api.ECO_EVENTS.globalDrought.A[0].mults.wheat);
 });

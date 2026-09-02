@@ -8,8 +8,18 @@ const CONFIG = {
   START_CASH: 5000,
   MARKET_SIZE: 5,
   ECO_MARKET_SIZE: 7,
-  STORAGE_FEE_PER_UNIT: 0.05,
   SAVE_KEY: 'trader-tycoon-save-v17'
+};
+
+// 纯交易规则的可校准参数；仓储费率保留 v1.8.0 的实际结算值。
+const BALANCE_CONFIG = {
+  STORAGE_FEE_RATE: 0.001,
+  LIQUIDATION_RATE: 0.70,
+  ALLOW_OFF_MARKET_LIQUIDATION: false,
+  ECO_EVENT_CHANCE: 0.20,
+  NATURAL_VOLATILITY_SCALE: 1,
+  SUDDEN_EVENT_SCALE: 0.76,
+  ECO_EVENT_SCALE: 0.92
 };
 
 // ==================== 商店配置 ====================
