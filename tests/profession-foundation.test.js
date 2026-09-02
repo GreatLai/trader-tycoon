@@ -96,12 +96,12 @@ test('daily advancement records day, peak wealth, fees, and forced liquidation',
   assert.equal(state.runStats.peakNetWorth >= api.CONFIG.START_CASH, true);
 });
 
-test('career profile starts with only the standard profession unlocked', () => {
+test('career profile starts with every current profession unlocked', () => {
   const { api } = createGame();
   const profile = api.newProfile();
 
   assert.equal(profile.version, 1);
-  assert.deepEqual(plain(profile.unlockedProfessionIds), ['useless']);
+  assert.deepEqual(plain(profile.unlockedProfessionIds), ['useless', 'toothMerchant']);
   assert.deepEqual(plain(profile.records), {});
 });
 
@@ -183,5 +183,5 @@ test('useless profession has a stable deterministic market sequence after shop r
   }
 
   const digest = crypto.createHash('sha256').update(JSON.stringify(days)).digest('hex');
-  assert.equal(digest, 'f2ad3d77072669bb8195eb1f7576520b40f5e423d24590d30e2fd309190071e7');
+  assert.equal(digest, '6e02dfa5c4dadc69b0fe881faf57f4815c658dc8ce468aee36f11a2def43ed99');
 });
