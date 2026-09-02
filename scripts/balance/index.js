@@ -101,6 +101,7 @@ function runSimulation({ seed, strategyId, scenario = {} }) {
       natural: 0,
       sudden: 0,
       ecology: 0,
+      operatingFees: 0,
       storageFees: 0,
       forcedLiquidationPenalty: 0
     }
@@ -141,20 +142,23 @@ function runSimulation({ seed, strategyId, scenario = {} }) {
   };
 
   while (!state.gameOver) {
-    context.estimatedDailyFee = api.calcDailyFee();
+    context.estimatedDailyFee = api.calcTotalDailyCost();
     strategy.act(context);
 
     const worth = api.netWorth();
     const fee = api.calcDailyFee();
+    const operatingCost = api.calcOperatingCost(state.day);
+    const totalDailyCost = operatingCost + fee;
     const beforeInventory = { ...state.inventory };
     const beforePrices = {};
     for (const id of Object.keys(beforeInventory)) beforePrices[id] = knownPrice(state, id);
 
-    if (state.cash < Math.max(fee * 7, worth * 0.03)) metrics.cashDangerDays++;
+    if (state.cash < Math.max(totalDailyCost * 7, worth * 0.03)) metrics.cashDangerDays++;
     if (api.totalUnits() >= api.capacity() * 0.90) metrics.fullPositionDays++;
     const heldIds = Object.keys(state.inventory).filter(id => state.inventory[id] > 0);
     if (heldIds.length && !heldIds.some(id => state.availableGoods.includes(id))) metrics.trappedDays++;
 
+    metrics.profitSources.operatingFees -= operatingCost;
     metrics.profitSources.storageFees -= fee;
     api.advanceBaselineDay(Math.floor(marketRandom() * 0x100000000));
 

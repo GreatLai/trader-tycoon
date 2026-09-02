@@ -53,7 +53,6 @@ function resolveNextDayState() {
   state.ecoPopupShown = false;
   state.eventNoticeQueue = [];
   advanceEcology();
-  applyDailyCosts();
   state.availableGoods = pickGoods(state.eco ? CONFIG.ECO_MARKET_SIZE : CONFIG.MARKET_SIZE);
   spawnEvents();
   updatePrices();
@@ -67,6 +66,11 @@ function resolveNextDayState() {
 
 function nextDay() {
   if (state.gameOver) return;
+  applyDailyCosts(state.day);
+  if (state.gameOver) {
+    save(); render();
+    return;
+  }
   if (state.day >= CONFIG.DAYS_LIMIT) {
     state.gameOver = 'time';
     state.logs.unshift('⏰ 游戏结束：90 天到期');

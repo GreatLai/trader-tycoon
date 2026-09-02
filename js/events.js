@@ -209,6 +209,23 @@ function calcDailyFee() {
   return GOODS.reduce((sum, g) => sum + (state.inventory[g.id] || 0) * BALANCE_CONFIG.STORAGE_FEE_RATE * g.base, 0);
 }
 
+function calcOperatingCost(day = state.day) {
+  const safeDay = Math.max(1, Math.min(CONFIG.DAYS_LIMIT, Math.floor(Number(day) || 1)));
+  return BALANCE_CONFIG.OPERATING_COST_FIRST_DAY * Math.pow(BALANCE_CONFIG.OPERATING_COST_DAILY_GROWTH, safeDay - 1);
+}
+
+function calcRemainingOperatingCost(day = state.day) {
+  const safeDay = Math.max(1, Math.min(CONFIG.DAYS_LIMIT, Math.floor(Number(day) || 1)));
+  const count = CONFIG.DAYS_LIMIT - safeDay + 1;
+  const first = calcOperatingCost(safeDay);
+  const growth = BALANCE_CONFIG.OPERATING_COST_DAILY_GROWTH;
+  return first * (Math.pow(growth, count) - 1) / (growth - 1);
+}
+
+function calcTotalDailyCost(day = state.day) {
+  return calcOperatingCost(day) + calcDailyFee();
+}
+
 function liquidateInventory(shortfall) {
   let need = shortfall;
   const entries = Object.keys(state.inventory)
@@ -230,9 +247,10 @@ function liquidateInventory(shortfall) {
   return need <= 0;
 }
 
-function applyDailyCosts() {
+function applyDailyCosts(day = state.day) {
+  const operating = +calcOperatingCost(day).toFixed(2);
   const fee = +calcDailyFee().toFixed(2);
-  const totalCost = fee;
+  const totalCost = +(operating + fee).toFixed(2);
   if (totalCost <= 0) return;
 
   if (state.cash >= totalCost) {

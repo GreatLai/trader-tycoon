@@ -36,8 +36,8 @@ function render() {
   // 头部
   $('dayText').textContent = `第 ${state.day} 天 / ${CONFIG.DAYS_LIMIT}`;
   $('cashText').textContent = '¥' + fmt(state.cash, 2);
-  const feeNow = +calcDailyFee().toFixed(2);
-  $('cashExpense').textContent = `今日支出 -¥${fmt(feeNow, 2)}`;
+  const totalCostNow = +calcTotalDailyCost().toFixed(2);
+  $('cashExpense').textContent = `今日支出 -¥${fmt(totalCostNow, 2)}`;
   $('networthText').textContent = '¥' + fmt(nw, 2);
   $('networthText').className = 'value ' + (nw >= 0 ? 'green' : 'red');
   const rankIdx = state.highestMilestone;
@@ -136,10 +136,15 @@ function render() {
   renderShop();
 
   // 每日支出
+  const operatingCost = +calcOperatingCost().toFixed(2);
   const fee = +calcDailyFee().toFixed(2);
+  const totalCost = +(operatingCost + fee).toFixed(2);
+  const remainingPressure = +calcRemainingOperatingCost().toFixed(2);
   $('expenseInfo').innerHTML = `
+    <div class="expense-row"><span>基础经营费</span><span>¥${fmt(operatingCost, 2)}</span></div>
     <div class="expense-row"><span>仓库管理费</span><span>¥${fmt(fee, 2)}</span></div>
-    <div class="expense-row" style="font-weight:700;"><span>今日合计</span><span>¥${fmt(fee, 2)}</span></div>`;
+    <div class="expense-row" style="font-weight:700;"><span>今日合计</span><span>¥${fmt(totalCost, 2)}</span></div>
+    <div class="expense-row"><span>剩余经营压力</span><span>¥${fmt(remainingPressure, 2)}</span></div>`;
 
   // 今日突发 + 国际新闻（生态事件）
   const suddenNewsHtml = state.events.map(ev => `

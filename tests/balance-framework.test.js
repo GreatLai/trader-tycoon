@@ -55,8 +55,16 @@ test('run metrics include survival, risk, activity, and return attribution', () 
   ]) assert.equal(Object.hasOwn(result, key), true, key);
 
   assert.deepEqual(Object.keys(result.profitSources).sort(), [
-    'ecology', 'forcedLiquidationPenalty', 'natural', 'storageFees', 'sudden', 'trading'
+    'ecology', 'forcedLiquidationPenalty', 'natural', 'operatingFees', 'storageFees', 'sudden', 'trading'
   ]);
+});
+
+test('baseline simulation includes operating pressure and no-trade failure', () => {
+  const result = runSimulation({ seed: 2026090204, strategyId: 'wait' });
+
+  assert.equal(result.survived, false);
+  assert.equal(result.bankruptcyDay, 9);
+  assert.equal(result.profitSources.operatingFees < 0, true);
 });
 
 test('scenario overrides affect live parameters without leaking into later runs', () => {
@@ -102,11 +110,12 @@ test('ranked multi-position buying never spends more than its explicit budget', 
   assert.equal(state.cash >= 400, true);
 });
 
-test('versioned validation report meets the useless-trader target without card income', () => {
+test('archived pre-pressure report preserves its card-free baseline and is labeled stale', () => {
   const report = JSON.parse(fs.readFileSync(
     path.join(__dirname, '..', 'docs', 'balance', 'useless-trader-v1.json'),
     'utf8'
   ));
+  const framework = fs.readFileSync(path.join(__dirname, '..', 'docs', 'BALANCE_FRAMEWORK.md'), 'utf8');
   const skilled = report.validation.strategies.skilled;
 
   assert.equal(report.baseline, 'useless-trader-card-free');
@@ -117,6 +126,8 @@ test('versioned validation report meets the useless-trader target without card i
   assert.equal(skilled.survivorFinalWorth.median >= 75000000, true);
   assert.equal(skilled.survivorFinalWorth.median <= 125000000, true);
   assert.equal(report.sensitivity.some(item => item.name === '商品基础锚点'), true);
+  assert.equal(Object.hasOwn(skilled.profitSources, 'operatingFees'), false);
+  assert.match(framework, /加入固定经营压力之前的基准/);
 });
 
 test('balance simulator source does not call card purchase or use APIs', () => {
@@ -132,7 +143,7 @@ test('balance simulator source does not call card purchase or use APIs', () => {
 test('pure market day applies wealth milestones like the real next-day flow', () => {
   const { api } = createGame({ random: () => 0.5 });
   const state = api.reset({ skipShop: true });
-  state.cash = 10000;
+  state.cash = 10500;
 
   api.advanceBaselineDay(12345);
 

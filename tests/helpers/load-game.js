@@ -73,6 +73,9 @@ function createGame(options = {}) {
       buy,
       buyCard,
       calcDailyFee,
+      calcOperatingCost: typeof calcOperatingCost === 'function' ? calcOperatingCost : undefined,
+      calcRemainingOperatingCost: typeof calcRemainingOperatingCost === 'function' ? calcRemainingOperatingCost : undefined,
+      calcTotalDailyCost: typeof calcTotalDailyCost === 'function' ? calcTotalDailyCost : undefined,
       capacity,
       ecoCurrentMult,
       ecoBranchWeight,
@@ -93,6 +96,8 @@ function createGame(options = {}) {
       pickGoods,
       reset(options = {}) { state = null; state = newState(); if (!options.skipShop) generateShopStock(); return state; },
       advanceBaselineDay(seed) {
+        if (state.gameOver) return;
+        applyDailyCosts(state.day);
         if (state.gameOver) return;
         if (state.day >= CONFIG.DAYS_LIMIT) {
           state.gameOver = 'time';
