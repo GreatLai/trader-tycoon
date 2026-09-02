@@ -134,6 +134,8 @@ test('finishing a run records its profession result exactly once', () => {
   const { api } = createGame();
   const state = api.reset();
   state.day = api.CONFIG.DAYS_LIMIT;
+  state.cash = 100000;
+  const expectedFinalWorth = +(state.cash - api.calcOperatingCost(api.CONFIG.DAYS_LIMIT)).toFixed(2);
 
   api.nextDay();
   api.nextDay();
@@ -142,7 +144,7 @@ test('finishing a run records its profession result exactly once', () => {
   assert.equal(state.resultRecorded, true);
   assert.equal(record.runs, 1);
   assert.equal(record.wins, 1);
-  assert.equal(record.bestNetWorth, api.CONFIG.START_CASH);
+  assert.equal(record.bestNetWorth, expectedFinalWorth);
 });
 
 test('shared market refresh validates targets and updates a good through the normal price engine', () => {
@@ -181,5 +183,5 @@ test('useless profession has a stable deterministic market sequence after shop r
   }
 
   const digest = crypto.createHash('sha256').update(JSON.stringify(days)).digest('hex');
-  assert.equal(digest, 'c4a237ae6aa2583f0d201b15f8b7227ee9b384a7bcab47d4e9451b616f61793e');
+  assert.equal(digest, '142065517941e5d756f111fa426b88b3d23b6280ccc672cd17c7d8c7e5be0632');
 });

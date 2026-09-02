@@ -23,7 +23,7 @@ function advanceEcology() {
 
   if (!state.eco && state.day >= 8 && state.day <= 83) {
     let treeId = null;
-    if (Math.random() < 0.20) {
+    if (Math.random() < BALANCE_CONFIG.ECO_EVENT_CHANCE) {
       const keys = Object.keys(ECO_EVENTS).filter(id => !ECO_EVENTS[id].unlock || netWorth() >= ECO_EVENTS[id].unlock);
       treeId = keys[Math.floor(Math.random() * keys.length)];
     }
@@ -49,7 +49,6 @@ function resolveNextDayState() {
   state.ecoPopupShown = false;
   state.eventNoticeQueue = [];
   advanceEcology();
-  applyDailyCosts();
   const rules = getEffectiveRules(state.profession);
   state.availableGoods = pickGoods(state.eco ? rules.ecoMarketSize : rules.marketSize);
   spawnEvents();
@@ -67,6 +66,11 @@ function resolveNextDayState() {
 
 function nextDay() {
   if (state.gameOver) return;
+  applyDailyCosts(state.day);
+  if (state.gameOver) {
+    save(); render();
+    return;
+  }
   if (state.day >= CONFIG.DAYS_LIMIT) {
     state.gameOver = 'time';
     state.logs.unshift('⏰ 游戏结束：90 天到期');

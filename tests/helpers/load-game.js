@@ -67,6 +67,7 @@ function createGame(options = {}) {
     function render() { checkMilestones(); }
     globalThis.gameApi = {
       APP_VERSION,
+      BALANCE_CONFIG,
       CONFIG,
       DEFAULT_PROFESSION_ID: typeof DEFAULT_PROFESSION_ID === 'undefined' ? undefined : DEFAULT_PROFESSION_ID,
       ECO_EVENTS,
@@ -77,6 +78,9 @@ function createGame(options = {}) {
       applyProfessionRules: typeof applyProfessionRules === 'function' ? applyProfessionRules : undefined,
       buy,
       calcDailyFee,
+      calcOperatingCost: typeof calcOperatingCost === 'function' ? calcOperatingCost : undefined,
+      calcRemainingOperatingCost: typeof calcRemainingOperatingCost === 'function' ? calcRemainingOperatingCost : undefined,
+      calcTotalDailyCost: typeof calcTotalDailyCost === 'function' ? calcTotalDailyCost : undefined,
       capacity,
       clearSave,
       createBaseRules: typeof createBaseRules === 'function' ? createBaseRules : undefined,
@@ -104,6 +108,20 @@ function createGame(options = {}) {
       saveProfile: typeof saveProfile === 'function' ? saveProfile : undefined,
       pickGoods,
       reset() { state = null; state = newState(); return state; },
+      advanceBaselineDay(seed) {
+        if (state.gameOver) return;
+        applyDailyCosts(state.day);
+        if (state.gameOver) return;
+        if (state.day >= CONFIG.DAYS_LIMIT) {
+          state.gameOver = 'time';
+          return;
+        }
+        const oldRandom = Math.random;
+        Math.random = mulberry32(seed);
+        resolveNextDayState();
+        Math.random = oldRandom;
+        render();
+      },
       sell,
       setTradeInputMode: typeof setTradeInputMode === 'function' ? setTradeInputMode : undefined,
       setRandom(value) { Math.random = value; },
