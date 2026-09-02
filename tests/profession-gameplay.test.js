@@ -23,8 +23,8 @@ test('tooth merchant shifts ordinary prices lower and limits natural high prices
   const rules = api.getEffectiveRules({ id: 'toothMerchant', activeUsedDay: null, data: {} });
 
   assert.equal(rules.price.ordinaryLogBias < 0, true);
-  assert.equal(rules.price.ordinaryMinFactor < 0.8, true);
-  assert.equal(rules.price.ordinaryMaxFactor < 1.2, true);
+  assert.equal(rules.price.ordinaryFloorShift < 0, true);
+  assert.equal(rules.price.ordinaryCeilingCap < 1.2, true);
 });
 
 test('tooth merchant unlocks permanently after reaching ten thousand net worth', () => {

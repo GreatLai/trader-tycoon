@@ -1,6 +1,6 @@
 // ==================== 配置 ====================
 const ULTRA_UNLOCK = 10000000;
-const APP_VERSION = '1.9.0';
+const APP_VERSION = '1.10.0';
 
 const CONFIG = {
   DAYS_LIMIT: 90,
@@ -2980,22 +2980,32 @@ const ECO_EVENTS = {
 const WAREHOUSE_CAPACITY_BY_MILESTONE = [1000, 4000, 16000, 64000, 256000, 1024000, 4096000, 16000000];
 
 const GOODS = [
-  // 低档：便宜、频繁翻倍，前期滚雪球主力
-  { id: 'wheat',  name: '小麦',  icon: '🌾', art: 'assets/art/runtime/goods/good-wheat-128.webp', base: 5,   vol: 0.10, tier: 'low' },
-  { id: 'wood',   name: '木材',  icon: '🪵', art: 'assets/art/runtime/goods/good-wood-128.webp', base: 8,   vol: 0.09, tier: 'low' },
-  { id: 'coal',   name: '煤炭',  icon: '⛏️', art: 'assets/art/runtime/goods/good-coal-128.webp', base: 12,  vol: 0.08, tier: 'low' },
-  { id: 'tea',    name: '茶叶',  icon: '🍵', art: 'assets/art/runtime/goods/good-tea-128.webp', base: 18,  vol: 0.07, tier: 'low' },
-  { id: 'coffee', name: '咖啡',  icon: '☕', art: 'assets/art/runtime/goods/good-coffee-128.webp', base: 28,  vol: 0.06, tier: 'low' },
-  // 中档：价格更高，机会中等
-  { id: 'copper', name: '铜',    icon: '🔩', art: 'assets/art/runtime/goods/good-copper-128.webp', base: 80,  vol: 0.06, tier: 'mid' },
-  { id: 'oil',    name: '石油',  icon: '🛢️', art: 'assets/art/runtime/goods/good-oil-128.webp', base: 160, vol: 0.05, tier: 'mid' },
-  { id: 'chip',   name: '芯片',  icon: '🔲', art: 'assets/art/runtime/goods/good-chip-128.webp', base: 320, vol: 0.04, tier: 'mid' },
-  // 高档：日常也涨跌，但暴击机会更少，适合后期大资金
-  { id: 'phone',  name: '手机',  icon: '📱', art: 'assets/art/runtime/goods/good-phone-128.webp', base: 2000, vol: 0.03, tier: 'high' },
-  { id: 'gold',   name: '黄金',  icon: '🪙', art: 'assets/art/runtime/goods/good-gold-128.webp', base: 6000, vol: 0.02, tier: 'high' },
-  // 超高价值：后期解锁，跌多涨少，一涨很夸张
-  { id: 'diamond', name: '钻石', icon: '💎', art: 'assets/art/runtime/goods/good-diamond-128.webp', base: 30000, vol: 0.015, tier: 'ultra' },
-  { id: 'antique', name: '古董', icon: '🏺', art: 'assets/art/runtime/goods/good-antique-128.webp', base: 120000, vol: 0.012, tier: 'ultra' },
-  { id: 'spacecraft', name: '航天器', icon: '🚀', art: 'assets/art/runtime/goods/good-spacecraft-128.webp', base: 500000, vol: 0.010, tier: 'ultra' }
+  { id:'wheat',name:'小麦',icon:'🌾',base:5,tier:'low',tags:['价格活跃','回稳较快','上架频繁'],market:[.095,.24,.05,.44,1.10,1.05,1.40,.62,1.45] },
+  { id:'salt',name:'食盐',icon:'🧂',base:6,tier:'low',tags:['行情稳定','回稳较快','上架频繁'],market:[.035,.28,-.10,.46,.60,.80,1.50,.78,1.22] },
+  { id:'wood',name:'木材',icon:'🪵',base:8,tier:'low',tags:['走势反复','工业相关','上架频繁'],market:[.075,.12,.12,.41,.90,1,1.25,.60,1.40] },
+  { id:'coal',name:'煤炭',icon:'⛏️',base:12,tier:'low',tags:['行情持久','事件敏感','工业相关'],market:[.070,.09,.38,.39,1.25,1.10,1.10,.55,1.50] },
+  { id:'tea',name:'茶叶',icon:'🍵',base:18,tier:'low',tags:['行情稳定','回稳较快','消费相关'],market:[.045,.23,-.05,.47,.75,.90,1.30,.72,1.30] },
+  { id:'coffee',name:'咖啡',icon:'☕',base:28,tier:'low',tags:['价格活跃','消费相关','走势反复'],market:[.065,.15,-.12,.48,.95,1,1.20,.63,1.42] },
+  { id:'cloth',name:'棉布',icon:'🧵',base:45,tier:'low',tags:['行情持久','消费相关','上架频繁'],market:[.060,.12,.28,.43,1.05,.95,1.15,.64,1.40] },
+  { id:'copper',name:'铜',icon:'🔩',base:80,tier:'mid',tags:['价格活跃','工业相关','事件敏感'],market:[.060,.11,.30,.42,1.20,1,1.10,.65,1.38] },
+  { id:'steel',name:'钢材',icon:'🧱',base:110,tier:'mid',tags:['行情持久','工业相关','事件敏感'],market:[.055,.10,.34,.43,1.25,1.05,1.10,.66,1.42] },
+  { id:'oil',name:'石油',icon:'🛢️',base:160,tier:'mid',tags:['价格活跃','事件敏感','偶有重挫'],market:[.070,.08,.42,.38,1.50,1.15,1,.52,1.55] },
+  { id:'chip',name:'芯片',icon:'🔲',base:320,tier:'mid',tags:['偶有暴涨','事件敏感','工业相关'],market:[.045,.14,.24,.51,1.45,1.20,.95,.68,1.45] },
+  { id:'medicine',name:'药品',icon:'💊',base:700,tier:'mid',tags:['行情稳定','事件敏感','偶有暴涨'],market:[.030,.22,.02,.50,1.55,1.25,.85,.76,1.28] },
+  { id:'phone',name:'手机',icon:'📱',base:2000,tier:'high',tags:['走势反复','消费相关','事件敏感'],market:[.040,.16,-.08,.40,1.30,1,1.05,.70,1.32] },
+  { id:'car',name:'汽车',icon:'🚗',base:3500,tier:'high',tags:['行情持久','消费相关','偶有重挫'],market:[.045,.09,.36,.40,1.25,1.05,.85,.64,1.42] },
+  { id:'gold',name:'黄金',icon:'🪙',base:6000,tier:'high',tags:['行情稳定','危机受益','事件敏感'],market:[.025,.18,.08,.49,1.20,1.05,.90,.76,1.28] },
+  { id:'machine-tool',name:'精密机床',icon:'⚙️',base:12000,tier:'high',tags:['行情持久','工业相关','上架较少'],market:[.035,.08,.40,.43,1.15,1.05,.70,.68,1.40] },
+  { id:'diamond',name:'钻石',icon:'💎',base:30000,tier:'ultra',tags:['上架较少','收藏属性','偶有暴涨'],market:[.025,.07,.14,.50,.85,1.25,.65,.72,1.35] },
+  { id:'antique',name:'古董',icon:'🏺',base:120000,tier:'ultra',tags:['走势反复','收藏属性','上架较少'],market:[.030,.06,-.15,.46,.90,1.35,.55,.66,1.42] },
+  { id:'spacecraft',name:'航天器',icon:'🚀',base:500000,tier:'ultra',tags:['航天相关','事件敏感','上架较少'],market:[.020,.05,.20,.42,1,1.40,.50,.75,1.30] },
+  { id:'lunar-soil',name:'月壤',icon:'🌑',base:1500000,tier:'ultra',tags:['航天相关','收藏属性','偶有暴涨'],market:[.018,.04,.08,.52,.75,1.55,.40,.78,1.25] }
 ];
+
+const MARKET_FIELDS = ['volatility','meanReversion','momentum','positiveBias','eventWeight','eventImpact','listingWeight','ordinaryFloor','ordinaryCeiling'];
+GOODS.forEach(g => {
+  g.market = Object.fromEntries(MARKET_FIELDS.map((field, index) => [field, g.market[index]]));
+  g.vol = g.market.volatility;
+  g.art = `assets/art/runtime/goods/good-${g.id}-128.webp`;
+});
 

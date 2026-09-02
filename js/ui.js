@@ -117,7 +117,7 @@ function render() {
     return `
       <div class="market-row${ecoClass}">
         <div class="market-info">
-          <div class="good-name"><button class="good-icon-btn" data-chart-good="${id}" title="查看走势" aria-label="查看${g.name}走势">${goodArt(g)}</button><span>${g.name}</span></div>
+          <div class="good-name"><button class="good-icon-btn" data-chart-good="${id}" title="查看走势" aria-label="查看${g.name}走势">${goodArt(g)}</button><span>${g.name}<span class="good-traits">${g.tags.map(tag => `<small>${tag}</small>`).join('')}</span></span></div>
           <div class="price-col">
             <div class="price">¥${fmt(price, 2)}</div>
             <div class="change ${seenCls}">${seenArrow} ${seenChange >= 0 ? '+' : ''}${fmt(seenChange, 1)}% 较上次</div>

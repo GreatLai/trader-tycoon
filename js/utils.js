@@ -36,6 +36,25 @@ function shuffle(arr, rng) {
   return a;
 }
 
+function weightedSample(items, count, weightFor, rng = Math.random) {
+  const pool = items.slice();
+  const picked = [];
+  while (pool.length && picked.length < count) {
+    const weights = pool.map(item => Math.max(0, Number(weightFor(item)) || 0));
+    const total = weights.reduce((sum, weight) => sum + weight, 0);
+    let index = 0;
+    if (total > 0) {
+      let roll = rng() * total;
+      for (; index < pool.length - 1; index++) {
+        roll -= weights[index];
+        if (roll <= 0) break;
+      }
+    } else index = Math.floor(rng() * pool.length);
+    picked.push(pool.splice(index, 1)[0]);
+  }
+  return picked;
+}
+
 function pickGoods(count, currentNetWorth = null, activeEco = undefined) {
   const wealth = currentNetWorth == null
     ? (state ? Math.max(netWorth(), state.peakNetWorth || 0) : CONFIG.START_CASH)
@@ -44,13 +63,13 @@ function pickGoods(count, currentNetWorth = null, activeEco = undefined) {
   const unlocked = GOODS.filter(g => {
     if (g.tier === 'ultra' && wealth < ULTRA_UNLOCK) return false;
     return true;
-  }).map(g => g.id);
+  });
   if (eco) {
-    const affected = ECO_EVENTS[eco.treeId].goods.filter(id => unlocked.includes(id));
-    const rest = unlocked.filter(id => !affected.includes(id));
-    return affected.concat(shuffle(rest).slice(0, Math.max(0, count - affected.length)));
+    const affectedIds = ECO_EVENTS[eco.treeId].goods.filter(id => unlocked.some(g => g.id === id));
+    const rest = unlocked.filter(g => !affectedIds.includes(g.id));
+    return affectedIds.concat(weightedSample(rest, Math.max(0, count - affectedIds.length), g => g.market.listingWeight).map(g => g.id));
   }
-  return shuffle(unlocked).slice(0, count);
+  return weightedSample(unlocked, count, g => g.market.listingWeight).map(g => g.id);
 }
 
 function ultraGoodsUnlocked() {
