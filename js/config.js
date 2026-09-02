@@ -1,6 +1,6 @@
 // ==================== 配置 ====================
 const ULTRA_UNLOCK = 10000000;
-const APP_VERSION = '1.7.0';
+const APP_VERSION = '1.8.0';
 
 const CONFIG = {
   DAYS_LIMIT: 90,

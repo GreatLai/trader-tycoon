@@ -146,14 +146,14 @@ test('the in-game version button lives in the header instead of covering content
   assert.doesNotMatch(html, /id="versionFab"[^>]*position:fixed/);
 });
 
-test('the inline trading hotfix version is consistent across delivery files', () => {
+test('the release version is consistent across delivery files', () => {
   const { api } = createGame();
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.7.0');
+  assert.equal(api.APP_VERSION, '1.8.0');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.7\.0/g) || []).length, 12);
+  assert.equal((html.match(/\?v=1\.8\.0/g) || []).length, 12);
 });
 
 test('manual version refresh preserves the existing save', () => {
