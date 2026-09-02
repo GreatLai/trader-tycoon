@@ -61,7 +61,7 @@ test('baseline simulation includes operating pressure and no-trade failure', () 
   const result = runSimulation({ seed: 2026090204, strategyId: 'wait' });
 
   assert.equal(result.survived, false);
-  assert.equal(result.bankruptcyDay, 9);
+  assert.equal(result.bankruptcyDay, 51);
   assert.equal(result.profitSources.operatingFees < 0, true);
 });
 

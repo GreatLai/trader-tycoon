@@ -3,7 +3,7 @@ const PROFILE_VERSION = 1;
 function newProfile() {
   return {
     version: PROFILE_VERSION,
-    unlockedProfessionIds: [DEFAULT_PROFESSION_ID],
+    unlockedProfessionIds: Object.keys(PROFESSIONS),
     records: {}
   };
 }
@@ -12,7 +12,7 @@ function normalizeProfile(saved) {
   const profile = saved && typeof saved === 'object' ? saved : newProfile();
   const unlocked = Array.isArray(profile.unlockedProfessionIds) ? profile.unlockedProfessionIds : [];
   profile.version = PROFILE_VERSION;
-  profile.unlockedProfessionIds = [...new Set([DEFAULT_PROFESSION_ID, ...unlocked.filter(id => PROFESSIONS[id])])];
+  profile.unlockedProfessionIds = [...new Set([...Object.keys(PROFESSIONS), ...unlocked.filter(id => PROFESSIONS[id])])];
   profile.records = profile.records && typeof profile.records === 'object' ? profile.records : {};
   Object.keys(profile.records).forEach(id => {
     if (!PROFESSIONS[id]) {

@@ -49,6 +49,8 @@ function applyScenario(overrides = {}) {
 
 function applyOverrides(api, scenario) {
   const mapping = {
+    operatingCostFirstDay: 'OPERATING_COST_FIRST_DAY',
+    operatingCostDailyGrowth: 'OPERATING_COST_DAILY_GROWTH',
     storageFeeRate: 'STORAGE_FEE_RATE',
     liquidationRate: 'LIQUIDATION_RATE',
     allowOffMarketLiquidation: 'ALLOW_OFF_MARKET_LIQUIDATION',

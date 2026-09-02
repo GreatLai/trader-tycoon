@@ -49,8 +49,8 @@ test('forced liquidation pays the shortfall and keeps only the surplus', () => {
   assert.equal(api.calcDailyFee(), 5);
   api.applyDailyCosts();
 
-  assert.equal(state.inventory.wheat, 855);
-  assert.equal(state.cash, 2.5);
+  assert.equal(state.inventory.wheat, 984);
+  assert.equal(state.cash, 1);
   assert.equal(state.gameOver, null);
 });
 
@@ -74,22 +74,22 @@ test('operating costs follow the configured ninety-day geometric pressure curve'
   const { api } = createGame();
   const costs = Array.from({ length: api.CONFIG.DAYS_LIMIT }, (_, index) => api.calcOperatingCost(index + 1));
 
-  assert.equal(costs[0], 500);
-  assert.equal(Math.abs(costs.at(-1) - 85864.84381049295) < 0.001, true);
-  assert.equal(Math.abs(costs.reduce((sum, value) => sum + value, 0) - 1520000) < 0.01, true);
-  assert.equal(Math.abs(api.calcRemainingOperatingCost(1) - 1520000) < 0.01, true);
+  assert.equal(costs[0], 50);
+  assert.equal(Math.abs(costs.at(-1) - 450.1881137507703) < 0.001, true);
+  assert.equal(Math.abs(costs.reduce((sum, value) => sum + value, 0) - 16457.71266378164) < 0.01, true);
+  assert.equal(Math.abs(api.BALANCE_CONFIG.OPERATING_COST_TOTAL - 16457.71266378164) < 0.01, true);
+  assert.equal(Math.abs(api.calcRemainingOperatingCost(1) - 16457.71266378164) < 0.01, true);
   assert.equal(Math.abs(api.calcRemainingOperatingCost(90) - costs.at(-1)) < 0.01, true);
 });
 
-test('a merchant who never trades fails on day nine from operating costs', () => {
+test('a merchant who never trades fails on day fifty-one under the gentler baseline pressure', () => {
   const { api } = createGame();
   const state = api.reset();
 
   while (!state.gameOver) api.nextDay();
 
   assert.equal(state.gameOver, 'lose');
-  assert.equal(state.day, 9);
-  assert.equal(state.cash < api.calcOperatingCost(9), true);
+  assert.equal(state.day, 51);
 });
 
 test('day ninety charges its own costs before a successful time settlement', () => {
@@ -461,7 +461,7 @@ test('a deterministic no-trade run fails from operating pressure without invalid
     assert.equal(api.totalUnits() <= api.capacity(), true);
   }
 
-  assert.equal(state.day, 9);
+  assert.equal(state.day, 51);
   assert.equal(state.gameOver, 'lose');
 });
 
@@ -585,6 +585,13 @@ test('forced sudden events can use a higher rare-outcome chance', () => {
 
   assert.equal(api.eventRareChance(false), 0.06);
   assert.equal(api.eventRareChance(true), 0.20);
+});
+
+test('opening story introduces the gentler but growing operating pressure', () => {
+  const source = fs.readFileSync(path.join(ROOT, 'js', 'main.js'), 'utf8');
+
+  assert.match(source, /首日经营费只需.*¥50/);
+  assert.match(source, /每天都会比前一天增加/);
 });
 
 test('the market defines twenty complete and distinct commodity profiles', () => {

@@ -27,10 +27,10 @@ test('tooth merchant shifts ordinary prices lower and limits natural high prices
   assert.equal(rules.price.ordinaryCeilingCap < 1.2, true);
 });
 
-test('tooth merchant unlocks permanently after reaching ten thousand net worth', () => {
+test('tooth merchant is available by default and remains unlocked after progress updates', () => {
   const { api } = createGame();
 
-  assert.equal(api.loadProfile().unlockedProfessionIds.includes('toothMerchant'), false);
+  assert.equal(api.loadProfile().unlockedProfessionIds.includes('toothMerchant'), true);
   api.unlockEligibleProfessions({ peakNetWorth: 10000 });
 
   assert.equal(api.loadProfile().unlockedProfessionIds.includes('toothMerchant'), true);
