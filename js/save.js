@@ -24,6 +24,7 @@ function normalizeSave(saved) {
   saved.inventory = saved.inventory || {};
   saved.costBasis = saved.costBasis || {};
   saved.priceHistory = saved.priceHistory || {};
+  saved.tradeInputMode = saved.tradeInputMode === 'percentage' ? 'percentage' : 'quantity';
 
   GOODS.forEach(g => {
     if (!Array.isArray(saved.priceHistory[g.id])) {

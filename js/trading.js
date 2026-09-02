@@ -4,6 +4,36 @@ function parseTradeQuantity(value) {
   return Number.isFinite(qty) && qty > 0 ? qty : 0;
 }
 
+function getPercentageTradeQuantity(side, id, percentage) {
+  const percent = Number(percentage);
+  if (!Number.isFinite(percent) || percent <= 0) return 0;
+
+  let available = 0;
+  if (side === 'buy') {
+    const price = state.prices[id];
+    if (!Number.isFinite(price) || price <= 0) return 0;
+    const affordable = Math.floor(state.cash / price);
+    const freeCapacity = Math.max(0, capacity() - totalUnits());
+    available = Math.max(0, Math.min(affordable, freeCapacity));
+  } else if (side === 'sell') {
+    available = Math.max(0, Math.floor(state.inventory[id] || 0));
+  } else {
+    return 0;
+  }
+
+  if (available === 0) return 0;
+  if (percent >= 100) return available;
+  return Math.max(1, Math.floor(available * percent / 100));
+}
+
+function setTradeInputMode(mode) {
+  if (!state || (mode !== 'quantity' && mode !== 'percentage')) return false;
+  state.tradeInputMode = mode;
+  save();
+  render();
+  return true;
+}
+
 function buy(id, qty) {
   if (state.gameOver) return;
   if (!state.availableGoods.includes(id)) return;

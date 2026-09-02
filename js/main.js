@@ -154,10 +154,13 @@ function handleClick(e) {
   const action = target.dataset.action;
   const good = target.dataset.good;
   const qty = target.dataset.qty;
+  const percentage = target.dataset.percentage;
 
   if (action === 'buy' && good) {
     let n;
-    if (qty === 'max') {
+    if (percentage) {
+      n = getPercentageTradeQuantity('buy', good, percentage);
+    } else if (qty === 'max') {
       const price = state.prices[good];
       n = Math.min(
         Math.floor(state.cash / price),
@@ -169,7 +172,9 @@ function handleClick(e) {
     if (n > 0) buy(good, n);
   } else if (action === 'sell' && good) {
     let n;
-    if (qty === 'all') {
+    if (percentage) {
+      n = getPercentageTradeQuantity('sell', good, percentage);
+    } else if (qty === 'all') {
       n = state.inventory[good] || 0;
     } else {
       n = parseInt(qty, 10);
@@ -236,6 +241,8 @@ document.addEventListener('click', (e) => {
     state.chartGood = target.dataset.chartGood;
     save();
     openChart();
+  } else if (target.dataset.tradeMode) {
+    setTradeInputMode(target.dataset.tradeMode);
   } else if (target.dataset.customTrade) {
     executeCustomTrade(target);
   } else if (target.dataset.shopBuy) {

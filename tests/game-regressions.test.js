@@ -149,11 +149,15 @@ test('the in-game version button lives in the header instead of covering content
 test('the release version is consistent across delivery files', () => {
   const { api } = createGame();
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const readme = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
+  const changelog = fs.readFileSync(path.join(ROOT, 'CHANGELOG.md'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.8.0');
+  assert.equal(api.APP_VERSION, '1.8.1');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.8\.0/g) || []).length, 12);
+  assert.equal((html.match(/\?v=1\.8\.1/g) || []).length, 12);
+  assert.match(readme, /当前版本：\*\* v1\.8\.1/);
+  assert.match(changelog, /## \[1\.8\.1\] - 2026-09-02/);
 });
 
 test('manual version refresh preserves the existing save', () => {
@@ -180,6 +184,89 @@ test('market rows expose immediate presets and custom buy and sell controls', ()
   assert.match(source, /data-custom-trade="buy"/);
   assert.match(source, /data-custom-trade="sell"/);
   assert.match(source, /owned === 0 \? 'disabled' : ''/);
+});
+
+test('new games default to quantity trading mode', () => {
+  const { api } = createGame();
+
+  assert.equal(api.newState().tradeInputMode, 'quantity');
+});
+
+test('legacy saves normalize missing or invalid trading modes to quantity', () => {
+  const { api } = createGame();
+  const legacy = api.newState();
+  delete legacy.tradeInputMode;
+
+  const missingModeGame = createGame({ savedState: legacy });
+  assert.equal(missingModeGame.api.loadSave().tradeInputMode, 'quantity');
+
+  legacy.tradeInputMode = 'unexpected';
+  const invalidModeGame = createGame({ savedState: legacy });
+  assert.equal(invalidModeGame.api.loadSave().tradeInputMode, 'quantity');
+});
+
+test('buy percentages use the current affordable and available capacity maximum', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.availableGoods = ['wheat'];
+  state.prices.wheat = 3;
+  state.cash = 100;
+
+  assert.equal(typeof api.getPercentageTradeQuantity, 'function');
+  assert.equal(api.getPercentageTradeQuantity('buy', 'wheat', 25), 8);
+  assert.equal(api.getPercentageTradeQuantity('buy', 'wheat', 50), 16);
+  assert.equal(api.getPercentageTradeQuantity('buy', 'wheat', 75), 24);
+  assert.equal(api.getPercentageTradeQuantity('buy', 'wheat', 100), 33);
+
+  state.inventory.tea = api.capacity() - 10;
+  assert.equal(api.getPercentageTradeQuantity('buy', 'wheat', 25), 2);
+  assert.equal(api.getPercentageTradeQuantity('buy', 'wheat', 100), 10);
+});
+
+test('trade percentages round down but buy or sell at least one available unit', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.availableGoods = ['wheat'];
+  state.prices.wheat = state.cash;
+  state.inventory.wheat = 3;
+  state.costBasis.wheat = 3;
+
+  assert.equal(api.getPercentageTradeQuantity('buy', 'wheat', 25), 1);
+  assert.equal(api.getPercentageTradeQuantity('sell', 'wheat', 25), 1);
+  assert.equal(api.getPercentageTradeQuantity('sell', 'wheat', 50), 1);
+  assert.equal(api.getPercentageTradeQuantity('sell', 'wheat', 75), 2);
+  assert.equal(api.getPercentageTradeQuantity('sell', 'wheat', 100), 3);
+
+  state.cash = 0;
+  state.inventory.wheat = 0;
+  assert.equal(api.getPercentageTradeQuantity('buy', 'wheat', 25), 0);
+  assert.equal(api.getPercentageTradeQuantity('sell', 'wheat', 25), 0);
+});
+
+test('trading mode changes persist with the save and reject unknown modes', () => {
+  const { api, storage } = createGame();
+  const state = api.reset();
+
+  assert.equal(typeof api.setTradeInputMode, 'function');
+  assert.equal(api.setTradeInputMode('percentage'), true);
+  assert.equal(state.tradeInputMode, 'percentage');
+  assert.equal(JSON.parse(storage.get(api.CONFIG.SAVE_KEY)).tradeInputMode, 'percentage');
+  assert.equal(api.setTradeInputMode('invalid'), false);
+  assert.equal(state.tradeInputMode, 'percentage');
+});
+
+test('market title exposes one global compact quantity and percentage switch', () => {
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const uiSource = fs.readFileSync(path.join(ROOT, 'js', 'ui.js'), 'utf8');
+  const mainSource = fs.readFileSync(path.join(ROOT, 'js', 'main.js'), 'utf8');
+
+  assert.equal((html.match(/class="trade-mode-toggle"/g) || []).length, 1);
+  assert.match(html, /data-trade-mode="quantity"[^>]*>数量</);
+  assert.match(html, /data-trade-mode="percentage"[^>]*>比例</);
+  assert.match(uiSource, /\[25, 50, 75, 100\]/);
+  assert.match(uiSource, /state\.tradeInputMode === 'percentage'/);
+  assert.match(mainSource, /target\.dataset\.tradeMode/);
+  assert.match(mainSource, /setTradeInputMode\(target\.dataset\.tradeMode\)/);
 });
 
 test('legacy trade modal is removed', () => {
@@ -241,6 +328,10 @@ test('market CSS uses stable desktop tracks and a three-row mobile layout', () =
   assert.match(css, /\.trade-custom-input[^}]*width:/s);
   assert.match(css, /@media \(max-width:\s*760px\)[\s\S]*grid-template-areas:\s*"info"\s*"buy"\s*"sell"/);
   assert.match(css, /@media \(max-width:\s*360px\)[\s\S]*\.trade-row\s*\{[^}]*grid-template-columns:\s*24px/s);
+  assert.match(css, /\.trade-mode-toggle[^}]*display:\s*grid/s);
+  assert.match(css, /\.trade-mode-toggle[^}]*grid-template-columns:\s*repeat\(2,/s);
+  assert.match(css, /\.trade-mode-toggle[^}]*flex:\s*0 0 auto/s);
+  assert.match(css, /@media \(max-width:\s*360px\)[\s\S]*\.market-panel-title[^}]*flex-wrap:\s*wrap/s);
   assert.match(css, /#chartSvgWrap\s+svg\s*\{[^}]*width:\s*100%[^}]*height:\s*auto/s);
   assert.doesNotMatch(css, /<\/style>/);
 });

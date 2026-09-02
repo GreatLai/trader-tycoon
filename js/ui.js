@@ -2,6 +2,15 @@ function goodArt(g, extraClass = '') {
   return `<span class="good-art ${extraClass}"><img class="good-art-image" src="${g.art}" alt="" loading="lazy" decoding="async" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="good-art-fallback" hidden>${g.icon}</span></span>`;
 }
 
+const TRADE_PERCENTAGES = [25, 50, 75, 100];
+
+function percentageTradeButtons(side, id, disabled) {
+  const colorClass = side === 'sell' ? ' btn-ghost' : '';
+  return TRADE_PERCENTAGES.map(percent => `
+    <button class="btn btn-small${colorClass} trade-preset" data-action="${side}" data-good="${id}" data-percentage="${percent}" ${disabled}>${percent}%</button>
+  `).join('');
+}
+
 // ==================== 渲染 ====================
 function render() {
   const inGame = !!state && !state.gameOver;
@@ -49,6 +58,13 @@ function render() {
 
   // 市场
   $('marketCount').textContent = `${state.availableGoods.length} / ${GOODS.length}`;
+  const percentageMode = state.tradeInputMode === 'percentage';
+  ['quantity', 'percentage'].forEach(mode => {
+    const button = $(mode === 'quantity' ? 'tradeModeQuantity' : 'tradeModePercentage');
+    const active = state.tradeInputMode === mode;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
   const marketHtml = state.availableGoods.map(id => {
     const g = goodById(id);
     const price = state.prices[id];
@@ -69,6 +85,16 @@ function render() {
     const maxBuy = Math.min(Math.floor(state.cash / price), cap - used);
     const buyDisabled = maxBuy === 0 ? 'disabled' : '';
     const sellDisabled = owned === 0 ? 'disabled' : '';
+    const buyPresets = percentageMode ? percentageTradeButtons('buy', id, buyDisabled) : `
+          <button class="btn btn-small trade-preset" data-action="buy" data-good="${id}" data-qty="1" ${buyDisabled}>+1</button>
+          <button class="btn btn-small trade-preset" data-action="buy" data-good="${id}" data-qty="10" ${buyDisabled}>+10</button>
+          <button class="btn btn-small trade-preset" data-action="buy" data-good="${id}" data-qty="100" ${buyDisabled}>+100</button>
+          <button class="btn btn-small trade-fill" data-action="buy" data-good="${id}" data-qty="max" ${buyDisabled}>买满</button>`;
+    const sellPresets = percentageMode ? percentageTradeButtons('sell', id, sellDisabled) : `
+          <button class="btn btn-small btn-ghost trade-preset" data-action="sell" data-good="${id}" data-qty="1" ${sellDisabled}>-1</button>
+          <button class="btn btn-small btn-ghost trade-preset" data-action="sell" data-good="${id}" data-qty="10" ${sellDisabled}>-10</button>
+          <button class="btn btn-small btn-ghost trade-preset" data-action="sell" data-good="${id}" data-qty="100" ${sellDisabled}>-100</button>
+          <button class="btn btn-small btn-ghost trade-fill" data-action="sell" data-good="${id}" data-qty="all" ${sellDisabled}>全卖</button>`;
     return `
       <div class="market-row${ecoClass}">
         <div class="market-info">
@@ -82,19 +108,13 @@ function render() {
         </div>
         <div class="trade-row trade-buy">
           <span class="trade-label">买入</span>
-          <button class="btn btn-small trade-preset" data-action="buy" data-good="${id}" data-qty="1" ${buyDisabled}>+1</button>
-          <button class="btn btn-small trade-preset" data-action="buy" data-good="${id}" data-qty="10" ${buyDisabled}>+10</button>
-          <button class="btn btn-small trade-preset" data-action="buy" data-good="${id}" data-qty="100" ${buyDisabled}>+100</button>
-          <button class="btn btn-small trade-fill" data-action="buy" data-good="${id}" data-qty="max" ${buyDisabled}>买满</button>
+          ${buyPresets}
           <input class="trade-custom-input" type="number" min="1" step="1" inputmode="numeric" placeholder="数量" aria-label="${g.name}买入数量" data-trade-input="buy" data-good="${id}" ${buyDisabled}>
           <button class="btn btn-small btn-green trade-submit" data-custom-trade="buy" data-good="${id}" ${buyDisabled}>买入</button>
         </div>
         <div class="trade-row trade-sell">
           <span class="trade-label">卖出</span>
-          <button class="btn btn-small btn-ghost trade-preset" data-action="sell" data-good="${id}" data-qty="1" ${sellDisabled}>-1</button>
-          <button class="btn btn-small btn-ghost trade-preset" data-action="sell" data-good="${id}" data-qty="10" ${sellDisabled}>-10</button>
-          <button class="btn btn-small btn-ghost trade-preset" data-action="sell" data-good="${id}" data-qty="100" ${sellDisabled}>-100</button>
-          <button class="btn btn-small btn-ghost trade-fill" data-action="sell" data-good="${id}" data-qty="all" ${sellDisabled}>全卖</button>
+          ${sellPresets}
           <input class="trade-custom-input" type="number" min="1" step="1" inputmode="numeric" placeholder="数量" aria-label="${g.name}卖出数量" data-trade-input="sell" data-good="${id}" ${sellDisabled}>
           <button class="btn btn-small btn-red trade-submit" data-custom-trade="sell" data-good="${id}" ${sellDisabled}>卖出</button>
         </div>

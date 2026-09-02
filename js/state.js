@@ -54,6 +54,7 @@ function newState() {
     nextDaySeed: Math.floor(Math.random() * 1e9),
     eventNoticeQueue: [],
     logs: [],
+    tradeInputMode: 'quantity',
     gameOver: null
   };
 }
