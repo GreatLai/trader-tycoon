@@ -7,12 +7,16 @@ function priceRatio(api, state, id) {
   return state.prices[id] / api.GOODS.find(good => good.id === id).base;
 }
 
-function heldTradable(state) {
-  return state.availableGoods.filter(id => (state.inventory[id] || 0) > 0);
+function marketTradable(context) {
+  return context.state.availableGoods.filter(id => context.api.canTradeGood(id));
+}
+
+function heldTradable(context) {
+  return marketTradable(context).filter(id => (context.state.inventory[id] || 0) > 0);
 }
 
 function sellWhen(context, predicate) {
-  for (const id of heldTradable(context.state)) {
+  for (const id of heldTradable(context)) {
     if (predicate(id)) context.sell(id, context.state.inventory[id]);
   }
 }
@@ -47,13 +51,14 @@ const STRATEGIES = {
     description: '随机选择上架商品和买卖方向，每次最多动用七成现金，不读取价格信号。',
     act(context) {
       const { random, state } = context;
-      const held = heldTradable(state);
+      const held = heldTradable(context);
       if (held.length && random() < 0.35) {
         const id = held[Math.floor(random() * held.length)];
         context.sell(id, Math.max(1, Math.floor(state.inventory[id] * (0.25 + random() * 0.75))));
       }
-      if (state.availableGoods.length && random() < 0.60) {
-        const id = state.availableGoods[Math.floor(random() * state.availableGoods.length)];
+      const available = marketTradable(context);
+      if (available.length && random() < 0.60) {
+        const id = available[Math.floor(random() * available.length)];
         const quantity = Math.min(
           Math.floor(state.cash * 0.70 / state.prices[id]),
           context.api.capacity() - context.api.totalUnits()
@@ -65,8 +70,8 @@ const STRATEGIES = {
   allIn: {
     description: '每天卖出能卖的旧仓并把现金买满当日绝对单价最低商品，不判断估值。',
     act(context) {
-      for (const id of heldTradable(context.state)) context.sell(id, context.state.inventory[id]);
-      const candidates = context.state.availableGoods.slice().sort((a, b) => context.state.prices[a] - context.state.prices[b]);
+      for (const id of heldTradable(context)) context.sell(id, context.state.inventory[id]);
+      const candidates = marketTradable(context).sort((a, b) => context.state.prices[a] - context.state.prices[b]);
       buyRanked(context, candidates, context.state.cash, 1, 1);
     }
   },
@@ -75,7 +80,7 @@ const STRATEGIES = {
     act(context) {
       const { api, state } = context;
       sellWhen(context, id => state.prices[id] >= averageCost(state, id) * 1.15 || priceRatio(api, state, id) >= 1.15);
-      const candidates = state.availableGoods
+      const candidates = marketTradable(context)
         .filter(id => priceRatio(api, state, id) <= 1)
         .sort((a, b) => priceRatio(api, state, a) - priceRatio(api, state, b));
       buyRanked(context, candidates, state.cash - api.netWorth() * 0.15, 3, 0.85);
@@ -86,7 +91,7 @@ const STRATEGIES = {
     act(context) {
       const { api, state } = context;
       sellWhen(context, id => state.prices[id] >= averageCost(state, id) * 1.12 || priceRatio(api, state, id) >= 1.16);
-      const candidates = state.availableGoods
+      const candidates = marketTradable(context)
         .filter(id => priceRatio(api, state, id) <= 0.92)
         .sort((a, b) => priceRatio(api, state, a) - priceRatio(api, state, b));
       buyRanked(context, candidates, state.cash - api.netWorth() * 0.20, 2, 0.70);
@@ -101,7 +106,7 @@ const STRATEGIES = {
         const event = events.get(id);
         return (event && event.type === 'good') || state.prices[id] >= averageCost(state, id) * 1.10 || priceRatio(api, state, id) >= 1.18;
       });
-      const candidates = state.availableGoods
+      const candidates = marketTradable(context)
         .filter(id => {
           const event = events.get(id);
           return priceRatio(api, state, id) <= 0.95 || (event && event.type === 'bad');
@@ -129,7 +134,7 @@ const STRATEGIES = {
         const event = events.get(id);
         return event?.type === 'good' || state.prices[id] >= averageCost(state, id) * 2;
       });
-      const candidates = state.availableGoods.slice().sort((a, b) => {
+      const candidates = marketTradable(context).sort((a, b) => {
         const eventA = events.get(a);
         const eventB = events.get(b);
         const scoreA = priceRatio(api, state, a) * (eventA?.type === 'bad' ? 0.45 : 1);

@@ -2,7 +2,7 @@
 const INTRO_SLIDES = [
   { emoji: '🧳', title: '旧商行，新掌柜', text: '港口重新开市，这间旧商行和账上仅剩的 ¥5,000 都交到了你手里。\n九十天后封账，能留下多少身家，只看你的眼光。', hint: '接下这间商行', button: '接下委托' },
   { emoji: '📈', title: '先看价，再下手', text: '每天只有一部分商品摆上货架。价格低时收货，行情起来后卖出，现金和仓位都要留有余地。\n经营费每 15 天进入新账期，在第 16、31、46、61、76 天大幅上升；现金不足时会先按当日市价清算已上架库存，再以购入均价的 20% 处理未上架库存。', hint: '每次推进日期，市场都会重新洗牌', button: '记住了' },
-  { emoji: '⚖️', title: '选一条生意路', text: '四种职业从开局起全部开放。\n无用之人守常规，牙商用风险换高价，行商让库存重新报价，投机商则追着突发风声下注。', hint: '职业只能在开局时选择', button: '选择职业' }
+  { emoji: '⚖️', title: '选一条生意路', text: '五种职业从开局起全部开放。\n无用之人守常规，牙商用风险换高价，行商让库存重新报价，投机商追着突发风声下注，盐铁专营则用有限货路搏极端行情。', hint: '职业只能在开局时选择', button: '选择职业' }
 ];
 let introStep = 0;
 
@@ -176,6 +176,18 @@ function returnToStartScreen() {
 function openProfessionAbility() {
   const profession = PROFESSIONS[state.profession.id];
   if (!profession.activeAbility) return;
+  if (profession.activeAbility.id === 'windVane') {
+    const result = useProfessionAbility(null);
+    if (result.ok) {
+      save();
+      render();
+    } else if (result.reason === 'active-ecology') {
+      toast('当前国际生态事件仍在持续');
+    } else if (result.reason === 'cooldown') {
+      toast(`第${result.readyDay}天可再次使用风向标`);
+    }
+    return;
+  }
   const targets = eligibleProfessionAbilityTargets();
   $('professionAbilityTitle').textContent = `${profession.name} · ${profession.activeAbility.name}`;
   $('professionAbilityInfo').textContent = profession.activeAbility.description;

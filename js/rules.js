@@ -5,7 +5,8 @@ function createBaseRules() {
     dailyFeeMultiplier: 1,
     warehouseCapacityMultiplier: 1,
     listingWeights: {},
-    price: {},
+    trade: { allowedGoodIds: null },
+    price: { byGood: {} },
     events: {}
   };
 }
@@ -14,11 +15,18 @@ function applyProfessionRules(baseRules, profession, professionState) {
   const rules = {
     ...baseRules,
     listingWeights: { ...baseRules.listingWeights },
-    price: { ...baseRules.price },
+    trade: { ...baseRules.trade },
+    price: { ...baseRules.price, byGood: { ...baseRules.price.byGood } },
     events: { ...baseRules.events }
   };
   if (profession && profession.modifyRules) profession.modifyRules(rules, professionState);
   return rules;
+}
+
+function canTradeGood(id, professionState = null) {
+  const activeProfession = professionState || (state && state.profession);
+  const allowed = getEffectiveRules(activeProfession).trade.allowedGoodIds;
+  return !Array.isArray(allowed) || allowed.includes(id);
 }
 
 function getEffectiveRules(professionState = null) {

@@ -58,6 +58,18 @@ test('run metrics include survival, risk, activity, and return attribution', () 
   ]);
 });
 
+test('balance simulation can run salt iron monopoly with licensed trading and wind vane', () => {
+  const result = runSimulation({
+    seed: 2026090301,
+    strategyId: 'skilled',
+    scenario: { professionId: 'saltIronMonopoly', autoUseProfessionAbility: true }
+  });
+
+  assert.equal(result.profession, 'saltIronMonopoly');
+  assert.equal(result.professionAbilityUses > 0, true);
+  assert.equal(result.unlicensedTradeAttempts, 0);
+});
+
 test('baseline simulation includes operating pressure and no-trade failure', () => {
   const result = runSimulation({ seed: 2026090204, strategyId: 'wait' });
 

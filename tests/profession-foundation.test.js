@@ -12,7 +12,7 @@ test('useless profession remains the neutral default', () => {
   const { api } = createGame();
 
   assert.equal(api.DEFAULT_PROFESSION_ID, 'useless');
-  assert.deepEqual(Object.keys(api.PROFESSIONS), ['useless', 'toothMerchant', 'travelingMerchant', 'speculator']);
+  assert.deepEqual(Object.keys(api.PROFESSIONS), ['useless', 'toothMerchant', 'travelingMerchant', 'speculator', 'saltIronMonopoly']);
   assert.equal(api.normalizeProfessionId('useless'), 'useless');
   assert.equal(api.normalizeProfessionId('unknown'), 'useless');
   assert.deepEqual(plain(api.newProfessionState()), {
@@ -31,7 +31,8 @@ test('base effective rules reproduce the current game constants', () => {
   assert.equal(rules.dailyFeeMultiplier, 1);
   assert.equal(rules.warehouseCapacityMultiplier, 1);
   assert.deepEqual(plain(rules.listingWeights), {});
-  assert.deepEqual(plain(rules.price), {});
+  assert.deepEqual(plain(rules.trade), { allowedGoodIds: null });
+  assert.deepEqual(plain(rules.price), { byGood: {} });
   assert.deepEqual(plain(rules.events), {});
 });
 
@@ -101,7 +102,7 @@ test('career profile starts with every current profession unlocked', () => {
   const profile = api.newProfile();
 
   assert.equal(profile.version, 1);
-  assert.deepEqual(plain(profile.unlockedProfessionIds), ['useless', 'toothMerchant', 'travelingMerchant', 'speculator']);
+  assert.deepEqual(plain(profile.unlockedProfessionIds), ['useless', 'toothMerchant', 'travelingMerchant', 'speculator', 'saltIronMonopoly']);
   assert.deepEqual(plain(profile.records), {});
 });
 
@@ -183,5 +184,5 @@ test('useless profession has a stable deterministic market sequence after shop r
   }
 
   const digest = crypto.createHash('sha256').update(JSON.stringify(days)).digest('hex');
-  assert.equal(digest, '2bdcb13ca430334c0c1496d6642747f09b2a5c7fcfa9615ccf4b5c1a5f9da0bb');
+  assert.equal(digest, 'f7114d3027427cd2a284c3878b125fa0554ee0b8f516217bf21d7c7229c3bb35');
 });

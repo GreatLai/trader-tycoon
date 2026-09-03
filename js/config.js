@@ -1,6 +1,6 @@
 // ==================== 配置 ====================
 const ULTRA_UNLOCK = 10000000;
-const APP_VERSION = '1.15.0';
+const APP_VERSION = '1.16.0';
 
 const CONFIG = {
   DAYS_LIMIT: 90,
@@ -2983,6 +2983,142 @@ const ECO_EVENTS = {
     ]
   }
 };
+
+function createExpandedEcoEvent(definition) {
+  const toMults = values => Object.fromEntries(definition.goods.map((id, index) => [id, values[index]]));
+  const finishBranches = branch => {
+    const clamp = value => +Math.max(0.03, Math.min(24.9, value)).toFixed(2);
+    const amplified = branch.values.map(value => clamp(value >= 1 ? value * 2.35 : value * 0.42));
+    const reversed = branch.values.map(value => clamp(value >= 1 ? 0.72 / value : 1.18 / value));
+    const settled = branch.values.map(value => clamp(Math.sqrt(value)));
+    return [
+      { news: `${branch.news}后续影响继续放大。`, super: amplified.some(value => value >= 12 || value <= 0.08), mults: toMults(amplified) },
+      { news: `${branch.news}随后政策与资金风向逆转。`, super: reversed.some(value => value >= 12 || value <= 0.08), mults: toMults(reversed) },
+      { news: `${branch.news}最终被市场逐步消化。`, super: false, mults: toMults(settled) }
+    ];
+  };
+  return {
+    name: definition.name,
+    unlock: definition.unlock || 0,
+    goods: definition.goods,
+    announce: { title: '国际新闻', desc: definition.announce },
+    A: definition.A.map(stage => ({
+      news: stage.news,
+      mults: toMults(stage.values),
+      B: stage.B.map(branch => ({
+        news: branch.news,
+        mults: toMults(branch.values),
+        C: finishBranches(branch)
+      }))
+    }))
+  };
+}
+
+Object.assign(ECO_EVENTS, {
+  civilSupplyControl: createExpandedEcoEvent({
+    name: '民生物资管制',
+    goods: ['salt', 'cloth', 'medicine', 'tea'],
+    announce: '多国开始调整民生物资供应与出口政策，食盐、棉布、药品、茶叶将在未来数日出现连锁波动。',
+    A: [
+      {
+        news: '抢购与限运同时出现，基础物资供应迅速趋紧。',
+        values: [2.4, 2.1, 3.2, 1.6],
+        B: [
+          { news: '居民囤货扩大，药品与食盐成为争抢重点。', values: [4.2, 3.8, 5.4, 2.7] },
+          { news: '配给政策落地，紧缺程度有所分化。', values: [3.1, 2.7, 4.6, 1.9] },
+          { news: '紧急进口抵港，供应压力暂时缓解。', values: [1.5, 1.4, 1.8, 1.1] }
+        ]
+      },
+      {
+        news: '产能恢复速度快于预期，民生物资价格普遍承压。',
+        values: [0.65, 0.72, 0.55, 0.84],
+        B: [
+          { news: '库存集中释放，批发市场出现抛售。', values: [0.38, 0.46, 0.32, 0.7] },
+          { news: '出口订单回升，部分商品率先反弹。', values: [1.7, 1.5, 0.75, 1.2] },
+          { news: '新一轮公共卫生担忧令需求重新升温。', values: [2.9, 2.4, 4.2, 1.8] }
+        ]
+      },
+      {
+        news: '各地政策不一，民生供应出现明显分化。',
+        values: [1.3, 0.58, 2.1, 0.72],
+        B: [
+          { news: '沿海运输受阻，食盐与药品价格走高。', values: [3.5, 0.44, 4.1, 0.65] },
+          { news: '纺织订单爆发，棉布独自走强。', values: [0.82, 3.9, 1.1, 0.76] },
+          { news: '消费转弱，茶叶与棉布库存积压。', values: [1.15, 0.42, 1.4, 0.35] }
+        ]
+      }
+    ]
+  }),
+  manufacturingRevival: createExpandedEcoEvent({
+    name: '制造业振兴',
+    goods: ['steel', 'car', 'machine-tool', 'copper'],
+    announce: '主要工业国推出制造业振兴计划，钢材、汽车、精密机床、铜的订单与产能将重新洗牌。',
+    A: [
+      {
+        news: '基建与设备订单集中释放，工业品需求全面升温。',
+        values: [2.2, 1.8, 2.7, 2.1],
+        B: [
+          { news: '大型工程提前开工，钢材与机床供不应求。', values: [4.8, 2.9, 5.2, 3.7] },
+          { news: '汽车补贴扩大，整车订单快速增长。', values: [2.6, 5.1, 3.4, 2.8] },
+          { news: '铜矿供应收紧，原料端推高制造成本。', values: [3.1, 2.2, 3.8, 5.4] }
+        ]
+      },
+      {
+        news: '投资计划推迟，制造业订单突然转弱。',
+        values: [0.58, 0.66, 0.52, 0.61],
+        B: [
+          { news: '库存高企引发价格战，汽车与钢材领跌。', values: [0.3, 0.27, 0.48, 0.44] },
+          { news: '设备出口获得新订单，机床率先修复。', values: [0.72, 0.58, 2.8, 0.81] },
+          { news: '矿山停产带动铜价反弹，其他工业品仍弱。', values: [0.62, 0.55, 0.73, 3.6] }
+        ]
+      },
+      {
+        news: '产业升级与淘汰落后产能同时推进，行情严重分化。',
+        values: [0.76, 1.4, 2.3, 1.2],
+        B: [
+          { news: '自动化改造提速，精密机床成为核心缺口。', values: [1.1, 1.6, 5.5, 1.8] },
+          { news: '新能源车订单井喷，汽车与铜同步走强。', values: [1.25, 4.7, 2.2, 3.9] },
+          { news: '需求预测落空，钢材库存继续累积。', values: [0.26, 0.82, 1.3, 0.68] }
+        ]
+      }
+    ]
+  }),
+  lunarResourceDevelopment: createExpandedEcoEvent({
+    name: '月球资源开发',
+    unlock: ULTRA_UNLOCK,
+    goods: ['lunar-soil', 'spacecraft', 'machine-tool', 'gold'],
+    announce: '多国公布月球资源开发计划，月壤、航天器、精密机床、黄金相关市场进入高风险竞逐。',
+    A: [
+      {
+        news: '首批商业合同落地，太空产业链估值快速上升。',
+        values: [3.8, 2.6, 2.4, 1.7],
+        B: [
+          { news: '月壤样本拍卖引发全球资本追逐。', values: [6.2, 3.5, 2.9, 2.4] },
+          { news: '运载订单暴增，航天器与机床供应紧张。', values: [4.3, 5.7, 4.8, 1.9] },
+          { news: '避险资金同时涌入黄金与太空资产。', values: [4.9, 3.8, 2.6, 5.1] }
+        ]
+      },
+      {
+        news: '关键任务延期，月球开发预期迅速降温。',
+        values: [0.22, 0.45, 0.6, 2.1],
+        B: [
+          { news: '发射事故打击产业信心，太空资产遭到抛售。', values: [0.08, 0.16, 0.34, 3.7] },
+          { news: '政府追加预算，设备端获得短暂支撑。', values: [0.42, 1.8, 2.5, 1.6] },
+          { news: '项目取消传闻扩散，月壤交易几近冻结。', values: [0.05, 0.28, 0.47, 2.9] }
+        ]
+      },
+      {
+        news: '新技术突破降低运输成本，产业价值重新分配。',
+        values: [2.5, 3.2, 1.9, 0.72],
+        B: [
+          { news: '可回收运输系统成熟，航天订单快速扩张。', values: [3.7, 6.1, 3.2, 0.61] },
+          { news: '原位加工获得验证，月壤与机床同步走强。', values: [5.8, 2.8, 5.1, 0.83] },
+          { news: '商业回报遭到质疑，资金重新流向黄金。', values: [0.48, 0.74, 0.69, 4.6] }
+        ]
+      }
+    ]
+  })
+});
 
 // 仓库容量按财富评级动态解锁，达到过不降
 const WAREHOUSE_CAPACITY_BY_MILESTONE = [1000, 4000, 16000, 64000, 256000, 1024000, 4096000, 16000000];

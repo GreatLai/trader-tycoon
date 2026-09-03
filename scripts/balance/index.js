@@ -83,6 +83,7 @@ function runSimulation({ seed, strategyId, scenario = {} }) {
   const { api } = createGame({ random: setupRandom });
   applyOverrides(api, scenario);
   const state = api.reset();
+  if (scenario.professionId) state.profession = api.newProfessionState(scenario.professionId);
   api.initializeOpeningMarket();
 
   const metrics = {
@@ -96,6 +97,8 @@ function runSimulation({ seed, strategyId, scenario = {} }) {
     cashDangerDays: 0,
     fullPositionDays: 0,
     trappedDays: 0,
+    professionAbilityUses: 0,
+    unlicensedTradeAttempts: 0,
     peakWorth: api.netWorth(),
     maxDrawdown: 0,
     profitSources: {
@@ -116,6 +119,10 @@ function runSimulation({ seed, strategyId, scenario = {} }) {
     parameters: { ...DEFAULT_STRATEGY_PARAMETERS, ...scenario },
     estimatedDailyFee: 0,
     buy(id, quantity) {
+      if (!api.canTradeGood(id)) {
+        metrics.unlicensedTradeAttempts++;
+        return false;
+      }
       quantity = Math.max(0, Math.floor(quantity));
       if (!quantity) return false;
       const before = state.inventory[id] || 0;
@@ -128,6 +135,10 @@ function runSimulation({ seed, strategyId, scenario = {} }) {
       return true;
     },
     sell(id, quantity) {
+      if (!api.canTradeGood(id)) {
+        metrics.unlicensedTradeAttempts++;
+        return false;
+      }
       quantity = Math.max(0, Math.floor(quantity));
       const before = state.inventory[id] || 0;
       if (!quantity || !before) return false;
@@ -145,6 +156,20 @@ function runSimulation({ seed, strategyId, scenario = {} }) {
 
   while (!state.gameOver) {
     context.estimatedDailyFee = api.calcTotalDailyCost();
+    const profession = api.PROFESSIONS[state.profession.id];
+    if (scenario.autoUseProfessionAbility && profession.activeAbility?.id === 'windVane') {
+      const heldLicensedGoods = Object.keys(state.inventory).filter(id =>
+        state.inventory[id] > 0 && api.canTradeGood(id)
+      );
+      const canExitToday = heldLicensedGoods.every(id =>
+        state.availableGoods.includes(id) && state.prices[id] >= (state.costBasis[id] / state.inventory[id]) * 1.05
+      );
+      const hasCashBuffer = state.cash >= Math.max(context.estimatedDailyFee * 7, api.netWorth() * 0.15);
+      if (!state.eco && canExitToday && hasCashBuffer) {
+        const abilityResult = api.useProfessionAbility(null);
+        if (abilityResult.ok) metrics.professionAbilityUses++;
+      }
+    }
     strategy.act(context);
 
     const worth = api.netWorth();
@@ -198,6 +223,7 @@ function runSimulation({ seed, strategyId, scenario = {} }) {
   const actions = metrics.buyActions + metrics.sellActions;
   return {
     ...metrics,
+    profession: state.profession.id,
     survived,
     daysPlayed: state.day,
     finalWorth: api.netWorth(),

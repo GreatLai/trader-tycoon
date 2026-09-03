@@ -5,6 +5,7 @@ function parseTradeQuantity(value) {
 }
 
 function getPercentageTradeQuantity(side, id, percentage) {
+  if (!canTradeGood(id)) return 0;
   const percent = Number(percentage);
   if (!Number.isFinite(percent) || percent <= 0) return 0;
 
@@ -37,6 +38,7 @@ function setTradeInputMode(mode) {
 function buy(id, qty) {
   if (state.gameOver) return;
   if (!state.availableGoods.includes(id)) return;
+  if (!canTradeGood(id)) { toast('该职业没有此商品的经营权'); return; }
   if (!Number.isFinite(qty)) return;
   qty = Math.floor(qty);
   if (qty <= 0) return;
@@ -57,6 +59,7 @@ function buy(id, qty) {
 function sell(id, qty) {
   if (state.gameOver) return;
   if (!state.availableGoods.includes(id)) return;
+  if (!canTradeGood(id)) { toast('该职业没有此商品的经营权'); return; }
   if (isGoodSaleLocked(id)) { toast(`该商品被锁定，第${state.saleLockUntilDay[id]}天恢复出售`); return; }
   if (!Number.isFinite(qty)) return;
   qty = Math.min(Math.floor(qty), state.inventory[id] || 0);

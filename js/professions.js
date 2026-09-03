@@ -59,6 +59,27 @@ const PROFESSIONS = Object.freeze({
       cooldownDays: 3,
       description: '每 3 天可用 1 次。指定今日发生自然突发事件的商品，安排次日后续行情；延续必定顺势再走一步，也可能反向变化。'
     })
+  }),
+  saltIronMonopoly: Object.freeze({
+    id: 'saltIronMonopoly',
+    name: '盐铁专营',
+    description: '只经营四种专营商品，以更少的出手机会换取被全面放大的低买高卖价差。',
+    passive: '专营行情：食盐、钢材、精密机床、月壤的普通、突发和生态行情偏离锚点时放大 3 倍。',
+    drawback: '只能买卖食盐、钢材、精密机床和月壤；其他商品即使上架也没有经营权。月壤仍需达到千万资产后解锁。',
+    unlock: null,
+    modifyRules(rules) {
+      const allowedGoodIds = ['salt', 'steel', 'machine-tool', 'lunar-soil'];
+      rules.trade.allowedGoodIds = allowedGoodIds;
+      rules.price.byGood = Object.fromEntries(allowedGoodIds.map(id => [id, {
+        deviationScale: 3
+      }]));
+    },
+    activeAbility: Object.freeze({
+      id: 'windVane',
+      name: '风向标',
+      cooldownDays: 7,
+      description: '每 7 天可用 1 次。从已有国际生态事件中随机召来一项，事件至少涉及一种专营商品；具体商品与涨跌方向均不保证。'
+    })
   })
 });
 

@@ -9,15 +9,185 @@ function plain(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-test('the playable roster contains all four professions', () => {
+test('the playable roster contains all five professions', () => {
   const { api } = createGame();
 
-  assert.deepEqual(Object.keys(api.PROFESSIONS), ['useless', 'toothMerchant', 'travelingMerchant', 'speculator']);
+  assert.deepEqual(Object.keys(api.PROFESSIONS), ['useless', 'toothMerchant', 'travelingMerchant', 'speculator', 'saltIronMonopoly']);
   assert.equal(api.PROFESSIONS.useless.activeAbility, null);
   assert.equal(api.PROFESSIONS.toothMerchant.activeAbility.id, 'raisePrice');
   assert.equal(api.PROFESSIONS.travelingMerchant.activeAbility.id, 'marketTrip');
   assert.equal(api.PROFESSIONS.speculator.activeAbility.id, 'stokeMarket');
+  assert.equal(api.PROFESSIONS.saltIronMonopoly.activeAbility.id, 'windVane');
   assert.match(api.PROFESSIONS.toothMerchant.drawback, /高价/);
+});
+
+test('salt iron monopoly exposes four licensed goods and wider ordinary price rules', () => {
+  const { api } = createGame();
+  const rules = api.getEffectiveRules({ id: 'saltIronMonopoly', activeUsedDay: null, data: {} });
+
+  assert.deepEqual(plain(rules.trade.allowedGoodIds), ['salt', 'steel', 'machine-tool', 'lunar-soil']);
+  for (const id of rules.trade.allowedGoodIds) {
+    assert.deepEqual(plain(rules.price.byGood[id]), { deviationScale: 3 });
+  }
+});
+
+test('salt iron monopoly triples the original ordinary price deviation from anchor', () => {
+  function refreshFactor(professionId) {
+    const { api } = createGame();
+    const state = api.reset();
+    const salt = api.GOODS.find(good => good.id === 'salt');
+    state.profession = api.newProfessionState(professionId);
+    state.prices.salt = salt.base;
+    state.prevPrices.salt = salt.base;
+    state.factors.salt = 1;
+    api.setRandom(() => 0.60);
+    api.updateGoodPrice(salt);
+    return state.factors.salt;
+  }
+
+  const ordinaryFactor = refreshFactor('useless');
+  const monopolyFactor = refreshFactor('saltIronMonopoly');
+
+  assert.equal(Math.abs(Math.log(monopolyFactor) - Math.log(ordinaryFactor) * 3) < 1e-10, true);
+});
+
+test('salt iron monopoly keeps the original recovery trajectory amplified', () => {
+  function refreshFactor(professionId, factor) {
+    const { api } = createGame();
+    const state = api.reset();
+    const salt = api.GOODS.find(good => good.id === 'salt');
+    state.profession = api.newProfessionState(professionId);
+    state.prices.salt = salt.base * factor;
+    state.prevPrices.salt = salt.base * factor;
+    state.factors.salt = factor;
+    api.setRandom(() => 0.60);
+    api.updateGoodPrice(salt);
+    return state.factors.salt;
+  }
+
+  for (const underlyingFactor of [0.50, 1.60]) {
+    const ordinaryFactor = refreshFactor('useless', underlyingFactor);
+    const monopolyFactor = refreshFactor('saltIronMonopoly', underlyingFactor ** 3);
+    assert.equal(Math.abs(Math.log(monopolyFactor) - Math.log(ordinaryFactor) * 3) < 1e-10, true);
+  }
+});
+
+test('salt iron monopoly triples sudden event deviation from anchor', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  const salt = api.GOODS.find(good => good.id === 'salt');
+  state.profession = api.newProfessionState('saltIronMonopoly');
+  state.prices.salt = salt.base;
+  state.factors.salt = 1;
+
+  api.updateGoodPrice(salt, { goodId: 'salt', targetMult: 2, type: 'good' });
+
+  assert.equal(Math.abs(state.factors.salt - 8) < 1e-10, true);
+});
+
+test('salt iron monopoly consecutive falling news cannot rise after amplification', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  const salt = api.GOODS.find(good => good.id === 'salt');
+  state.profession = api.newProfessionState('saltIronMonopoly');
+  state.prices.salt = salt.base * 0.125;
+  state.factors.salt = 0.125;
+
+  api.updateGoodPrice(salt, { goodId: 'salt', targetMult: 0.70, type: 'bad' });
+
+  assert.equal(state.factors.salt < 0.125, true);
+});
+
+test('salt iron monopoly triples ecology target deviation from anchor', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  const salt = api.GOODS.find(good => good.id === 'salt');
+  state.profession = api.newProfessionState('saltIronMonopoly');
+  state.day = 2;
+  state.eco = { treeId: 'civilSupplyControl', startDay: 1, A: 0, B: null, C: null, byCard: false };
+  state.prices.salt = salt.base;
+  state.factors.salt = 1;
+  const target = Math.pow(
+    api.ECO_EVENTS.civilSupplyControl.A[0].mults.salt,
+    api.BALANCE_CONFIG.ECO_EVENT_SCALE
+  );
+
+  api.updateGoodPrice(salt);
+
+  assert.equal(Math.abs(Math.log(state.factors.salt) - Math.log(target) * 0.6 * 3) < 1e-10, true);
+});
+
+test('salt iron monopoly cannot buy or sell goods outside its license', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('saltIronMonopoly');
+  state.availableGoods = ['salt', 'wheat'];
+  state.prices.salt = 6;
+  state.prices.wheat = 5;
+
+  const cashBefore = state.cash;
+  assert.equal(api.buy('wheat', 1), undefined);
+  assert.equal(state.cash, cashBefore);
+  assert.equal(api.getPercentageTradeQuantity('buy', 'wheat', 100), 0);
+  assert.equal(api.buy('salt', 1).goodId, 'salt');
+
+  state.inventory.wheat = 10;
+  state.costBasis.wheat = 50;
+  assert.equal(api.sell('wheat', 10), undefined);
+  assert.equal(state.inventory.wheat, 10);
+});
+
+test('salt iron monopoly does not bypass the ultra goods wealth lock', () => {
+  const { api } = createGame({ random: () => 0.999999 });
+  const state = api.reset();
+  state.profession = api.newProfessionState('saltIronMonopoly');
+  state.peakNetWorth = api.CONFIG.START_CASH;
+
+  const market = api.pickGoods(api.GOODS.length);
+
+  assert.equal(market.includes('lunar-soil'), false);
+});
+
+test('wind vane summons an eligible existing ecology event and has a seven-day cooldown', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('saltIronMonopoly');
+  state.day = 10;
+  api.setRandom(() => 0);
+
+  const result = api.useProfessionAbility(null);
+
+  assert.equal(result.ok, true);
+  assert.equal(result.treeId, 'civilSupplyControl');
+  assert.equal(state.eco.treeId, result.treeId);
+  assert.equal(state.eco.startDay, 10);
+  assert.equal(state.eco.byProfession, true);
+  assert.equal(state.eventNoticeQueue.length, 1);
+  assert.equal(state.availableGoods.length, api.CONFIG.MARKET_SIZE);
+
+  api.advanceBaselineDay(2026090302);
+  assert.equal(state.availableGoods.length, api.CONFIG.ECO_MARKET_SIZE);
+  assert.equal(Number.isInteger(state.eco.A), true);
+
+  state.eco = null;
+  state.day = 16;
+  assert.deepEqual(plain(api.useProfessionAbility(null)), { ok: false, reason: 'cooldown', readyDay: 17 });
+  state.day = 17;
+  assert.equal(api.useProfessionAbility(null).ok, true);
+});
+
+test('wind vane cannot replace an active ecology event or select locked ecology trees', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('saltIronMonopoly');
+  state.day = 10;
+  state.eco = { treeId: 'globalDrought', startDay: 9, A: null, B: null, C: null, byCard: false };
+
+  assert.deepEqual(plain(api.useProfessionAbility(null)), { ok: false, reason: 'active-ecology' });
+  assert.equal(state.profession.activeUsedDay, null);
+
+  state.eco = null;
+  assert.equal(api.eligibleProfessionEcoEvents().includes('lunarResourceDevelopment'), false);
 });
 
 test('tooth merchant shifts ordinary prices lower and limits natural high prices', () => {
@@ -285,7 +455,7 @@ test('speculator UI describes uncertainty without publishing exact follow-up odd
 
 test('traveling merchant is available by default', () => {
   const { api } = createGame();
-  assert.deepEqual(plain(api.loadProfile().unlockedProfessionIds), ['useless', 'toothMerchant', 'travelingMerchant', 'speculator']);
+  assert.deepEqual(plain(api.loadProfile().unlockedProfessionIds), ['useless', 'toothMerchant', 'travelingMerchant', 'speculator', 'saltIronMonopoly']);
 });
 
 test('familiar route brings back the highest-cost holding when no inventory is naturally listed', () => {
@@ -404,6 +574,48 @@ test('market trip fifteen-percent roll guarantees an event without a second move
 
   assert.equal(result.ok, true);
   assert.equal(state.events.length, 1);
+});
+
+test('market trip falling news always reprices below the pre-trip purchase price', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  const wheat = api.GOODS.find(good => good.id === 'wheat');
+  state.profession = api.newProfessionState('travelingMerchant');
+  state.availableGoods = ['wheat'];
+  state.inventory.wheat = 10;
+  state.costBasis.wheat = wheat.base * 0.25 * 10;
+  state.lastSeenPrice.wheat = wheat.base * 0.25;
+  state.prices.wheat = wheat.base * 0.25;
+  state.factors.wheat = 0.25;
+  const priceBefore = state.prices.wheat;
+  const rolls = [0.10, 0.50, 0.99, 0.50, 0.50];
+  api.setRandom(() => rolls.shift() ?? 0.50);
+
+  const result = api.useProfessionAbility('wheat');
+
+  assert.equal(result.event.type, 'bad');
+  assert.equal(state.prices.wheat < priceBefore, true);
+});
+
+test('market trip rising news always reprices above the pre-trip price', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  const wheat = api.GOODS.find(good => good.id === 'wheat');
+  state.profession = api.newProfessionState('travelingMerchant');
+  state.availableGoods = ['wheat'];
+  state.inventory.wheat = 10;
+  state.costBasis.wheat = wheat.base * 3 * 10;
+  state.lastSeenPrice.wheat = wheat.base * 3;
+  state.prices.wheat = wheat.base * 3;
+  state.factors.wheat = 3;
+  const priceBefore = state.prices.wheat;
+  const rolls = [0.10, 0.50, 0.01, 0.50, 0.50];
+  api.setRandom(() => rolls.shift() ?? 0.50);
+
+  const result = api.useProfessionAbility('wheat');
+
+  assert.equal(result.event.type, 'good');
+  assert.equal(state.prices.wheat > priceBefore, true);
 });
 
 test('selling a same-day market trip good deducts five percent travel costs', () => {

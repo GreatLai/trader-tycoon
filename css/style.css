@@ -244,6 +244,7 @@
     padding-left: 10px;
     padding-right: 10px;
   }
+  .market-row.trade-unlicensed .trade-row { opacity: .48; }
   .market-info {
     grid-area: info;
     display: grid;

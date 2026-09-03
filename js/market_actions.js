@@ -144,12 +144,36 @@ function professionAbilityReadyDay(profession = PROFESSIONS[normalizeProfessionI
   return usedDay + (profession.activeAbility.cooldownDays || 1);
 }
 
+function eligibleProfessionEcoEvents() {
+  const profession = PROFESSIONS[normalizeProfessionId(state.profession && state.profession.id)];
+  if (!profession.activeAbility || profession.activeAbility.id !== 'windVane') return [];
+  const allowed = getEffectiveRules(state.profession).trade.allowedGoodIds || [];
+  const wealth = Math.max(netWorth(), state.peakNetWorth || 0);
+  return Object.entries(ECO_EVENTS)
+    .filter(([, event]) => (!event.unlock || wealth >= event.unlock) && event.goods.some(id => allowed.includes(id)))
+    .map(([id]) => id);
+}
+
 function useProfessionAbility(targetId) {
   const profession = PROFESSIONS[normalizeProfessionId(state.profession && state.profession.id)];
   if (!profession.activeAbility) return { ok: false, reason: 'no-active-ability' };
   if (state.profession.activeUsedDay === state.day) return { ok: false, reason: 'already-used' };
   const readyDay = professionAbilityReadyDay(profession);
   if (readyDay > state.day) return { ok: false, reason: 'cooldown', readyDay };
+  if (profession.activeAbility.id === 'windVane') {
+    if (state.eco) return { ok: false, reason: 'active-ecology' };
+    const candidates = eligibleProfessionEcoEvents();
+    if (!candidates.length) return { ok: false, reason: 'no-eligible-ecology' };
+    const treeId = candidates[Math.floor(Math.random() * candidates.length)];
+    const tree = ECO_EVENTS[treeId];
+    state.profession.activeUsedDay = state.day;
+    state.eco = { treeId, startDay: state.day, A: null, B: null, C: null, byCard: false, byProfession: true };
+    state.ecoPopup = { special: true, title: tree.announce.title || '国际新闻', desc: tree.announce.desc };
+    state.ecoPopupShown = false;
+    state.logs.unshift(`第${state.day}天：盐铁专营使用风向标。${tree.announce.desc}`);
+    queueNotice('盐铁专营 · 风向标', tree.announce.desc);
+    return { ok: true, treeId, startDay: state.day };
+  }
   if (!eligibleProfessionAbilityTargets().includes(targetId)) return { ok: false, reason: 'invalid-target' };
 
   if (profession.activeAbility.id === 'raisePrice') {

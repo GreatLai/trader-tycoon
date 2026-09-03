@@ -73,6 +73,12 @@ function render() {
   } else if (professionAbilityReadyDay(profession) > state.day) {
     abilityButton.textContent = `${profession.activeAbility.name} · 第${professionAbilityReadyDay(profession)}天可用`;
     abilityButton.disabled = true;
+  } else if (profession.activeAbility.id === 'windVane' && state.eco) {
+    abilityButton.textContent = '风向标 · 当前生态行情进行中';
+    abilityButton.disabled = true;
+  } else if (profession.activeAbility.id === 'windVane') {
+    abilityButton.textContent = '使用 风向标';
+    abilityButton.disabled = eligibleProfessionEcoEvents().length === 0;
   } else {
     abilityButton.textContent = `使用 ${profession.activeAbility.name}`;
     abilityButton.disabled = eligibleProfessionAbilityTargets().length === 0;
@@ -108,9 +114,11 @@ function render() {
     const lockLabel = saleLocked ? ` ｜ 禁售中，第${state.saleLockUntilDay[id]}天恢复` : '';
     const marketTripToday = state.profession.id === 'travelingMerchant' && state.profession.data.marketTripGoodId === id && state.profession.data.marketTripDay === state.day;
     const travelFeeLabel = marketTripToday ? ' ｜ 赶集路费 5%' : '';
+    const tradeAllowed = canTradeGood(id);
+    const licenseLabel = tradeAllowed ? '' : ' ｜ 无专营权';
     const maxBuy = Math.min(Math.floor(state.cash / price), cap - used);
-    const buyDisabled = maxBuy === 0 ? 'disabled' : '';
-    const sellDisabled = owned === 0 || saleLocked ? 'disabled' : '';
+    const buyDisabled = !tradeAllowed || maxBuy === 0 ? 'disabled' : '';
+    const sellDisabled = !tradeAllowed || owned === 0 || saleLocked ? 'disabled' : '';
     const buyPresets = percentageMode ? percentageTradeButtons('buy', id, buyDisabled) : `
           <button class="btn btn-small trade-preset" data-action="buy" data-good="${id}" data-qty="1" ${buyDisabled}>+1</button>
           <button class="btn btn-small trade-preset" data-action="buy" data-good="${id}" data-qty="10" ${buyDisabled}>+10</button>
@@ -125,13 +133,13 @@ function render() {
       ? `<div class="trade-feedback"><strong>本次利润 +¥${fmt(state.lastTradeFeedback.realizedProfit, 2)}</strong><span>收益率 +${fmt(state.lastTradeFeedback.returnRate * 100, 1)}%</span></div>`
       : '';
     return `
-      <div class="market-row${ecoClass}">
+      <div class="market-row${ecoClass}${tradeAllowed ? '' : ' trade-unlicensed'}">
         <div class="market-info">
           <div class="good-name"><button class="good-icon-btn" data-chart-good="${id}" title="查看走势" aria-label="查看${g.name}走势">${goodArt(g)}</button><span>${g.name}<span class="good-traits">${g.tags.map(tag => `<small>${tag}</small>`).join('')}</span></span></div>
           <div class="price-col">
             <div class="price">¥${fmt(price, 2)}</div>
             <div class="change ${seenCls}">${seenArrow} ${seenChange >= 0 ? '+' : ''}${fmt(seenChange, 1)}% 较上次</div>
-            <div class="base-meta">${seenText}${holdText}<span class="red">${lockLabel}${travelFeeLabel}</span></div>
+            <div class="base-meta">${seenText}${holdText}<span class="red">${lockLabel}${travelFeeLabel}${licenseLabel}</span></div>
           </div>
           <div class="owned">持有 <strong>${owned}</strong></div>
         </div>

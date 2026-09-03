@@ -331,7 +331,8 @@ test('start screen presents five immersive operating principles including profes
   assert.match(ruleList, /逐利/);
   assert.match(ruleList, /观势/);
   assert.match(ruleList, /择业/);
-  assert.match(ruleList, /四种职业默认开放/);
+  assert.match(ruleList, /盐铁专营/);
+  assert.match(ruleList, /五种职业默认开放/);
   assert.match(ruleList, /守仓/);
   assert.match(ruleList, /经营费每 15 天跳升一档/);
   assert.match(html, /已上架库存按当日市价清算/);
@@ -362,11 +363,11 @@ test('the release version is consistent across delivery files', () => {
   const changelog = fs.readFileSync(path.join(ROOT, 'CHANGELOG.md'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.15.0');
+  assert.equal(api.APP_VERSION, '1.16.0');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.15\.0/g) || []).length, 16);
-  assert.match(readme, /当前版本：\*\* v1\.15\.0/);
-  assert.match(changelog, /## \[1\.15\.0\] - 2026-09-03/);
+  assert.equal((html.match(/\?v=1\.16\.0/g) || []).length, 16);
+  assert.match(readme, /当前版本：\*\* v1\.16\.0/);
+  assert.match(changelog, /## \[1\.16\.0\] - 2026-09-03/);
 });
 
 test('standard and ecology markets list six and seven goods respectively', () => {
@@ -602,6 +603,22 @@ test('every ecological event has complete A/B/C multipliers', () => {
   }
 });
 
+test('all twenty goods participate in at least one ecological event', () => {
+  const { api } = createGame();
+  const covered = new Set(Object.values(api.ECO_EVENTS).flatMap(event => event.goods));
+  const uncovered = Array.from(api.GOODS).filter(good => !covered.has(good.id)).map(good => good.id);
+
+  assert.deepEqual(uncovered, []);
+  assert.deepEqual(
+    ['civilSupplyControl', 'manufacturingRevival', 'lunarResourceDevelopment'].map(id => [...api.ECO_EVENTS[id].goods].join(',')),
+    [
+      'salt,cloth,medicine,tea',
+      'steel,car,machine-tool,copper',
+      'lunar-soil,spacecraft,machine-tool,gold'
+    ]
+  );
+});
+
 test('a deterministic no-trade run fails from operating pressure without invalid state', () => {
   let seed = 123456789;
   const random = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
@@ -789,6 +806,22 @@ test('forced sudden events can use a higher rare-outcome chance', () => {
 
   assert.equal(api.eventRareChance(false), 0.06);
   assert.equal(api.eventRareChance(true), 0.20);
+});
+
+test('consecutive sudden news always moves from the actual pre-event price in its stated direction', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  const wheat = api.GOODS.find(good => good.id === 'wheat');
+
+  state.prices.wheat = wheat.base * 0.30;
+  state.factors.wheat = 0.30;
+  api.updateGoodPrice(wheat, { goodId: 'wheat', targetMult: 0.50, type: 'bad' });
+  assert.equal(state.factors.wheat < 0.30, true);
+
+  state.prices.wheat = wheat.base * 3;
+  state.factors.wheat = 3;
+  api.updateGoodPrice(wheat, { goodId: 'wheat', targetMult: 2, type: 'good' });
+  assert.equal(state.factors.wheat > 3, true);
 });
 
 test('opening story introduces the staged operating pressure', () => {

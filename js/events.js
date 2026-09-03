@@ -148,44 +148,72 @@ function spawnEvents() {
   state.logs = state.logs.slice(0, 50);
 }
 
+function toMarketFactor(displayFactor, deviationScale) {
+  return Math.pow(Math.max(0.001, displayFactor), 1 / deviationScale);
+}
+
+function toDisplayLog(marketLog, deviationScale) {
+  return marketLog * deviationScale;
+}
+
+function directionalEventLog(event, oldFactor, deviationScale) {
+  const rawLog = toDisplayLog(Math.log(event.targetMult), deviationScale);
+  const oldLog = Math.log(Math.max(0.02, Math.min(50, oldFactor)));
+  if (event.type === 'good') {
+    return Math.max(rawLog, Math.min(Math.log(50), oldLog + Math.log(1.05)));
+  }
+  if (event.type === 'bad') {
+    return Math.min(rawLog, Math.max(Math.log(0.02), oldLog + Math.log(0.95)));
+  }
+  return rawLog;
+}
+
 function updateGoodPrice(g, forcedEvent = null, options = {}) {
     const oldPrice = state.prices[g.id];
     const oldFactor = state.factors[g.id] || 1;
-    let logF = Math.log(Math.max(0.001, oldFactor));
+    const priceRules = getEffectiveRules(state.profession).price;
+    const goodPriceRules = priceRules.byGood[g.id] || {};
+    const deviationScale = goodPriceRules.deviationScale || 1;
+    const modelOldFactor = toMarketFactor(oldFactor, deviationScale);
+    let modelLogF = Math.log(modelOldFactor);
+    let logF;
 
     const ecoOn = !options.skipEcology && !forcedEvent && state.eco && ecoAffected(g.id) && ecoRel() >= 2;
     if (ecoOn) {
       // 生态事件：围绕“事件开始价 × 累计倍率”逐步过渡
       const targetLog = Math.log(ecoTargetFactor(g.id));
-      logF += (targetLog - logF) * 0.6;
+      modelLogF += (targetLog - modelLogF) * 0.6;
+      logF = toDisplayLog(modelLogF, deviationScale);
     } else {
-      const inEventAftershock = oldFactor < g.market.ordinaryFloor || oldFactor > g.market.ordinaryCeiling;
+      const inEventAftershock = modelOldFactor < g.market.ordinaryFloor || modelOldFactor > g.market.ordinaryCeiling;
       const previousPrice = state.prevPrices[g.id] || oldPrice;
-      const previousReturn = Math.max(-0.12, Math.min(0.12, Math.log(Math.max(0.001, oldPrice / previousPrice))));
+      const previousFactor = Math.max(0.001, previousPrice / g.base);
+      const modelPreviousFactor = toMarketFactor(previousFactor, deviationScale);
+      const previousReturn = Math.max(-0.12, Math.min(0.12, Math.log(modelOldFactor / modelPreviousFactor)));
       const recovery = inEventAftershock ? Math.max(0.18, g.market.meanReversion) : g.market.meanReversion;
-      logF += -logF * recovery;
-      logF += previousReturn * g.market.momentum;
-      logF += randn() * g.market.volatility * BALANCE_CONFIG.NATURAL_VOLATILITY_SCALE * (inEventAftershock ? 0.35 : 1);
+      modelLogF += -modelLogF * recovery;
+      modelLogF += previousReturn * g.market.momentum;
+      modelLogF += randn() * g.market.volatility * BALANCE_CONFIG.NATURAL_VOLATILITY_SCALE * (inEventAftershock ? 0.35 : 1);
 
       if (!inEventAftershock && Math.random() < 0.08) {
         const positive = Math.random() < g.market.positiveBias;
         const pulse = 0.03 + Math.random() * g.market.volatility * 1.5;
-        logF += positive ? pulse : -pulse;
+        modelLogF += positive ? pulse : -pulse;
       }
 
       if (!inEventAftershock) {
-        const priceRules = getEffectiveRules(state.profession).price;
-        logF += priceRules.ordinaryLogBias || 0;
+        modelLogF += priceRules.ordinaryLogBias || 0;
         const minFactor = Math.max(0.2, g.market.ordinaryFloor + (priceRules.ordinaryFloorShift || 0));
         const maxFactor = Math.min(g.market.ordinaryCeiling, priceRules.ordinaryCeilingCap || Infinity);
-        logF = Math.max(Math.log(minFactor), Math.min(Math.log(maxFactor), logF));
+        modelLogF = Math.max(Math.log(minFactor), Math.min(Math.log(maxFactor), modelLogF));
       }
+      logF = toDisplayLog(modelLogF, deviationScale);
 
       // 4. 事件影响：以基础价为锚直接落点
       //    比如 targetMult=4，当天价格 = 基础价 × 4，而不是“前一天价格 × 4”
       const ev = forcedEvent || activeEventFor(g.id);
       if (ev) {
-        logF = Math.log(ev.targetMult);
+        logF = directionalEventLog(ev, oldFactor, deviationScale);
       }
     }
 
