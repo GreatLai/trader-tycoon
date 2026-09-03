@@ -80,6 +80,7 @@ function runSimulation({ seed, strategyId, scenario = {} }) {
   const { api } = createGame({ random: setupRandom });
   applyOverrides(api, scenario);
   const state = api.reset();
+  api.initializeOpeningMarket();
 
   const metrics = {
     seed,

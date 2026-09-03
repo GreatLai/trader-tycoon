@@ -95,6 +95,29 @@ function eventPositiveChance(tier, rare, good = null) {
   return good ? Math.max(0.12, Math.min(0.70, base + good.market.positiveBias - 0.45)) : base;
 }
 
+function initializeOpeningMarket() {
+  if (!state || state.day !== 1 || state.events.length) return { applied: false, reason: 'already-initialized' };
+  const targets = weightedSample(state.availableGoods, 2, id => goodById(id).market.eventWeight);
+  if (targets.length < 2) return { applied: false, reason: 'not-enough-goods' };
+
+  const directions = shuffle([true, false]);
+  targets.forEach((id, index) => {
+    const event = makeEvent(id, directions[index], {
+      forcedByCard: false,
+      allowRare: false,
+      guaranteedMovement: true
+    });
+    event.source = 'opening';
+    state.events.push(event);
+    updateGoodPrice(goodById(id), event);
+    recordCurrentPrice(id);
+    state.logs.unshift(`第1天：${event.title} ${event.desc}`);
+  });
+  state.popupShown = false;
+  if (typeof recordDayHistory === 'function') recordDayHistory();
+  return { applied: true, goodIds: targets };
+}
+
 function spawnEvents() {
   // 每天 0~3 个事件，只作用于今天可交易的商品
   // 生态事件第 2 天起，受影响商品不再参与普通突发事件

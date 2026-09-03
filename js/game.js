@@ -35,7 +35,12 @@ function advanceEcology() {
 }
 
 function recordDayHistory() {
-  GOODS.forEach(g => state.priceHistory[g.id].push({ day: state.day, price: state.prices[g.id] }));
+  GOODS.forEach(g => {
+    const history = state.priceHistory[g.id];
+    const latest = history[history.length - 1];
+    if (latest && latest.day === state.day) latest.price = state.prices[g.id];
+    else history.push({ day: state.day, price: state.prices[g.id] });
+  });
   const items = state.events.map(event => ({ type: 'sudden', title: event.title, desc: event.desc, good: goodById(event.goodId).name }));
   if (state.ecoPopup) items.push({ type: 'international', title: state.ecoPopup.title, desc: state.ecoPopup.desc, special: state.ecoPopup.special });
   if (items.length) state.dailyHistory.push({ day: state.day, items });

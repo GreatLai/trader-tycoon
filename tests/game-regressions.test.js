@@ -216,11 +216,11 @@ test('the release version is consistent across delivery files', () => {
   const changelog = fs.readFileSync(path.join(ROOT, 'CHANGELOG.md'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.13.0');
+  assert.equal(api.APP_VERSION, '1.14.0');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.13\.0/g) || []).length, 16);
-  assert.match(readme, /当前版本：\*\* v1\.13\.0/);
-  assert.match(changelog, /## \[1\.13\.0\] - 2026-09-03/);
+  assert.equal((html.match(/\?v=1\.14\.0/g) || []).length, 16);
+  assert.match(readme, /当前版本：\*\* v1\.14\.0/);
+  assert.match(changelog, /## \[1\.14\.0\] - 2026-09-03/);
 });
 
 test('standard and ecology markets list six and seven goods respectively', () => {
@@ -517,6 +517,35 @@ test('natural sudden event count keeps the original daily distribution', () => {
   api.setRandom(() => calls++ === 0 ? 0.90 : 0.1);
   api.spawnEvents();
   assert.equal(state.events.length, 3);
+});
+
+test('day one opens with one rising and one falling normal event', () => {
+  const { api } = createGame({ random: () => 0.5 });
+  const state = api.reset();
+
+  const result = api.initializeOpeningMarket();
+
+  assert.equal(result.applied, true);
+  assert.equal(state.events.length, 2);
+  assert.deepEqual(new Set(state.events.map(event => event.type)), new Set(['good', 'bad']));
+  assert.equal(new Set(state.events.map(event => event.goodId)).size, 2);
+  assert.equal(state.events.every(event => state.availableGoods.includes(event.goodId)), true);
+  assert.equal(state.events.every(event => event.isRare === false && event.source === 'opening'), true);
+  assert.equal(state.popupShown, false);
+  for (const event of state.events) {
+    assert.equal(state.prices[event.goodId], +(api.GOODS.find(good => good.id === event.goodId).base * event.targetMult).toFixed(2));
+    assert.equal(state.priceHistory[event.goodId].length, 1);
+    assert.equal(state.priceHistory[event.goodId][0].day, 1);
+    assert.equal(state.priceHistory[event.goodId][0].price, state.prices[event.goodId]);
+  }
+});
+
+test('new game and balance simulation both initialize the opening market events', () => {
+  const main = fs.readFileSync(path.join(ROOT, 'js', 'main.js'), 'utf8');
+  const balance = fs.readFileSync(path.join(ROOT, 'scripts', 'balance', 'index.js'), 'utf8');
+
+  assert.match(main, /initializeOpeningMarket\(\)/);
+  assert.match(balance, /initializeOpeningMarket\(\)/);
 });
 
 test('ecological news expands the market to seven goods until the event ends', () => {
