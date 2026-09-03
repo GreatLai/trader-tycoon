@@ -223,7 +223,7 @@ function render() {
     <div class="news-item international ${state.ecoPopup.special ? 'special' : ''}">
       <div class="news-title">${state.ecoPopup.title}</div>
       <div>${state.ecoPopup.desc}</div>
-      ${state.ecoPopup.mults ? `<div class="news-meta">行情：${describeMults(state.ecoPopup.mults)}</div>` : ''}
+      ${state.ecoPopup.mults ? `<div class="news-meta">行情：${describeMults(state.ecoPopup.movementMults || state.ecoPopup.mults)}</div>` : ''}
     </div>` : '';
   const news = (suddenNewsHtml + ecoNewsHtml) || '<div style="color:var(--muted);font-size:14px;">今天没有突发新闻。</div>';
   $('newsList').innerHTML = news;

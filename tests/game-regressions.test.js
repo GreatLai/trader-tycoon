@@ -65,8 +65,8 @@ test('forced liquidation pays the shortfall and keeps only the surplus', () => {
   assert.equal(api.calcDailyFee(), 5);
   api.applyDailyCosts();
 
-  assert.equal(state.inventory.wheat, 983);
-  assert.equal(state.cash, 0);
+  assert.equal(state.inventory.wheat, 982);
+  assert.equal(state.cash, 1);
   assert.equal(state.gameOver, null);
 });
 
@@ -82,7 +82,7 @@ test('forced liquidation sells off-market holdings at twenty percent of average 
 
   api.applyDailyCosts();
 
-  assert.equal(state.inventory.wheat, 915);
+  assert.equal(state.inventory.wheat, 911);
   assert.equal(state.cash, 0);
   assert.equal(state.gameOver, null);
 });
@@ -96,9 +96,9 @@ test('operating cost multiplier scales operating pressure without scaling storag
   state.lastSeenPrice.wheat = 5;
   api.BALANCE_CONFIG.OPERATING_COST_MULTIPLIER = 2;
 
-  assert.equal(api.calcOperatingCost(1), 160);
+  assert.equal(api.calcOperatingCost(1), 168);
   assert.equal(api.calcDailyFee(), 0.5);
-  assert.equal(api.calcTotalDailyCost(1), 160.5);
+  assert.equal(api.calcTotalDailyCost(1), 168.5);
 });
 
 test('listed inventory liquidates at the configured current-market rate', () => {
@@ -114,8 +114,8 @@ test('listed inventory liquidates at the configured current-market rate', () => 
 
   api.applyDailyCosts();
 
-  assert.equal(state.inventory.wheat, 983);
-  assert.equal(state.cash, 0);
+  assert.equal(state.inventory.wheat, 982);
+  assert.equal(state.cash, 1);
   assert.equal(state.gameOver, null);
 });
 
@@ -159,14 +159,14 @@ test('opening settlement lists every forced sale with its actual proceeds', () =
   assert.deepEqual(sale, {
     goodId: 'wheat',
     goodName: '小麦',
-    quantity: 17,
+    quantity: 18,
     listed: true,
     unitPrice: 5,
-    grossRevenue: 85,
+    grossRevenue: 90,
     saleFee: 0,
-    netRevenue: 85
+    netRevenue: 90
   });
-  assert.equal(state.dailySettlement.afterCosts.cash, 0);
+  assert.equal(state.dailySettlement.afterCosts.cash, 1);
 });
 
 test('day one has no daily settlement popup data', () => {
@@ -208,7 +208,7 @@ test('off-market inventory liquidates at a fraction of its average purchase cost
 
   api.applyDailyCosts();
 
-  assert.equal(state.inventory.wheat, 59);
+  assert.equal(state.inventory.wheat, 57);
   assert.equal(state.cash, 1.5);
   assert.equal(state.gameOver, null);
 });
@@ -239,22 +239,22 @@ test('operating costs follow six fixed fifteen-day accounting periods', () => {
   const { api } = createGame();
   const costs = Array.from({ length: api.CONFIG.DAYS_LIMIT }, (_, index) => api.calcOperatingCost(index + 1));
 
-  assert.equal(costs[0], 80);
-  assert.equal(costs[14], 80);
-  assert.equal(costs[15], 320);
-  assert.equal(costs[29], 320);
-  assert.equal(costs[30], 1600);
-  assert.equal(costs[44], 1600);
-  assert.equal(costs[45], 8000);
-  assert.equal(costs[59], 8000);
-  assert.equal(costs[60], 32000);
-  assert.equal(costs[74], 32000);
-  assert.equal(costs[75], 115200);
-  assert.equal(costs.at(-1), 115200);
-  assert.equal(costs.reduce((sum, value) => sum + value, 0), 2358000);
-  assert.equal(api.BALANCE_CONFIG.OPERATING_COST_TOTAL, 2358000);
+  assert.equal(costs[0], 84);
+  assert.equal(costs[14], 84);
+  assert.equal(costs[15], 336);
+  assert.equal(costs[29], 336);
+  assert.equal(costs[30], 1680);
+  assert.equal(costs[44], 1680);
+  assert.equal(costs[45], 8400);
+  assert.equal(costs[59], 8400);
+  assert.equal(costs[60], 33600);
+  assert.equal(costs[74], 33600);
+  assert.equal(costs[75], 120960);
+  assert.equal(costs.at(-1), 120960);
+  assert.equal(costs.reduce((sum, value) => sum + value, 0), 2475900);
+  assert.equal(api.BALANCE_CONFIG.OPERATING_COST_TOTAL, 2475900);
   assert.equal(api.BALANCE_CONFIG.SUDDEN_EVENT_SCALE, 1.3);
-  assert.equal(api.calcRemainingOperatingCost(1), 2358000);
+  assert.equal(api.calcRemainingOperatingCost(1), 2475900);
   assert.equal(Math.abs(api.calcRemainingOperatingCost(16) - costs.slice(15).reduce((sum, value) => sum + value, 0)) < 0.01, true);
   assert.equal(Math.abs(api.calcRemainingOperatingCost(31) - costs.slice(30).reduce((sum, value) => sum + value, 0)) < 0.01, true);
   assert.equal(Math.abs(api.calcRemainingOperatingCost(46) - costs.slice(45).reduce((sum, value) => sum + value, 0)) < 0.01, true);
@@ -390,11 +390,11 @@ test('the release version is consistent across delivery files', () => {
   const changelog = fs.readFileSync(path.join(ROOT, 'CHANGELOG.md'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.16.0');
+  assert.equal(api.APP_VERSION, '1.16.1');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.16\.0/g) || []).length, 16);
-  assert.match(readme, /当前版本：\*\* v1\.16\.0/);
-  assert.match(changelog, /## \[1\.16\.0\] - 2026-09-03/);
+  assert.equal((html.match(/\?v=1\.16\.1/g) || []).length, 16);
+  assert.match(readme, /当前版本：\*\* v1\.16\.1/);
+  assert.match(changelog, /## \[1\.16\.1\] - 2026-09-03/);
 });
 
 test('standard and ecology markets list six and seven goods respectively', () => {
@@ -804,6 +804,35 @@ test('ecological event scale transforms the configured multiplier', () => {
     api.ecoCurrentMult('wheat'),
     Math.pow(api.ECO_EVENTS.globalDrought.A[0].mults.wheat, api.BALANCE_CONFIG.ECO_EVENT_SCALE)
   );
+});
+
+test('ecological stage labels describe movement from the previous stage instead of anchor height', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.day = 4;
+  state.eco = { treeId: 'civilSupplyControl', startDay: 1, A: 0, B: 0, C: 2 };
+
+  const movements = api.ecoCurrentMovementMults();
+
+  assert.equal(movements.salt < 1, true);
+  assert.equal(movements.cloth < 1, true);
+  assert.equal(movements.medicine < 1, true);
+  assert.match(api.describeMults(movements), /盐.*跌/);
+});
+
+test('an easing ecological stage must fall from yesterday even when its anchor target remains higher', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  const salt = api.GOODS.find(good => good.id === 'salt');
+  state.day = 4;
+  state.eco = { treeId: 'civilSupplyControl', startDay: 1, A: 0, B: 0, C: 2 };
+  state.factors.salt = 1.5;
+  state.prices.salt = salt.base * 1.5;
+  state.prevPrices.salt = state.prices.salt;
+
+  api.updateGoodPrice(salt);
+
+  assert.equal(state.prices.salt < salt.base * 1.5, true);
 });
 
 test('extreme ecological branches receive less selection weight', () => {

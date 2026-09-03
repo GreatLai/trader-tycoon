@@ -167,7 +167,7 @@ test('generated balance report matches the current card-free pressure baseline',
   const skilled = report.validation.strategies.skilled;
 
   assert.equal(report.baseline, 'useless-trader-card-free');
-  assert.equal(report.gameVersion, '1.16.0');
+  assert.equal(report.gameVersion, '1.16.1');
   assert.deepEqual(report.exclusions, [
     'daily-hand', 'career-skills', 'shop-cards', 'existing-item-card-income'
   ]);

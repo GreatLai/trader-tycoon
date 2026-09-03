@@ -186,9 +186,16 @@ function updateGoodPrice(g, forcedEvent = null, options = {}) {
 
     const ecoOn = !options.skipEcology && !forcedEvent && state.eco && ecoAffected(g.id) && ecoRel() >= 2;
     if (ecoOn) {
-      // 生态事件：围绕“事件开始价 × 累计倍率”逐步过渡
+      // 价格高度由锚点目标控制，阶段间倍率同时保证当日方向与新闻一致。
       const targetLog = Math.log(ecoTargetFactor(g.id));
-      modelLogF += (targetLog - modelLogF) * 0.6;
+      const targetCandidateLog = modelLogF + (targetLog - modelLogF) * 0.6;
+      const movementMult = ecoCurrentMovementMults()[g.id] || 1;
+      const movementCandidateLog = modelLogF + Math.log(movementMult) * 0.6;
+      modelLogF = movementMult > 1
+        ? Math.max(targetCandidateLog, movementCandidateLog)
+        : movementMult < 1
+          ? Math.min(targetCandidateLog, movementCandidateLog)
+          : targetCandidateLog;
       logF = toDisplayLog(modelLogF, deviationScale);
     } else {
       const inEventAftershock = modelOldFactor < g.market.ordinaryFloor || modelOldFactor > g.market.ordinaryCeiling;

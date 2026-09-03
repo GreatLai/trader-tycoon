@@ -1,6 +1,6 @@
 // ==================== 配置 ====================
 const ULTRA_UNLOCK = 10000000;
-const APP_VERSION = '1.16.0';
+const APP_VERSION = '1.16.1';
 
 const CONFIG = {
   DAYS_LIMIT: 90,
@@ -15,14 +15,14 @@ const CONFIG = {
 // 纯交易规则的可校准参数；仓储费率保留 v1.8.0 的实际结算值。
 const BALANCE_CONFIG = {
   OPERATING_COST_STAGES: Object.freeze([
-    Object.freeze({ startDay: 1, endDay: 15, base: 80, growth: 1 }),
-    Object.freeze({ startDay: 16, endDay: 30, base: 320, growth: 1 }),
-    Object.freeze({ startDay: 31, endDay: 45, base: 1600, growth: 1 }),
-    Object.freeze({ startDay: 46, endDay: 60, base: 8000, growth: 1 }),
-    Object.freeze({ startDay: 61, endDay: 75, base: 32000, growth: 1 }),
-    Object.freeze({ startDay: 76, endDay: 90, base: 115200, growth: 1 })
+    Object.freeze({ startDay: 1, endDay: 15, base: 84, growth: 1 }),
+    Object.freeze({ startDay: 16, endDay: 30, base: 336, growth: 1 }),
+    Object.freeze({ startDay: 31, endDay: 45, base: 1680, growth: 1 }),
+    Object.freeze({ startDay: 46, endDay: 60, base: 8400, growth: 1 }),
+    Object.freeze({ startDay: 61, endDay: 75, base: 33600, growth: 1 }),
+    Object.freeze({ startDay: 76, endDay: 90, base: 120960, growth: 1 })
   ]),
-  OPERATING_COST_TOTAL: 2358000,
+  OPERATING_COST_TOTAL: 2475900,
   OPERATING_COST_MULTIPLIER: 1,
   STORAGE_FEE_RATE: 0.001,
   LIQUIDATION_RATE: 1,

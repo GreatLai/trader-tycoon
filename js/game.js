@@ -7,17 +7,17 @@ function advanceEcology() {
     else if (rel === 2) {
       state.eco.A = state.eco.byCard ? pickVolatileEcoBranch(tree.A) : pickWeightedEcoBranch(tree.A);
       const stage = tree.A[state.eco.A];
-      state.ecoPopup = { special: false, title: '国际新闻', desc: `此前报道的${tree.name}仍在持续——${stage.news}`, mults: stage.mults };
+      state.ecoPopup = { special: false, title: '国际新闻', desc: `此前报道的${tree.name}仍在持续——${stage.news}`, mults: stage.mults, movementMults: ecoCurrentMovementMults() };
     } else if (rel === 3) {
       const branches = tree.A[state.eco.A].B;
       state.eco.B = state.eco.byCard ? pickVolatileEcoBranch(branches) : pickWeightedEcoBranch(branches);
       const stage = tree.A[state.eco.A].B[state.eco.B];
-      state.ecoPopup = { special: false, title: '国际新闻', desc: `${tree.name}进一步发展——${stage.news}`, mults: stage.mults };
+      state.ecoPopup = { special: false, title: '国际新闻', desc: `${tree.name}进一步发展——${stage.news}`, mults: stage.mults, movementMults: ecoCurrentMovementMults() };
     } else if (rel === 4) {
       const branches = tree.A[state.eco.A].B[state.eco.B].C;
       state.eco.C = state.eco.byCard ? pickVolatileEcoBranch(branches) : pickWeightedEcoBranch(branches);
       const stage = tree.A[state.eco.A].B[state.eco.B].C[state.eco.C];
-      state.ecoPopup = { special: false, title: '国际新闻', desc: `这场持续一周的${tree.name}最终——${stage.news}`, mults: stage.mults };
+      state.ecoPopup = { special: false, title: '国际新闻', desc: `这场持续一周的${tree.name}最终——${stage.news}`, mults: stage.mults, movementMults: ecoCurrentMovementMults() };
     }
   }
 

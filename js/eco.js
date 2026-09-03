@@ -33,6 +33,38 @@ function ecoCurrentMult(goodId) {
   return Math.pow(B.C[state.eco.C].mults[goodId], scale);
 }
 
+function ecoCurrentStageMults() {
+  const tree = ecoTree();
+  const rel = ecoRel();
+  if (!tree || rel < 2 || state.eco.A == null) return null;
+  const A = tree.A[state.eco.A];
+  if (rel <= 2 || state.eco.B == null) return A.mults;
+  const B = A.B[state.eco.B];
+  if (rel === 3 || state.eco.C == null) return B.mults;
+  return B.C[state.eco.C].mults;
+}
+
+function ecoPreviousStageMults() {
+  const tree = ecoTree();
+  const rel = ecoRel();
+  if (!tree || rel < 2 || state.eco.A == null) return null;
+  if (rel <= 2) return null;
+  const A = tree.A[state.eco.A];
+  if (rel === 3 || state.eco.B == null) return A.mults;
+  return A.B[state.eco.B].mults;
+}
+
+function ecoCurrentMovementMults() {
+  const current = ecoCurrentStageMults();
+  if (!current) return {};
+  const previous = ecoPreviousStageMults();
+  const scale = BALANCE_CONFIG.ECO_EVENT_SCALE;
+  return Object.fromEntries(Object.entries(current).map(([goodId, mult]) => {
+    const previousMult = previous ? previous[goodId] : 1;
+    return [goodId, Math.pow(mult / previousMult, scale)];
+  }));
+}
+
 function ecoBranchWeight(stage) {
   const values = Object.values(stage.mults);
   const impact = values.reduce((sum, mult) => sum + Math.abs(Math.log(mult)), 0) / values.length;
