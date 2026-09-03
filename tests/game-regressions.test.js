@@ -70,6 +70,79 @@ test('forced liquidation cannot sell holdings that are absent from the market', 
   assert.equal(state.gameOver, 'lose');
 });
 
+test('operating cost multiplier scales operating pressure without scaling storage fees', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.inventory = { wheat: 100 };
+  state.costBasis = { wheat: 500 };
+  state.prices.wheat = 5;
+  state.lastSeenPrice.wheat = 5;
+  api.BALANCE_CONFIG.OPERATING_COST_MULTIPLIER = 2;
+
+  assert.equal(api.calcOperatingCost(1), 100);
+  assert.equal(api.calcDailyFee(), 0.5);
+  assert.equal(api.calcTotalDailyCost(1), 100.5);
+});
+
+test('listed inventory liquidates at the configured current-market rate', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  api.BALANCE_CONFIG.LIQUIDATION_RATE = 1;
+  state.cash = 0;
+  state.inventory = { wheat: 1000 };
+  state.costBasis = { wheat: 5000 };
+  state.prices.wheat = 5;
+  state.lastSeenPrice.wheat = 5;
+  state.availableGoods = ['wheat'];
+
+  api.applyDailyCosts();
+
+  assert.equal(state.inventory.wheat, 989);
+  assert.equal(state.cash, 0);
+  assert.equal(state.gameOver, null);
+});
+
+test('off-market inventory liquidates at a fraction of its average purchase cost', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  api.BALANCE_CONFIG.ALLOW_OFF_MARKET_LIQUIDATION = true;
+  api.BALANCE_CONFIG.OFF_MARKET_LIQUIDATION_RATE = 0.2;
+  state.cash = 0;
+  state.inventory = { wheat: 100 };
+  state.costBasis = { wheat: 1000 };
+  state.prices.wheat = 100;
+  state.lastSeenPrice.wheat = 100;
+  state.availableGoods = ['wood'];
+
+  api.applyDailyCosts();
+
+  assert.equal(state.inventory.wheat, 74);
+  assert.equal(state.cash, 1.5);
+  assert.equal(state.gameOver, null);
+});
+
+test('forced liquidation exhausts listed inventory options before touching off-market stock', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  api.BALANCE_CONFIG.LIQUIDATION_RATE = 1;
+  api.BALANCE_CONFIG.ALLOW_OFF_MARKET_LIQUIDATION = true;
+  api.BALANCE_CONFIG.OFF_MARKET_LIQUIDATION_RATE = 0.2;
+  state.cash = 0;
+  state.inventory = { wheat: 100, wood: 1000 };
+  state.costBasis = { wheat: 500, wood: 8000 };
+  state.prices.wheat = 5;
+  state.prices.wood = 8;
+  state.lastSeenPrice.wheat = 5;
+  state.lastSeenPrice.wood = 8;
+  state.availableGoods = ['wheat'];
+
+  api.applyDailyCosts();
+
+  assert.equal(state.inventory.wood, 1000);
+  assert.equal(state.inventory.wheat < 100, true);
+  assert.equal(state.gameOver, null);
+});
+
 test('operating costs follow the configured four-stage ninety-day pressure curve', () => {
   const { api } = createGame();
   const costs = Array.from({ length: api.CONFIG.DAYS_LIMIT }, (_, index) => api.calcOperatingCost(index + 1));

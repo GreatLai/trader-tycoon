@@ -8,6 +8,7 @@ const {
   SENSITIVITY_SEEDS,
   VALIDATION_SEEDS,
   STRATEGIES,
+  applyOverrides,
   applyScenario,
   runSimulation,
   summarizeRuns
@@ -76,6 +77,22 @@ test('scenario overrides affect live parameters without leaking into later runs'
 
   assert.equal(expensiveStorage.profitSources.storageFees < baseline.profitSources.storageFees, true);
   assert.deepEqual(repeatedBaseline, baseline);
+});
+
+test('debt settlement scenario maps the candidate operating and liquidation rules', () => {
+  const { api } = createGame();
+
+  applyOverrides(api, applyScenario({
+    operatingCostMultiplier: 2,
+    liquidationRate: 1,
+    allowOffMarketLiquidation: true,
+    offMarketLiquidationRate: 0.2
+  }));
+
+  assert.equal(api.BALANCE_CONFIG.OPERATING_COST_MULTIPLIER, 2);
+  assert.equal(api.BALANCE_CONFIG.LIQUIDATION_RATE, 1);
+  assert.equal(api.BALANCE_CONFIG.ALLOW_OFF_MARKET_LIQUIDATION, true);
+  assert.equal(api.BALANCE_CONFIG.OFF_MARKET_LIQUIDATION_RATE, 0.2);
 });
 
 test('summary reports survivor-only wealth and bankruptcy timing separately', () => {

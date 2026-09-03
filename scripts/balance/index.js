@@ -49,11 +49,11 @@ function applyScenario(overrides = {}) {
 
 function applyOverrides(api, scenario) {
   const mapping = {
-    operatingCostFirstDay: 'OPERATING_COST_FIRST_DAY',
-    operatingCostDailyGrowth: 'OPERATING_COST_DAILY_GROWTH',
+    operatingCostMultiplier: 'OPERATING_COST_MULTIPLIER',
     storageFeeRate: 'STORAGE_FEE_RATE',
     liquidationRate: 'LIQUIDATION_RATE',
     allowOffMarketLiquidation: 'ALLOW_OFF_MARKET_LIQUIDATION',
+    offMarketLiquidationRate: 'OFF_MARKET_LIQUIDATION_RATE',
     ecoEventChance: 'ECO_EVENT_CHANCE',
     naturalVolatilityScale: 'NATURAL_VOLATILITY_SCALE',
     suddenEventScale: 'SUDDEN_EVENT_SCALE',
@@ -149,6 +149,8 @@ function runSimulation({ seed, strategyId, scenario = {} }) {
     const operatingCost = api.calcOperatingCost(state.day);
     const totalDailyCost = operatingCost + fee;
     const beforeInventory = { ...state.inventory };
+    const beforeCostBasis = { ...state.costBasis };
+    const listedBeforeLiquidation = new Set(state.availableGoods);
     const beforePrices = {};
     for (const id of Object.keys(beforeInventory)) beforePrices[id] = knownPrice(state, id);
 
@@ -168,7 +170,11 @@ function runSimulation({ seed, strategyId, scenario = {} }) {
       if (liquidated > 0) {
         forcedThisDay = true;
         metrics.forcedLiquidatedUnits += liquidated;
-        metrics.profitSources.forcedLiquidationPenalty -= liquidated * beforePrices[id] * (1 - api.BALANCE_CONFIG.LIQUIDATION_RATE);
+        const averageCost = beforeQuantity ? (beforeCostBasis[id] || 0) / beforeQuantity : 0;
+        const liquidationPrice = listedBeforeLiquidation.has(id)
+          ? beforePrices[id] * api.BALANCE_CONFIG.LIQUIDATION_RATE
+          : averageCost * api.BALANCE_CONFIG.OFF_MARKET_LIQUIDATION_RATE;
+        metrics.profitSources.forcedLiquidationPenalty -= liquidated * Math.max(0, beforePrices[id] - liquidationPrice);
       }
       const heldQuantity = Math.min(beforeQuantity, afterQuantity);
       if (!heldQuantity) continue;
@@ -234,6 +240,7 @@ module.exports = {
   SENSITIVITY_SEEDS,
   VALIDATION_SEEDS,
   STRATEGIES,
+  applyOverrides,
   applyScenario,
   runBatch,
   runSimulation,

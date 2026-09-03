@@ -223,7 +223,7 @@ function calcDailyFee() {
 function calcOperatingCost(day = state.day) {
   const safeDay = Math.max(1, Math.min(CONFIG.DAYS_LIMIT, Math.floor(Number(day) || 1)));
   const stage = BALANCE_CONFIG.OPERATING_COST_STAGES.find(item => safeDay >= item.startDay && safeDay <= item.endDay);
-  return stage.base * Math.pow(stage.growth, safeDay - stage.startDay);
+  return stage.base * Math.pow(stage.growth, safeDay - stage.startDay) * BALANCE_CONFIG.OPERATING_COST_MULTIPLIER;
 }
 
 function professionNaturalEventIntensity() {
@@ -249,15 +249,23 @@ function liquidateInventory(shortfall) {
       !isGoodSaleLocked(id) &&
       (BALANCE_CONFIG.ALLOW_OFF_MARKET_LIQUIDATION || state.availableGoods.includes(id))
     )
-    .map(id => ({ id, qty: state.inventory[id], avg: (state.costBasis[id] || 0) / state.inventory[id] }));
-  entries.sort((a, b) => b.qty - a.qty || b.avg - a.avg);
+    .map(id => {
+      const qty = state.inventory[id];
+      const avg = (state.costBasis[id] || 0) / qty;
+      const listed = state.availableGoods.includes(id);
+      const price = listed
+        ? knownPrice(id) * BALANCE_CONFIG.LIQUIDATION_RATE
+        : avg * BALANCE_CONFIG.OFF_MARKET_LIQUIDATION_RATE;
+      return { id, qty, avg, listed, price };
+    });
+  entries.sort((a, b) => Number(b.listed) - Number(a.listed) || b.qty - a.qty || b.avg - a.avg);
   for (const e of entries) {
     if (need <= 0) break;
-    const price = knownPrice(e.id) * BALANCE_CONFIG.LIQUIDATION_RATE;
-    const netUnitPrice = calculateSaleSettlement(e.id, 1, price).net;
+    const netUnitPrice = calculateSaleSettlement(e.id, 1, e.price).net;
+    if (netUnitPrice <= 0) continue;
     let qtyToSell = Math.min(e.qty, Math.ceil(need / netUnitPrice));
     if (qtyToSell <= 0) continue;
-    const settlement = calculateSaleSettlement(e.id, qtyToSell, price);
+    const settlement = calculateSaleSettlement(e.id, qtyToSell, e.price);
     state.cash += settlement.net;
     state.inventory[e.id] -= qtyToSell;
     state.costBasis[e.id] = (state.costBasis[e.id] || 0) - e.avg * qtyToSell;
