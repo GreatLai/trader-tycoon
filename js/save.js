@@ -15,10 +15,26 @@ function savedNetWorth(saved) {
   return saved.cash + inventoryValue;
 }
 
+function validDailySettlement(settlement) {
+  const moneyPair = value => value && Number.isFinite(value.cash) && Number.isFinite(value.netWorth);
+  return !!settlement &&
+    Number.isFinite(settlement.day) &&
+    moneyPair(settlement.previousClose) &&
+    moneyPair(settlement.afterCosts) &&
+    moneyPair(settlement.todayOpen) &&
+    settlement.costs &&
+    Number.isFinite(settlement.costs.operating) &&
+    Number.isFinite(settlement.costs.storage) &&
+    Number.isFinite(settlement.costs.total) &&
+    Array.isArray(settlement.forcedLiquidations) &&
+    Number.isFinite(settlement.marketRevaluation);
+}
+
 function normalizeSave(saved) {
   if (!saved || typeof saved !== 'object') return null;
 
   saved.events = Array.isArray(saved.events) ? saved.events : [];
+  saved.dailySettlement = validDailySettlement(saved.dailySettlement) ? saved.dailySettlement : null;
   saved.dailyHistory = Array.isArray(saved.dailyHistory) ? saved.dailyHistory : [];
   saved.logs = Array.isArray(saved.logs) ? saved.logs : [];
   saved.inventory = saved.inventory || {};

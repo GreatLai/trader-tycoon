@@ -102,6 +102,71 @@ test('listed inventory liquidates at the configured current-market rate', () => 
   assert.equal(state.gameOver, null);
 });
 
+test('advancing to a new day records a complete opening settlement summary', () => {
+  const { api } = createGame({ random: () => 0.5 });
+  const state = api.reset();
+  state.availableGoods = ['wheat'];
+  state.prices.wheat = 5;
+  state.lastSeenPrice.wheat = 5;
+  state.inventory = { wheat: 10 };
+  state.costBasis = { wheat: 50 };
+  state.cash = 5000;
+
+  const previousCloseNetWorth = api.netWorth();
+  const operating = +api.calcOperatingCost(1).toFixed(2);
+  const storage = +api.calcDailyFee().toFixed(2);
+  api.nextDay();
+
+  const summary = JSON.parse(JSON.stringify(state.dailySettlement));
+  assert.equal(summary.day, 2);
+  assert.deepEqual(summary.previousClose, { cash: 5000, netWorth: previousCloseNetWorth });
+  assert.deepEqual(summary.costs, { operating, storage, total: +(operating + storage).toFixed(2) });
+  assert.deepEqual(summary.forcedLiquidations, []);
+  assert.equal(summary.marketRevaluation, +(summary.todayOpen.netWorth - summary.afterCosts.netWorth).toFixed(2));
+  assert.deepEqual(summary.todayOpen, { cash: state.cash, netWorth: api.netWorth() });
+});
+
+test('opening settlement lists every forced sale with its actual proceeds', () => {
+  const { api } = createGame({ random: () => 0.5 });
+  const state = api.reset();
+  state.availableGoods = ['wheat'];
+  state.prices.wheat = 5;
+  state.lastSeenPrice.wheat = 5;
+  state.inventory = { wheat: 1000 };
+  state.costBasis = { wheat: 5000 };
+  state.cash = 0;
+
+  api.nextDay();
+
+  const sale = JSON.parse(JSON.stringify(state.dailySettlement.forcedLiquidations[0]));
+  assert.deepEqual(sale, {
+    goodId: 'wheat',
+    goodName: '小麦',
+    quantity: 16,
+    listed: true,
+    unitPrice: 3.5,
+    grossRevenue: 56,
+    saleFee: 0,
+    netRevenue: 56
+  });
+  assert.equal(state.dailySettlement.afterCosts.cash, 1);
+});
+
+test('day one has no daily settlement popup data', () => {
+  const { api } = createGame();
+  const state = api.reset();
+
+  assert.equal(state.dailySettlement, null);
+});
+
+test('malformed saved settlement data is discarded during load', () => {
+  const baseline = createGame().api.newState();
+  baseline.dailySettlement = { day: 2 };
+  const { api } = createGame({ savedState: baseline });
+
+  assert.equal(api.loadSave().dailySettlement, null);
+});
+
 test('off-market inventory liquidates at a fraction of its average purchase cost', () => {
   const { api } = createGame();
   const state = api.reset();
@@ -619,6 +684,19 @@ test('new game and balance simulation both initialize the opening market events'
 
   assert.match(main, /initializeOpeningMarket\(\)/);
   assert.match(balance, /initializeOpeningMarket\(\)/);
+});
+
+test('event popup combines the opening settlement with the current day news', () => {
+  const ui = fs.readFileSync(path.join(ROOT, 'js', 'ui.js'), 'utf8');
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const css = fs.readFileSync(path.join(ROOT, 'css', 'style.css'), 'utf8');
+
+  assert.match(ui, /dailySettlementHtml/);
+  assert.match(ui, /dailySettlementHtml \+ suddenNewsHtml \+ ecoNewsHtml/);
+  assert.match(ui, /popupHtml && !state\.popupShown[^\n]+milestoneOverlay[^\n]+contains\('hidden'\)/);
+  assert.match(html, /id="eventPopupTitle"/);
+  assert.match(css, /\.settlement-grid strong \{[^}]*overflow-wrap: anywhere/);
+  assert.match(css, /\.settlement-sale > \* \{[^}]*overflow-wrap: anywhere/);
 });
 
 test('ecological news expands the market to seven goods until the event ends', () => {

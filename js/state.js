@@ -42,6 +42,7 @@ function newState(professionId = DEFAULT_PROFESSION_ID) {
     eco: null,
     ecoPopup: null,
     ecoPopupShown: true,
+    dailySettlement: null,
     dailyHistory: [],
     priceHistory,
     chartGood: GOODS[0].id,

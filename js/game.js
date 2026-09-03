@@ -77,7 +77,11 @@ function resolveNextDayState() {
 
 function nextDay() {
   if (state.gameOver) return;
-  applyDailyCosts(state.day);
+  const previousClose = {
+    cash: +state.cash.toFixed(2),
+    netWorth: +netWorth().toFixed(2)
+  };
+  const costSettlement = applyDailyCosts(state.day);
   if (state.gameOver) {
     save(); render();
     return;
@@ -89,10 +93,31 @@ function nextDay() {
     save(); render();
     return;
   }
+  const afterCosts = {
+    cash: +state.cash.toFixed(2),
+    netWorth: +netWorth().toFixed(2)
+  };
   const oldRandom = Math.random;
   Math.random = mulberry32(state.nextDaySeed);
   resolveNextDayState();
   Math.random = oldRandom;
+  const todayOpen = {
+    cash: +state.cash.toFixed(2),
+    netWorth: +netWorth().toFixed(2)
+  };
+  state.dailySettlement = {
+    day: state.day,
+    previousClose,
+    costs: {
+      operating: costSettlement.operating,
+      storage: costSettlement.storage,
+      total: costSettlement.total
+    },
+    forcedLiquidations: costSettlement.forcedLiquidations,
+    afterCosts,
+    marketRevaluation: +(todayOpen.netWorth - afterCosts.netWorth).toFixed(2),
+    todayOpen
+  };
   state.nextDaySeed = Math.floor(Math.random() * 1e9);
   recordFinishedRun();
   save(); render();

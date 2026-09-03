@@ -209,14 +209,51 @@ function render() {
   $('newsList').innerHTML = news;
 
   // 主动技能事件逐条播报；每日自然事件仍合并播报。
-  const popupHtml = suddenNewsHtml + ecoNewsHtml;
+  const settlement = state.dailySettlement && state.dailySettlement.day === state.day
+    ? state.dailySettlement
+    : null;
+  const liquidationHtml = settlement && settlement.forcedLiquidations.length
+    ? `<div class="settlement-liquidations">
+        <div class="settlement-subtitle">强制清算</div>
+        ${settlement.forcedLiquidations.map(item => `
+          <div class="settlement-sale">
+            <span>${item.goodName} ×${item.quantity} · ${item.listed ? '已上架' : '未上架'}</span>
+            <strong>¥${fmt(item.unitPrice, 2)}/件，到账 ¥${fmt(item.netRevenue, 2)}</strong>
+            ${item.saleFee > 0 ? `<small>成交 ¥${fmt(item.grossRevenue, 2)}，扣除路费 ¥${fmt(item.saleFee, 2)}</small>` : ''}
+          </div>`).join('')}
+      </div>`
+    : '';
+  const revaluation = settlement ? settlement.marketRevaluation : 0;
+  const netWorthChange = settlement ? +(settlement.todayOpen.netWorth - settlement.previousClose.netWorth).toFixed(2) : 0;
+  const dailySettlementHtml = settlement ? `
+    <div class="daily-settlement">
+      <div class="settlement-title">昨日收盘 → 今日开盘</div>
+      <div class="settlement-grid">
+        <span>昨日现金</span><strong>¥${fmt(settlement.previousClose.cash, 2)}</strong>
+        <span>昨日总资产</span><strong>¥${fmt(settlement.previousClose.netWorth, 2)}</strong>
+        <span>基础经营费</span><strong class="red">-¥${fmt(settlement.costs.operating, 2)}</strong>
+        <span>仓库管理费</span><strong class="red">-¥${fmt(settlement.costs.storage, 2)}</strong>
+        <span>市场重估</span><strong class="${revaluation >= 0 ? 'green' : 'red'}">${revaluation >= 0 ? '+' : '-'}¥${fmt(Math.abs(revaluation), 2)}</strong>
+      </div>
+      ${liquidationHtml}
+      <div class="settlement-open">
+        <div><span>今日现金</span><strong>¥${fmt(settlement.todayOpen.cash, 2)}</strong></div>
+        <div><span>今日总资产</span><strong>¥${fmt(settlement.todayOpen.netWorth, 2)}</strong></div>
+        <div><span>资产变化</span><strong class="${netWorthChange >= 0 ? 'green' : 'red'}">${netWorthChange >= 0 ? '+' : '-'}¥${fmt(Math.abs(netWorthChange), 2)}</strong></div>
+      </div>
+    </div>` : '';
+  const popupHtml = dailySettlementHtml + suddenNewsHtml + ecoNewsHtml;
   if (state.eventNoticeQueue.length && !state.gameOver) {
     $('achievementOverlay').classList.add('hidden');
     const notice = state.eventNoticeQueue[0];
+    $('eventPopupEmoji').textContent = '⚡';
+    $('eventPopupTitle').textContent = '突发新闻';
     $('eventPopupList').innerHTML = `<div class="news-item"><div class="news-title">${notice.title}</div><div>${notice.desc}</div></div>`;
     $('eventOverlay').classList.remove('hidden');
-  } else if (popupHtml && !state.popupShown && !state.gameOver) {
+  } else if (popupHtml && !state.popupShown && !state.gameOver && $('milestoneOverlay').classList.contains('hidden')) {
     $('achievementOverlay').classList.add('hidden');
+    $('eventPopupEmoji').textContent = settlement ? '🧾' : '⚡';
+    $('eventPopupTitle').textContent = settlement ? `第 ${state.day} 天开市` : '突发新闻';
     $('eventPopupList').innerHTML = popupHtml;
     $('eventOverlay').classList.remove('hidden');
     state.popupShown = true;

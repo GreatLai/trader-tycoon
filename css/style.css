@@ -474,6 +474,21 @@
   }
   .news-item .news-title { font-weight: 700; }
   .news-item .news-meta { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .daily-settlement { text-align: left; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .settlement-title { padding: 10px 12px; background: var(--panel); font-size: 14px; font-weight: 800; }
+  .settlement-grid { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px 16px; padding: 12px; font-size: 13px; }
+  .settlement-grid strong { min-width: 0; overflow-wrap: anywhere; text-align: right; font-variant-numeric: tabular-nums; }
+  .settlement-liquidations { padding: 0 12px 10px; }
+  .settlement-subtitle { padding-top: 9px; border-top: 1px dashed var(--line); font-size: 12px; font-weight: 800; color: var(--red); }
+  .settlement-sale { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding-top: 7px; font-size: 12px; }
+  .settlement-sale > * { min-width: 0; overflow-wrap: anywhere; }
+  .settlement-sale strong { text-align: right; }
+  .settlement-sale small { grid-column: 1 / -1; color: var(--muted); }
+  .settlement-open { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line); background: var(--panel); }
+  .settlement-open > div { min-width: 0; padding: 10px 8px; text-align: center; }
+  .settlement-open span, .settlement-open strong { display: block; }
+  .settlement-open span { margin-bottom: 3px; color: var(--muted); font-size: 11px; }
+  .settlement-open strong { overflow-wrap: anywhere; font-size: 12px; font-variant-numeric: tabular-nums; }
 
   /* ---------- Overlay ---------- */
   .overlay {

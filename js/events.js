@@ -241,7 +241,7 @@ function calcTotalDailyCost(day = state.day) {
   return calcOperatingCost(day) + calcDailyFee();
 }
 
-function liquidateInventory(shortfall) {
+function liquidateInventory(shortfall, liquidationItems = []) {
   let need = shortfall;
   const entries = Object.keys(state.inventory)
     .filter(id =>
@@ -270,6 +270,16 @@ function liquidateInventory(shortfall) {
     state.inventory[e.id] -= qtyToSell;
     state.costBasis[e.id] = (state.costBasis[e.id] || 0) - e.avg * qtyToSell;
     if (state.inventory[e.id] <= 0) { delete state.inventory[e.id]; delete state.costBasis[e.id]; }
+    liquidationItems.push({
+      goodId: e.id,
+      goodName: goodById(e.id).name,
+      quantity: qtyToSell,
+      listed: e.listed,
+      unitPrice: +e.price.toFixed(2),
+      grossRevenue: settlement.gross,
+      saleFee: settlement.fee,
+      netRevenue: settlement.net
+    });
     need -= settlement.net;
   }
   return need <= 0;
@@ -279,7 +289,9 @@ function applyDailyCosts(day = state.day) {
   const operating = +calcOperatingCost(day).toFixed(2);
   const fee = +calcDailyFee().toFixed(2);
   const totalCost = +(operating + fee).toFixed(2);
-  if (totalCost <= 0) return;
+  const liquidationItems = [];
+  const result = { operating, storage: fee, total: totalCost, forcedLiquidations: liquidationItems };
+  if (totalCost <= 0) return result;
   state.runStats.totalFeesPaid = +(state.runStats.totalFeesPaid + fee).toFixed(2);
 
   if (state.cash >= totalCost) {
@@ -288,7 +300,7 @@ function applyDailyCosts(day = state.day) {
     state.runStats.forcedLiquidations++;
     const shortfall = totalCost - state.cash;
     state.cash = 0;
-    const ok = liquidateInventory(shortfall);
+    const ok = liquidateInventory(shortfall, liquidationItems);
     if (ok) {
       state.cash = +Math.max(0, state.cash - shortfall).toFixed(2);
     } else {
@@ -297,5 +309,6 @@ function applyDailyCosts(day = state.day) {
       state.logs.unshift('💀 游戏结束：破产（强制平仓后仍无法支付支出）');
     }
   }
+  return result;
 }
 
