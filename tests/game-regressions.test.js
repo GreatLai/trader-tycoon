@@ -49,12 +49,12 @@ test('forced liquidation pays the shortfall and keeps only the surplus', () => {
   assert.equal(api.calcDailyFee(), 5);
   api.applyDailyCosts();
 
-  assert.equal(state.inventory.wheat, 984);
-  assert.equal(state.cash, 1);
+  assert.equal(state.inventory.wheat, 989);
+  assert.equal(state.cash, 0);
   assert.equal(state.gameOver, null);
 });
 
-test('forced liquidation cannot sell holdings that are absent from the market', () => {
+test('forced liquidation sells off-market holdings at twenty percent of average purchase cost', () => {
   const { api } = createGame();
   const state = api.reset();
   state.cash = 0;
@@ -66,8 +66,9 @@ test('forced liquidation cannot sell holdings that are absent from the market', 
 
   api.applyDailyCosts();
 
-  assert.equal(state.inventory.wheat, 1000);
-  assert.equal(state.gameOver, 'lose');
+  assert.equal(state.inventory.wheat, 945);
+  assert.equal(state.cash, 0);
+  assert.equal(state.gameOver, null);
 });
 
 test('operating cost multiplier scales operating pressure without scaling storage fees', () => {
@@ -142,14 +143,14 @@ test('opening settlement lists every forced sale with its actual proceeds', () =
   assert.deepEqual(sale, {
     goodId: 'wheat',
     goodName: '小麦',
-    quantity: 16,
+    quantity: 11,
     listed: true,
-    unitPrice: 3.5,
-    grossRevenue: 56,
+    unitPrice: 5,
+    grossRevenue: 55,
     saleFee: 0,
-    netRevenue: 56
+    netRevenue: 55
   });
-  assert.equal(state.dailySettlement.afterCosts.cash, 1);
+  assert.equal(state.dailySettlement.afterCosts.cash, 0);
 });
 
 test('day one has no daily settlement popup data', () => {
@@ -208,24 +209,30 @@ test('forced liquidation exhausts listed inventory options before touching off-m
   assert.equal(state.gameOver, null);
 });
 
-test('operating costs follow the configured four-stage ninety-day pressure curve', () => {
+test('operating costs follow six fixed fifteen-day accounting periods', () => {
   const { api } = createGame();
   const costs = Array.from({ length: api.CONFIG.DAYS_LIMIT }, (_, index) => api.calcOperatingCost(index + 1));
 
   assert.equal(costs[0], 50);
-  assert.equal(Math.abs(costs[14] - 50 * 1.025 ** 14) < 0.001, true);
-  assert.equal(costs[15], 80);
-  assert.equal(Math.abs(costs[29] - 80 * 1.08 ** 14) < 0.001, true);
-  assert.equal(costs[30], 300);
-  assert.equal(Math.abs(costs[59] - 300 * 1.10 ** 29) < 0.001, true);
-  assert.equal(costs[60], 6000);
-  assert.equal(Math.abs(costs.at(-1) - 6000 * 1.08 ** 29) < 0.001, true);
-  assert.equal(Math.abs(costs.reduce((sum, value) => sum + value, 0) - 732116.2389343618) < 0.01, true);
-  assert.equal(Math.abs(api.BALANCE_CONFIG.OPERATING_COST_TOTAL - 732116.2389343618) < 0.01, true);
-  assert.equal(Math.abs(api.calcRemainingOperatingCost(1) - 732116.2389343618) < 0.01, true);
+  assert.equal(costs[14], 50);
+  assert.equal(costs[15], 200);
+  assert.equal(costs[29], 200);
+  assert.equal(costs[30], 1000);
+  assert.equal(costs[44], 1000);
+  assert.equal(costs[45], 5000);
+  assert.equal(costs[59], 5000);
+  assert.equal(costs[60], 20000);
+  assert.equal(costs[74], 20000);
+  assert.equal(costs[75], 72000);
+  assert.equal(costs.at(-1), 72000);
+  assert.equal(costs.reduce((sum, value) => sum + value, 0), 1473750);
+  assert.equal(api.BALANCE_CONFIG.OPERATING_COST_TOTAL, 1473750);
+  assert.equal(api.calcRemainingOperatingCost(1), 1473750);
   assert.equal(Math.abs(api.calcRemainingOperatingCost(16) - costs.slice(15).reduce((sum, value) => sum + value, 0)) < 0.01, true);
   assert.equal(Math.abs(api.calcRemainingOperatingCost(31) - costs.slice(30).reduce((sum, value) => sum + value, 0)) < 0.01, true);
+  assert.equal(Math.abs(api.calcRemainingOperatingCost(46) - costs.slice(45).reduce((sum, value) => sum + value, 0)) < 0.01, true);
   assert.equal(Math.abs(api.calcRemainingOperatingCost(61) - costs.slice(60).reduce((sum, value) => sum + value, 0)) < 0.01, true);
+  assert.equal(Math.abs(api.calcRemainingOperatingCost(76) - costs.slice(75).reduce((sum, value) => sum + value, 0)) < 0.01, true);
   assert.equal(Math.abs(api.calcRemainingOperatingCost(90) - costs.at(-1)) < 0.01, true);
 });
 
@@ -236,7 +243,7 @@ test('a merchant who never trades fails under the staged operating pressure', ()
   while (!state.gameOver) api.nextDay();
 
   assert.equal(state.gameOver, 'lose');
-  assert.equal(state.day > 30 && state.day < 61, true);
+  assert.equal(state.day > 30 && state.day < 46, true);
 });
 
 test('day ninety charges its own costs before a successful time settlement', () => {
@@ -326,8 +333,9 @@ test('start screen presents five immersive operating principles including profes
   assert.match(ruleList, /择业/);
   assert.match(ruleList, /四种职业默认开放/);
   assert.match(ruleList, /守仓/);
-  assert.match(ruleList, /经营费会分阶段加速上涨/);
-  assert.match(html, /现金不足时只能按七折强平今日上架的库存/);
+  assert.match(ruleList, /经营费每 15 天跳升一档/);
+  assert.match(html, /已上架库存按当日市价清算/);
+  assert.match(html, /未上架库存只按购入均价的 20% 处理/);
   assert.match(ruleList, /登阶/);
 });
 
@@ -354,11 +362,11 @@ test('the release version is consistent across delivery files', () => {
   const changelog = fs.readFileSync(path.join(ROOT, 'CHANGELOG.md'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.14.0');
+  assert.equal(api.APP_VERSION, '1.15.0');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.14\.0/g) || []).length, 16);
-  assert.match(readme, /当前版本：\*\* v1\.14\.0/);
-  assert.match(changelog, /## \[1\.14\.0\] - 2026-09-03/);
+  assert.equal((html.match(/\?v=1\.15\.0/g) || []).length, 16);
+  assert.match(readme, /当前版本：\*\* v1\.15\.0/);
+  assert.match(changelog, /## \[1\.15\.0\] - 2026-09-03/);
 });
 
 test('standard and ecology markets list six and seven goods respectively', () => {
@@ -614,7 +622,7 @@ test('a deterministic no-trade run fails from operating pressure without invalid
     assert.equal(api.totalUnits() <= api.capacity(), true);
   }
 
-  assert.equal(state.day, 36);
+  assert.equal(state.day, 32);
   assert.equal(state.gameOver, 'lose');
 });
 
@@ -625,6 +633,7 @@ test('expense panel shows operating cost, storage cost, and remaining pressure',
   assert.match(source, /calcRemainingOperatingCost\(\)/);
   assert.match(source, /基础经营费/);
   assert.match(source, /剩余经营压力/);
+  assert.match(source, /第 \$\{nextOperatingStage\.startDay\} 天升至/);
 });
 
 test('natural sudden event count keeps the original daily distribution', () => {
@@ -785,8 +794,8 @@ test('forced sudden events can use a higher rare-outcome chance', () => {
 test('opening story introduces the staged operating pressure', () => {
   const source = fs.readFileSync(path.join(ROOT, 'js', 'main.js'), 'utf8');
 
-  assert.match(source, /第 16、31、61 天/);
-  assert.match(source, /更高压力阶段/);
+  assert.match(source, /第 16、31、46、61、76 天/);
+  assert.match(source, /每 15 天进入新账期/);
 });
 
 test('the market defines twenty complete and distinct commodity profiles', () => {

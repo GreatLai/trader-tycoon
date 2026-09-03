@@ -1,10 +1,12 @@
 # Debt Settlement Balance Implementation Plan
 
+> Historical experiment plan: this file preserves the candidate-validation steps used before `v1.15.0` was finalized. Its unchecked items and "keep live defaults unchanged" wording do not describe the current release state.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Parameterize and compare doubled operating costs with full-price listed liquidation and 20%-of-cost off-market liquidation.
 
-**Architecture:** Keep live defaults unchanged while extending the shared engine with explicit balance parameters. The backend simulator applies candidate values through its existing scenario mechanism so baseline and candidate runs share identical seeds and strategies.
+**Architecture at experiment time:** Keep the v1.14.0 live defaults unchanged while extending the shared engine with explicit balance parameters. The backend simulator applies candidate values through its existing scenario mechanism so baseline and candidate runs share identical seeds and strategies.
 
 **Tech Stack:** Browser JavaScript game engine, Node.js test runner, deterministic backend balance simulator.
 

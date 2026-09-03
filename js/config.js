@@ -1,6 +1,6 @@
 // ==================== 配置 ====================
 const ULTRA_UNLOCK = 10000000;
-const APP_VERSION = '1.14.0';
+const APP_VERSION = '1.15.0';
 
 const CONFIG = {
   DAYS_LIMIT: 90,
@@ -15,16 +15,18 @@ const CONFIG = {
 // 纯交易规则的可校准参数；仓储费率保留 v1.8.0 的实际结算值。
 const BALANCE_CONFIG = {
   OPERATING_COST_STAGES: Object.freeze([
-    Object.freeze({ startDay: 1, endDay: 15, base: 50, growth: 1.025 }),
-    Object.freeze({ startDay: 16, endDay: 30, base: 80, growth: 1.08 }),
-    Object.freeze({ startDay: 31, endDay: 60, base: 300, growth: 1.10 }),
-    Object.freeze({ startDay: 61, endDay: 90, base: 6000, growth: 1.08 })
+    Object.freeze({ startDay: 1, endDay: 15, base: 50, growth: 1 }),
+    Object.freeze({ startDay: 16, endDay: 30, base: 200, growth: 1 }),
+    Object.freeze({ startDay: 31, endDay: 45, base: 1000, growth: 1 }),
+    Object.freeze({ startDay: 46, endDay: 60, base: 5000, growth: 1 }),
+    Object.freeze({ startDay: 61, endDay: 75, base: 20000, growth: 1 }),
+    Object.freeze({ startDay: 76, endDay: 90, base: 72000, growth: 1 })
   ]),
-  OPERATING_COST_TOTAL: 732116.2389343618,
+  OPERATING_COST_TOTAL: 1473750,
   OPERATING_COST_MULTIPLIER: 1,
   STORAGE_FEE_RATE: 0.001,
-  LIQUIDATION_RATE: 0.70,
-  ALLOW_OFF_MARKET_LIQUIDATION: false,
+  LIQUIDATION_RATE: 1,
+  ALLOW_OFF_MARKET_LIQUIDATION: true,
   OFF_MARKET_LIQUIDATION_RATE: 0.20,
   ECO_EVENT_CHANCE: 0.20,
   NATURAL_VOLATILITY_SCALE: 1,

@@ -186,8 +186,20 @@ function render() {
   const fee = +calcDailyFee().toFixed(2);
   const totalCost = +(operatingCost + fee).toFixed(2);
   const remainingPressure = +calcRemainingOperatingCost().toFixed(2);
+  const operatingStageIndex = BALANCE_CONFIG.OPERATING_COST_STAGES.findIndex(
+    stage => state.day >= stage.startDay && state.day <= stage.endDay
+  );
+  const operatingStage = BALANCE_CONFIG.OPERATING_COST_STAGES[operatingStageIndex];
+  const nextOperatingStage = BALANCE_CONFIG.OPERATING_COST_STAGES[operatingStageIndex + 1];
+  const stageLabel = operatingStage
+    ? `第 ${operatingStage.startDay}-${operatingStage.endDay} 天·每日固定`
+    : '封账期';
+  const nextStageLabel = nextOperatingStage
+    ? `第 ${nextOperatingStage.startDay} 天升至 ¥${fmt(nextOperatingStage.base, 2)}`
+    : '本局不再涨费';
   $('expenseInfo').innerHTML = `
     <div class="expense-row"><span>基础经营费</span><span>¥${fmt(operatingCost, 2)}</span></div>
+    <div class="expense-row"><span>${stageLabel}</span><span>${nextStageLabel}</span></div>
     <div class="expense-row"><span>仓库管理费</span><span>¥${fmt(fee, 2)}</span></div>
     <div class="expense-row" style="font-weight:700;"><span>今日合计</span><span>¥${fmt(totalCost, 2)}</span></div>
     <div class="expense-row"><span>剩余经营压力</span><span>¥${fmt(remainingPressure, 2)}</span></div>`;

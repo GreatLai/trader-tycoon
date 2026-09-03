@@ -437,8 +437,8 @@ test('forced liquidation also deducts market trip travel costs', () => {
 
   api.applyDailyCosts(1);
 
-  assert.equal(state.inventory.wheat, 92);
-  assert.equal(state.cash, 2.7);
+  assert.equal(state.inventory.wheat, 94);
+  assert.equal(state.cash, 6.5);
 });
 
 test('legacy traveling merchant saves normalize market trip state', () => {
