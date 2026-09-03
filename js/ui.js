@@ -4,6 +4,10 @@ function goodArt(g, extraClass = '') {
 
 const TRADE_PERCENTAGES = [25, 50, 75, 100];
 
+function professionRuleHtml(text) {
+  return text.replace(/(\d+(?:\.\d+)?(?:%|\s*万|\s*天|\s*倍|\s*个百分点)?)/g, '<strong class="profession-number">$1</strong>');
+}
+
 function percentageTradeButtons(side, id, disabled) {
   const colorClass = side === 'sell' ? ' btn-ghost' : '';
   return TRADE_PERCENTAGES.map(percent => `
@@ -24,6 +28,7 @@ function render() {
     $('historyOverlay').classList.add('hidden');
     $('chartOverlay').classList.add('hidden');
     $('professionAbilityOverlay').classList.add('hidden');
+    $('commonListingOverlay').classList.add('hidden');
     $('continueBtn').classList.toggle('hidden', !load());
     return;
   }
@@ -38,6 +43,7 @@ function render() {
     $('historyOverlay').classList.add('hidden');
     $('chartOverlay').classList.add('hidden');
     $('professionAbilityOverlay').classList.add('hidden');
+    $('commonListingOverlay').classList.add('hidden');
   }
 
   const nw = netWorth();
@@ -60,15 +66,14 @@ function render() {
 
   const profession = PROFESSIONS[state.profession.id];
   $('professionName').textContent = profession.name;
-  $('professionDescription').textContent = profession.description;
-  $('professionPassive').textContent = profession.passive;
-  $('professionActive').textContent = profession.activeAbility
-    ? `${profession.activeAbility.name}：${profession.activeAbility.description}`
-    : '无主动技能。';
-  $('professionDrawback').textContent = profession.drawback;
+  $('professionTagline').textContent = profession.tagline;
+  $('professionDescription').textContent = profession.inRun.judgment;
+  $('professionPassive').innerHTML = professionRuleHtml(profession.inRun.passive);
+  $('professionActive').innerHTML = professionRuleHtml(profession.inRun.active);
+  $('professionDrawback').innerHTML = professionRuleHtml(profession.inRun.drawback);
   const abilityButton = $('professionAbilityBtn');
   if (!profession.activeAbility) {
-    abilityButton.textContent = '无主动技能';
+    abilityButton.textContent = '无专属手段';
     abilityButton.disabled = true;
   } else if (professionAbilityReadyDay(profession) > state.day) {
     abilityButton.textContent = `${profession.activeAbility.name} · 第${professionAbilityReadyDay(profession)}天可用`;
@@ -83,6 +88,10 @@ function render() {
     abilityButton.textContent = `使用 ${profession.activeAbility.name}`;
     abilityButton.disabled = eligibleProfessionAbilityTargets().length === 0;
   }
+  const commonListingButton = $('commonListingBtn');
+  const commonListingRemaining = commonListingUsesRemaining();
+  commonListingButton.textContent = `通商令 ${commonListingRemaining} / ${COMMON_ACTIONS.listing.maxUses}`;
+  commonListingButton.disabled = commonListingRemaining <= 0 || eligibleCommonListingTargets().length === 0;
 
   // 市场
   $('marketCount').textContent = `${state.availableGoods.length} / ${GOODS.length}`;

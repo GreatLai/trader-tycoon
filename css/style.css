@@ -71,21 +71,29 @@
   .start-rules li { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 10px; }
   .start-rules strong { color: var(--amber); font-family: "STKaiti", "KaiTi", sans-serif; font-size: 16px; }
   .profession-description { color: var(--muted); font-size: 13px; line-height: 1.55; margin: -3px 0 10px; }
+  .profession-tagline { margin-left: 8px; color: var(--amber); font-size: 12px; font-weight: 700; }
   .profession-rule { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 8px; padding: 7px 0; font-size: 13px; line-height: 1.45; border-top: 1px solid rgba(91, 70, 48, .12); }
   .profession-rule strong { color: var(--green); }
   .profession-rule.drawback strong { color: var(--red); }
+  .profession-number { color: var(--amber) !important; font-variant-numeric: tabular-nums; }
   #professionAbilityBtn { margin-top: 10px; }
+  .common-listing-copy, .common-listing-modal-copy { color: var(--muted); font-size: 12px; line-height: 1.5; }
+  .common-listing-copy { margin-top: 10px; padding-top: 9px; border-top: 1px solid rgba(91, 70, 48, .12); }
+  #commonListingBtn { margin-top: 7px; min-height: 42px; font-variant-numeric: tabular-nums; }
   .profession-choices { display: grid; gap: 10px; margin: 12px 0; text-align: left; }
   .profession-choice { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,.72); color: var(--text); text-align: left; cursor: pointer; }
   .profession-choice:disabled { cursor: not-allowed; opacity: .55; }
+  .profession-choice-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
   .profession-choice-name { font-weight: 800; font-size: 15px; }
+  .profession-choice-tagline { color: var(--amber); font-size: 12px; font-weight: 700; white-space: nowrap; }
   .profession-choice-copy { margin-top: 5px; color: var(--muted); font-size: 12px; line-height: 1.45; }
-  .profession-choice-facts { display: grid; gap: 5px; margin-top: 9px; padding-top: 8px; border-top: 1px solid rgba(91, 70, 48, .12); font-size: 12px; line-height: 1.45; }
-  .profession-choice-facts > div { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 7px; }
-  .profession-choice-label { color: var(--green); font-weight: 800; }
-  .profession-choice-label.cost { color: var(--red); }
+  .profession-choice-tags { display: flex; flex-wrap: wrap; gap: 0; margin-top: 9px; color: var(--green); font-size: 11px; font-weight: 700; }
+  .profession-choice-tags span + span::before { content: ' / '; margin: 0 5px; color: var(--muted); font-weight: 400; }
+  .profession-choice-active { margin-top: 7px; padding-top: 7px; border-top: 1px solid rgba(91, 70, 48, .12); color: var(--muted); font-size: 11px; }
+  .profession-choice-active strong { color: var(--text); }
   .profession-choice-lock { margin-top: 6px; color: var(--red); font-size: 12px; }
   .profession-ability-targets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+  .ability-empty { grid-column: 1 / -1; color: var(--muted); font-size: 13px; line-height: 1.5; }
   .rule-card .btn-block { margin-top: 12px; }
   .btn {
     border: none;

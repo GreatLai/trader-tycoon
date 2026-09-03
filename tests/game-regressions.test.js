@@ -341,6 +341,25 @@ test('loading a low-wealth save removes prematurely listed ultra goods', () => {
   assert.equal(loaded.availableGoods.some(id => ULTRA_IDS.has(id)), false);
 });
 
+test('legacy saves normalize missing or malformed common listing usage', () => {
+  const cases = [
+    { value: undefined, expected: 0 },
+    { value: null, expected: 0 },
+    { value: { listingUses: '2.9' }, expected: 2 },
+    { value: { listingUses: -4 }, expected: 0 },
+    { value: { listingUses: 99 }, expected: 3 },
+    { value: { listingUses: 'invalid' }, expected: 0 }
+  ];
+
+  for (const item of cases) {
+    const baseline = createGame().api.reset();
+    baseline.commonActions = item.value;
+    const { api } = createGame({ savedState: baseline });
+    const loaded = api.loadSave();
+    assert.equal(loaded.commonActions.listingUses, item.expected);
+  }
+});
+
 test('warehouse and profession are sibling panels', () => {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   assert.match(
@@ -358,8 +377,8 @@ test('start screen presents five immersive operating principles including profes
   assert.match(ruleList, /逐利/);
   assert.match(ruleList, /观势/);
   assert.match(ruleList, /择业/);
-  assert.match(ruleList, /盐铁专营/);
-  assert.match(ruleList, /五种职业默认开放/);
+  assert.match(ruleList, /五条生意路/);
+  assert.match(ruleList, /开局起全部开放/);
   assert.match(ruleList, /守仓/);
   assert.match(ruleList, /经营费每 15 天跳升一档/);
   assert.match(html, /已上架库存按当日市价清算/);
@@ -390,11 +409,11 @@ test('the release version is consistent across delivery files', () => {
   const changelog = fs.readFileSync(path.join(ROOT, 'CHANGELOG.md'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.16.1');
+  assert.equal(api.APP_VERSION, '1.17.0');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.16\.1/g) || []).length, 16);
-  assert.match(readme, /当前版本：\*\* v1\.16\.1/);
-  assert.match(changelog, /## \[1\.16\.1\] - 2026-09-03/);
+  assert.equal((html.match(/\?v=1\.17\.0/g) || []).length, 16);
+  assert.match(readme, /当前版本：\*\* v1\.17\.0/);
+  assert.match(changelog, /## \[1\.17\.0\] - 2026-09-03/);
 });
 
 test('standard and ecology markets list six and seven goods respectively', () => {

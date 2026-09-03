@@ -18,7 +18,7 @@ test('the playable roster contains all five professions', () => {
   assert.equal(api.PROFESSIONS.travelingMerchant.activeAbility.id, 'marketTrip');
   assert.equal(api.PROFESSIONS.speculator.activeAbility.id, 'stokeMarket');
   assert.equal(api.PROFESSIONS.saltIronMonopoly.activeAbility.id, 'windVane');
-  assert.match(api.PROFESSIONS.toothMerchant.drawback, /高价/);
+  assert.match(api.PROFESSIONS.toothMerchant.passive, /110%/);
 });
 
 test('salt iron monopoly exposes four licensed goods and wider ordinary price rules', () => {
@@ -453,15 +453,15 @@ test('speculator follow-up target occupies a normal shelf position and pending s
   assert.equal(loaded.profession.data.pendingFollowUp, undefined);
 });
 
-test('speculator UI describes uncertainty without publishing exact follow-up odds', () => {
+test('speculator UI publishes the exact follow-up odds', () => {
   const professions = fs.readFileSync(path.join(ROOT, 'js/professions.js'), 'utf8');
   const ui = fs.readFileSync(path.join(ROOT, 'js/ui.js'), 'utf8');
 
   assert.match(professions, /追风/);
   assert.match(professions, /风声放大/);
   assert.match(professions, /煽风点火/);
-  assert.match(professions, /延续必定顺势再走一步，也可能反向变化/);
-  assert.doesNotMatch(professions, /70%|30%/);
+  assert.match(professions, /70%/);
+  assert.match(professions, /30%/);
   assert.match(ui, /professionAbilityReadyDay/);
 });
 
@@ -713,19 +713,35 @@ test('traveling merchant UI exposes description, targets, cooldown, and travel f
   assert.match(ui, /professionAbilityReadyDay/);
 });
 
-test('profession selection presents passive, active, and cost as separate readable facts', () => {
+test('profession selection stays concise while the in-run panel exposes detailed rules', () => {
   const main = fs.readFileSync(path.join(ROOT, 'js/main.js'), 'utf8');
   const professions = fs.readFileSync(path.join(ROOT, 'js/professions.js'), 'utf8');
-
-  assert.match(main, /profession-choice-label">被动/);
-  assert.match(main, /profession-choice-label">主动/);
-  assert.match(main, /profession-choice-label cost">代价/);
-  assert.doesNotMatch(main, /主动：\$\{profession\.activeAbility\.name\}.*｜ 缺陷/);
-  assert.match(professions, /失败商品当天起连续 3 天禁售/);
-  assert.match(professions, /未卖出不收费/);
-  assert.match(professions, /生存提升有限，冲分能力强/);
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+
+  assert.match(main, /profession-choice-tagline/);
+  assert.match(main, /profession-choice-tags/);
+  assert.match(main, /profession-choice-active/);
+  assert.doesNotMatch(main, /profession\.passive/);
+  assert.match(html, /<strong>本事<\/strong>/);
+  assert.match(html, /<strong>手段<\/strong>/);
+  assert.match(html, /<strong>代价<\/strong>/);
+  assert.match(professions, /失败当天及随后两天禁止出售/);
+  assert.match(professions, /未卖出不收费/);
+  assert.match(professions, /真正的赌注在下一阵风/);
   assert.match(html, /id="professionOverlay"[\s\S]*?max-height:calc\(100vh - 32px\);overflow:auto/);
+});
+
+test('common listing UI is separate from profession abilities and keeps its copy concise', () => {
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const main = fs.readFileSync(path.join(ROOT, 'js/main.js'), 'utf8');
+  const ui = fs.readFileSync(path.join(ROOT, 'js/ui.js'), 'utf8');
+
+  assert.match(html, /id="commonListingBtn"/);
+  assert.match(html, /id="commonListingOverlay"/);
+  assert.match(html, /另开货路/);
+  assert.match(html, /行情吉凶不由你定/);
+  assert.match(main, /data-common-listing-target/);
+  assert.match(ui, /通商令 \$\{commonListingRemaining\} \/ \$\{COMMON_ACTIONS\.listing\.maxUses\}/);
 });
 
 test('tooth merchant cannot raise a good bought on the same day', () => {
@@ -832,4 +848,115 @@ test('the shop and card UI are replaced by profession selection and the in-run p
   assert.match(html, /id="professionOverlay"/);
   assert.match(html, /id="professionPanel"/);
   assert.match(html, /id="professionAbilityBtn"/);
+});
+
+test('profession presentation uses three-character role names and distinctive selection copy', () => {
+  const { api } = createGame();
+  assert.deepEqual(Object.values(api.PROFESSIONS).map(profession => profession.name), [
+    '生意人', '牙行商', '行脚商', '投机客', '盐铁商'
+  ]);
+  for (const profession of Object.values(api.PROFESSIONS)) {
+    assert.equal(profession.name.length, 3);
+    assert.equal(profession.tagline.length, 4);
+    assert.equal(profession.selectionTags.length, 3);
+    assert.equal(typeof profession.selectionQuote, 'string');
+    assert.equal(typeof profession.inRun.judgment, 'string');
+    assert.equal(typeof profession.inRun.passive, 'string');
+    assert.equal(typeof profession.inRun.active, 'string');
+    assert.equal(typeof profession.inRun.drawback, 'string');
+  }
+});
+
+test('every profession receives three independent common listing uses', () => {
+  for (const professionId of ['useless', 'toothMerchant', 'travelingMerchant', 'speculator', 'saltIronMonopoly']) {
+    const { api } = createGame();
+    const state = api.reset();
+    state.profession = api.newProfessionState(professionId);
+    assert.deepEqual(plain(state.commonActions), { listingUses: 0 });
+    assert.equal(api.commonListingUsesRemaining(), 3);
+  }
+});
+
+test('common listing reprices owned unlisted goods and allows normal trading', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.inventory.wheat = 10;
+  state.costBasis.wheat = 50;
+  state.availableGoods = state.availableGoods.filter(id => id !== 'wheat');
+  state.lastSeenPrice.wheat = 5;
+  const oldPrice = state.prices.wheat;
+  api.setRandom(() => 0.5);
+
+  const result = api.useCommonListing('wheat');
+
+  assert.equal(result.ok, true);
+  assert.equal(state.availableGoods.includes('wheat'), true);
+  assert.equal(state.prices.wheat !== oldPrice, true);
+  assert.equal(api.commonListingUsesRemaining(), 2);
+  assert.equal(api.sell('wheat', 1).quantity, 1);
+  assert.equal(api.buy('wheat', 1).quantity, 1);
+});
+
+test('common listing rejects invalid targets without consuming a use', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  const listedId = state.availableGoods[0];
+  state.inventory[listedId] = 1;
+
+  assert.deepEqual(plain(api.useCommonListing(listedId)), { ok: false, reason: 'invalid-target' });
+  assert.deepEqual(plain(api.useCommonListing('wheat')), { ok: false, reason: 'invalid-target' });
+  assert.equal(api.commonListingUsesRemaining(), 3);
+});
+
+test('common listing can spend all three uses in one day but no more', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  const targets = api.GOODS.map(good => good.id).filter(id => !state.availableGoods.includes(id)).slice(0, 4);
+  targets.forEach(id => {
+    state.inventory[id] = 1;
+    state.costBasis[id] = api.GOODS.find(good => good.id === id).base;
+    state.lastSeenPrice[id] = state.prices[id];
+  });
+  api.setRandom(() => 0.5);
+
+  assert.equal(api.useCommonListing(targets[0]).ok, true);
+  assert.equal(api.useCommonListing(targets[1]).ok, true);
+  assert.equal(api.useCommonListing(targets[2]).ok, true);
+  assert.equal(api.useCommonListing(targets[3]).reason, 'no-uses');
+  assert.equal(api.commonListingUsesRemaining(), 0);
+});
+
+test('common listing can trigger a normal sudden event without choosing its direction', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.inventory.wheat = 1;
+  state.costBasis.wheat = 5;
+  state.availableGoods = state.availableGoods.filter(id => id !== 'wheat');
+  state.lastSeenPrice.wheat = 5;
+  api.setRandom(() => 0.01);
+
+  const result = api.useCommonListing('wheat');
+
+  assert.equal(result.ok, true);
+  assert.equal(result.event.goodId, 'wheat');
+  assert.equal(result.event.source, 'common-listing');
+  assert.equal(state.events.includes(result.event), true);
+});
+
+test('common listing does not consume or reset profession ability cooldown', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.profession = api.newProfessionState('toothMerchant');
+  state.profession.activeUsedDay = 4;
+  state.day = 5;
+  state.inventory.wheat = 1;
+  state.costBasis.wheat = 5;
+  state.availableGoods = state.availableGoods.filter(id => id !== 'wheat');
+  state.lastSeenPrice.wheat = 5;
+  api.setRandom(() => 0.5);
+
+  api.useCommonListing('wheat');
+
+  assert.equal(state.profession.activeUsedDay, 4);
+  assert.equal(api.professionAbilityReadyDay(api.PROFESSIONS.toothMerchant), 7);
 });

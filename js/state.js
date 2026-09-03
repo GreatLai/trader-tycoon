@@ -59,6 +59,7 @@ function newState(professionId = DEFAULT_PROFESSION_ID) {
     achievementRecovery: { drawdownPeak: CONFIG.START_CASH, armed: false, hasProfitableSale: false },
     logs: [],
     tradeInputMode: 'quantity',
+    commonActions: { listingUses: 0 },
     profession: newProfessionState(professionId),
     runStats: {
       maxDayReached: 1,

@@ -1,9 +1,9 @@
 {
   "reportVersion": "useless-trader-v1",
   "generatedAt": "2026-09-03T09:38:29.839Z",
-  "gameVersion": "1.16.1",
+  "gameVersion": "1.17.0",
   "fingerprints": {
-    "sourceHash": "45cd9dda5ba371e9e0d248ede3c0c4746a30bd701de688f57473e1ff7d5daa22",
+    "sourceHash": "328bfc591ec0970aac95a82326ea6cbb81eb17497f4363f477b1ab75190b0800",
     "configHash": "4244596505bcca2bf6ea553e9d052ed68b3c7516e81542b16b29c7a8fdbfcd51",
     "calibrationSeedHash": "beb29abad70ac3168e1906d9979a20a39387b50a84478f0372ac564a7c120e8f",
     "validationSeedHash": "997fe1f27642d9240741e1eeb3a894195d5d0afe95e446f4588191818741be94",
@@ -14,7 +14,8 @@
     "daily-hand",
     "career-skills",
     "shop-cards",
-    "existing-item-card-income"
+    "existing-item-card-income",
+    "common-listing"
   ],
   "calibration": {
     "seedSet": "calibration",

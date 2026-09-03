@@ -45,6 +45,12 @@ function normalizeSave(saved) {
   saved.saleLockUntilDay = saved.saleLockUntilDay && typeof saved.saleLockUntilDay === 'object' ? saved.saleLockUntilDay : {};
   saved.priceHistory = saved.priceHistory || {};
   saved.tradeInputMode = saved.tradeInputMode === 'percentage' ? 'percentage' : 'quantity';
+  const listingUses = Number(saved.commonActions && saved.commonActions.listingUses);
+  saved.commonActions = {
+    listingUses: Number.isFinite(listingUses)
+      ? Math.max(0, Math.min(COMMON_ACTIONS.listing.maxUses, Math.floor(listingUses)))
+      : 0
+  };
   saved.runAchievements = Array.isArray(saved.runAchievements) ? saved.runAchievements : [];
   saved.achievementQueue = Array.isArray(saved.achievementQueue) ? saved.achievementQueue : [];
   saved.achievementShownDay = Number.isFinite(saved.achievementShownDay) ? saved.achievementShownDay : null;

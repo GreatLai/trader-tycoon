@@ -2,7 +2,7 @@
 const INTRO_SLIDES = [
   { emoji: '🧳', title: '旧商行，新掌柜', text: '港口重新开市，这间旧商行和账上仅剩的 ¥5,000 都交到了你手里。\n九十天后封账，能留下多少身家，只看你的眼光。', hint: '接下这间商行', button: '接下委托' },
   { emoji: '📈', title: '先看价，再下手', text: '每天只有一部分商品摆上货架。价格低时收货，行情起来后卖出，现金和仓位都要留有余地。\n经营费每 15 天进入新账期，在第 16、31、46、61、76 天大幅上升；现金不足时会先按当日市价清算已上架库存，再以购入均价的 20% 处理未上架库存。', hint: '每次推进日期，市场都会重新洗牌', button: '记住了' },
-  { emoji: '⚖️', title: '选一条生意路', text: '五种职业从开局起全部开放。\n无用之人守常规，牙商用风险换高价，行商让库存重新报价，投机商追着突发风声下注，盐铁专营则用有限货路搏极端行情。', hint: '职业只能在开局时选择', button: '选择职业' }
+  { emoji: '⚖️', title: '选一条生意路', text: '五条生意路从开局起全部开放。\n守本分、造行情、走四方、追风声，或只守四门生意。职业决定你如何面对同一个市场。', hint: '每种职业都带着 3 枚通商令入局', button: '选择职业' }
 ];
 let introStep = 0;
 
@@ -127,17 +127,12 @@ function openProfessionSelect() {
   const profile = loadProfile();
   $('professionChoices').innerHTML = Object.values(PROFESSIONS).map(profession => {
     const unlocked = profile.unlockedProfessionIds.includes(profession.id);
-    const active = profession.activeAbility
-      ? `<strong>${profession.activeAbility.name}</strong>：${profession.activeAbility.description}`
-      : '无主动技能。';
+    const active = profession.activeAbility ? profession.activeAbility.name : '无';
     return `<button class="profession-choice" data-profession-select="${profession.id}" ${unlocked ? '' : 'disabled'}>
-      <div class="profession-choice-name">${profession.name}</div>
-      <div class="profession-choice-copy">${profession.description}</div>
-      <div class="profession-choice-facts">
-        <div><span class="profession-choice-label">被动</span><span>${profession.passive}</span></div>
-        <div><span class="profession-choice-label">主动</span><span>${active}</span></div>
-        <div><span class="profession-choice-label cost">代价</span><span>${profession.drawback}</span></div>
-      </div>
+      <div class="profession-choice-heading"><span class="profession-choice-name">${profession.name}</span><span class="profession-choice-tagline">${profession.tagline}</span></div>
+      <div class="profession-choice-copy">${profession.selectionQuote}</div>
+      <div class="profession-choice-tags">${profession.selectionTags.map(tag => `<span>${tag}</span>`).join('')}</div>
+      <div class="profession-choice-active">专属手段 · <strong>${active}</strong></div>
       ${unlocked ? '' : `<div class="profession-choice-lock">解锁：${profession.unlock.text}</div>`}
     </button>`;
   }).join('');
@@ -160,6 +155,7 @@ function startNewGame(professionId = DEFAULT_PROFESSION_ID) {
   $('versionOverlay').classList.add('hidden');
   $('professionOverlay').classList.add('hidden');
   $('professionAbilityOverlay').classList.add('hidden');
+  $('commonListingOverlay').classList.add('hidden');
   clearSave();
   save();
   render();
@@ -169,7 +165,7 @@ function startNewGame(professionId = DEFAULT_PROFESSION_ID) {
 function returnToStartScreen() {
   clearSave();
   state = null;
-  ['overlay', 'eventOverlay', 'milestoneOverlay', 'achievementOverlay', 'historyOverlay', 'chartOverlay', 'introOverlay', 'versionOverlay', 'professionOverlay', 'professionAbilityOverlay'].forEach(id => $(id).classList.add('hidden'));
+  ['overlay', 'eventOverlay', 'milestoneOverlay', 'achievementOverlay', 'historyOverlay', 'chartOverlay', 'introOverlay', 'versionOverlay', 'professionOverlay', 'professionAbilityOverlay', 'commonListingOverlay'].forEach(id => $(id).classList.add('hidden'));
   render();
 }
 
@@ -200,6 +196,14 @@ function openProfessionAbility() {
     ? targets.map(id => `<button class="btn btn-small" data-profession-ability-target="${id}">${goodById(id).name}${profession.activeAbility.id === 'marketTrip' ? '' : ` · ¥${fmt(state.prices[id], 2)}`}</button>`).join('')
     : `<div style="grid-column:1/-1;color:var(--muted);font-size:13px;">${emptyTargetText}</div>`;
   $('professionAbilityOverlay').classList.remove('hidden');
+}
+
+function openCommonListing() {
+  const targets = eligibleCommonListingTargets();
+  $('commonListingTargets').innerHTML = targets.length
+    ? targets.map(id => `<button class="btn btn-small" data-common-listing-target="${id}">${goodById(id).name} · 库存 ${fmt(state.inventory[id], 0)}</button>`).join('')
+    : '<div class="ability-empty">今天没有可以另开货路的压仓货。</div>';
+  $('commonListingOverlay').classList.remove('hidden');
 }
 
 function handleClick(e) {
@@ -318,6 +322,17 @@ document.addEventListener('click', (e) => {
     }
   } else if (target.id === 'professionAbilityCloseBtn') {
     $('professionAbilityOverlay').classList.add('hidden');
+  } else if (target.id === 'commonListingBtn') {
+    openCommonListing();
+  } else if (target.dataset.commonListingTarget) {
+    const result = useCommonListing(target.dataset.commonListingTarget);
+    if (result.ok) {
+      $('commonListingOverlay').classList.add('hidden');
+      save();
+      render();
+    }
+  } else if (target.id === 'commonListingCloseBtn') {
+    $('commonListingOverlay').classList.add('hidden');
   } else if (target.dataset.customTrade) {
     executeCustomTrade(target);
   } else {

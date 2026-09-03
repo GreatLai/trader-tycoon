@@ -167,16 +167,16 @@ test('generated balance report matches the current card-free pressure baseline',
   const skilled = report.validation.strategies.skilled;
 
   assert.equal(report.baseline, 'useless-trader-card-free');
-  assert.equal(report.gameVersion, '1.16.1');
+  assert.equal(report.gameVersion, '1.17.0');
   assert.deepEqual(report.exclusions, [
-    'daily-hand', 'career-skills', 'shop-cards', 'existing-item-card-income'
+    'daily-hand', 'career-skills', 'shop-cards', 'existing-item-card-income', 'common-listing'
   ]);
   assert.equal(skilled.survivalRate >= 0.60 && skilled.survivalRate <= 0.70, true);
   assert.equal(skilled.survivorFinalWorth.median >= 75000000, true);
   assert.equal(skilled.survivorFinalWorth.median <= 125000000, true);
   assert.equal(report.sensitivity.some(item => item.name === '商品基础锚点'), true);
   assert.equal(Object.hasOwn(skilled.profitSources, 'operatingFees'), true);
-  assert.match(framework, /存活率 69\.8%/);
+  assert.match(framework, /存活率 69\.6%/);
 });
 
 test('balance simulator source does not call card purchase or use APIs', () => {

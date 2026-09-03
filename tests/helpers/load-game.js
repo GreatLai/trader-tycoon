@@ -108,6 +108,7 @@ function createGame(options = {}) {
       getPercentageTradeQuantity: typeof getPercentageTradeQuantity === 'function' ? getPercentageTradeQuantity : undefined,
       getEffectiveRules: typeof getEffectiveRules === 'function' ? getEffectiveRules : undefined,
       canTradeGood: typeof canTradeGood === 'function' ? canTradeGood : undefined,
+      commonListingUsesRemaining: typeof commonListingUsesRemaining === 'function' ? commonListingUsesRemaining : undefined,
       initializeOpeningMarket: typeof initializeOpeningMarket === 'function' ? initializeOpeningMarket : undefined,
       isGoodSaleLocked: typeof isGoodSaleLocked === 'function' ? isGoodSaleLocked : undefined,
       loadProfile: typeof loadProfile === 'function' ? loadProfile : undefined,
@@ -143,9 +144,12 @@ function createGame(options = {}) {
       totalUnits,
       updateGoodPrice,
       eligibleProfessionAbilityTargets: typeof eligibleProfessionAbilityTargets === 'function' ? eligibleProfessionAbilityTargets : undefined,
+      eligibleCommonListingTargets: typeof eligibleCommonListingTargets === 'function' ? eligibleCommonListingTargets : undefined,
       eligibleProfessionEcoEvents: typeof eligibleProfessionEcoEvents === 'function' ? eligibleProfessionEcoEvents : undefined,
       unlockEligibleProfessions: typeof unlockEligibleProfessions === 'function' ? unlockEligibleProfessions : undefined,
-      useProfessionAbility: typeof useProfessionAbility === 'function' ? useProfessionAbility : undefined
+      useProfessionAbility: typeof useProfessionAbility === 'function' ? useProfessionAbility : undefined,
+      useCommonListing: typeof useCommonListing === 'function' ? useCommonListing : undefined,
+      professionAbilityReadyDay: typeof professionAbilityReadyDay === 'function' ? professionAbilityReadyDay : undefined
     };
   `, context);
 

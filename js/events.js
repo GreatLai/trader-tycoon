@@ -267,7 +267,9 @@ function calcOperatingCost(day = state.day) {
 }
 
 function professionNaturalEventIntensity() {
-  return state && state.profession && state.profession.id === 'speculator' ? 1.2 : 1;
+  return state && state.profession && state.profession.id === 'speculator'
+    ? PROFESSION_MECHANICS.speculator.eventIntensity
+    : 1;
 }
 
 function calcRemainingOperatingCost(day = state.day) {

@@ -108,7 +108,7 @@ function markdown(report) {
   ).join('\n');
   const skilled = report.validation.strategies.skilled;
 
-  return `# 无用之人纯交易基准报告\n\n` +
+  return `# 生意人纯交易基准报告\n\n` +
     `- 报告版本：\`${report.reportVersion}\`\n` +
     `- 游戏版本：\`${report.gameVersion}\`\n` +
     `- 校准种子：${report.calibration.runsPerStrategy} 个；验证种子：${report.validation.runsPerStrategy} 个，二者不重叠。\n` +
@@ -152,7 +152,7 @@ function main() {
     gameVersion: createGame().api.APP_VERSION,
     fingerprints: fingerprints(),
     baseline: 'useless-trader-card-free',
-    exclusions: ['daily-hand', 'career-skills', 'shop-cards', 'existing-item-card-income'],
+    exclusions: ['daily-hand', 'career-skills', 'shop-cards', 'existing-item-card-income', 'common-listing'],
     calibration: { seedSet: 'calibration', runsPerStrategy: CALIBRATION_SEEDS.length, skilled: calibration },
     validation: { seedSet: 'validation', runsPerStrategy: validationSeeds.length, strategies },
     sensitivitySeeds: sensitivitySeeds.length,
