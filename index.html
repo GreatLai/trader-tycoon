@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>倒卖大亨 - 日期交易游戏</title>
-<link rel="stylesheet" href="css/style.css?v=1.12.1">
+<link rel="stylesheet" href="css/style.css?v=1.13.0">
 </head>
 <body>
 
@@ -144,6 +144,17 @@
     </div>
   </div>
 
+  <!-- 交易成就弹窗 -->
+  <div id="achievementOverlay" class="overlay hidden">
+    <div class="modal achievement-modal">
+      <div class="achievement-kicker">商途成就</div>
+      <h2 id="achievementTitle">第一桶金</h2>
+      <p id="achievementDescription" class="achievement-description"></p>
+      <div id="achievementStats" class="achievement-stats"></div>
+      <button class="btn btn-block" id="achievementCloseBtn">继续营业</button>
+    </div>
+  </div>
+
   <!-- 每日事件统计弹窗 -->
   <div id="historyOverlay" class="overlay hidden">
     <div class="modal" style="max-width:560px;max-height:80vh;overflow:auto;text-align:left;">
@@ -217,19 +228,20 @@
 
 
 
-<script src="js/config.js?v=1.12.1"></script>
-<script src="js/utils.js?v=1.12.1"></script>
-<script src="js/eco.js?v=1.12.1"></script>
-<script src="js/professions.js?v=1.12.1"></script>
-<script src="js/rules.js?v=1.12.1"></script>
-<script src="js/profile.js?v=1.12.1"></script>
-<script src="js/state.js?v=1.12.1"></script>
-<script src="js/market_actions.js?v=1.12.1"></script>
-<script src="js/events.js?v=1.12.1"></script>
-<script src="js/trading.js?v=1.12.1"></script>
-<script src="js/game.js?v=1.12.1"></script>
-<script src="js/save.js?v=1.12.1"></script>
-<script src="js/ui.js?v=1.12.1"></script>
-<script src="js/main.js?v=1.12.1"></script></body>
+<script src="js/config.js?v=1.13.0"></script>
+<script src="js/utils.js?v=1.13.0"></script>
+<script src="js/eco.js?v=1.13.0"></script>
+<script src="js/professions.js?v=1.13.0"></script>
+<script src="js/rules.js?v=1.13.0"></script>
+<script src="js/profile.js?v=1.13.0"></script>
+<script src="js/state.js?v=1.13.0"></script>
+<script src="js/market_actions.js?v=1.13.0"></script>
+<script src="js/events.js?v=1.13.0"></script>
+<script src="js/achievements.js?v=1.13.0"></script>
+<script src="js/trading.js?v=1.13.0"></script>
+<script src="js/game.js?v=1.13.0"></script>
+<script src="js/save.js?v=1.13.0"></script>
+<script src="js/ui.js?v=1.13.0"></script>
+<script src="js/main.js?v=1.13.0"></script></body>
 </html>
 

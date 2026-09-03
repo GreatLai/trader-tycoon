@@ -13,6 +13,7 @@ const SCRIPT_FILES = [
   'js/state.js',
   'js/market_actions.js',
   'js/events.js',
+  'js/achievements.js',
   'js/trading.js',
   'js/game.js',
   'js/save.js'
@@ -129,6 +130,7 @@ function createGame(options = {}) {
         render();
       },
       sell,
+      evaluateTradeAchievements: typeof evaluateTradeAchievements === 'function' ? evaluateTradeAchievements : undefined,
       setTradeInputMode: typeof setTradeInputMode === 'function' ? setTradeInputMode : undefined,
       setRandom(value) { Math.random = value; },
       setState(value) { state = value; },

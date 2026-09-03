@@ -216,11 +216,11 @@ test('the release version is consistent across delivery files', () => {
   const changelog = fs.readFileSync(path.join(ROOT, 'CHANGELOG.md'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.12.1');
+  assert.equal(api.APP_VERSION, '1.13.0');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.12\.1/g) || []).length, 15);
-  assert.match(readme, /当前版本：\*\* v1\.12\.1/);
-  assert.match(changelog, /## \[1\.12\.1\] - 2026-09-02/);
+  assert.equal((html.match(/\?v=1\.13\.0/g) || []).length, 16);
+  assert.match(readme, /当前版本：\*\* v1\.13\.0/);
+  assert.match(changelog, /## \[1\.13\.0\] - 2026-09-03/);
 });
 
 test('standard and ecology markets list six and seven goods respectively', () => {
@@ -424,6 +424,12 @@ test('generated art is wired into goods, branding, and responsive scenery', () =
   assert.match(html, /coin-tassel\.webp/);
   assert.match(css, /@media \(max-width:\s*640px\)[\s\S]*brand-logo-horizontal[^}]*display:\s*none/);
   assert.match(css, /@media \(max-width:\s*640px\)[\s\S]*brand-logo-seal[^}]*display:/);
+});
+
+test('the decorative coin tassel cannot create horizontal page overflow', () => {
+  const css = fs.readFileSync(path.join(ROOT, 'css', 'style.css'), 'utf8');
+
+  assert.match(css, /#gameScreen\s*\{[^}]*overflow-x:\s*clip/);
 });
 
 test('every ecological event has complete A/B/C multipliers', () => {

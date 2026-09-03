@@ -27,6 +27,14 @@ function normalizeSave(saved) {
   saved.saleLockUntilDay = saved.saleLockUntilDay && typeof saved.saleLockUntilDay === 'object' ? saved.saleLockUntilDay : {};
   saved.priceHistory = saved.priceHistory || {};
   saved.tradeInputMode = saved.tradeInputMode === 'percentage' ? 'percentage' : 'quantity';
+  saved.runAchievements = Array.isArray(saved.runAchievements) ? saved.runAchievements : [];
+  saved.achievementQueue = Array.isArray(saved.achievementQueue) ? saved.achievementQueue : [];
+  saved.achievementShownDay = Number.isFinite(saved.achievementShownDay) ? saved.achievementShownDay : null;
+  saved.tradeMemories = saved.tradeMemories && typeof saved.tradeMemories === 'object' ? saved.tradeMemories : {};
+  saved.lastTradeFeedback = saved.lastTradeFeedback && typeof saved.lastTradeFeedback === 'object' ? saved.lastTradeFeedback : null;
+  saved.achievementRecovery = saved.achievementRecovery && typeof saved.achievementRecovery === 'object'
+    ? saved.achievementRecovery
+    : { drawdownPeak: saved.peakNetWorth || CONFIG.START_CASH, armed: false, hasProfitableSale: false };
   const professionId = normalizeProfessionId(saved.profession && saved.profession.id);
   saved.profession = {
     id: professionId,

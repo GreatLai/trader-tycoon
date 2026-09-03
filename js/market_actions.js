@@ -37,7 +37,8 @@ function eligibleProfessionAbilityTargets() {
     return state.availableGoods.filter(id =>
       (state.inventory[id] || 0) > 0 &&
       state.goodsBoughtDay[id] !== state.day &&
-      !isGoodSaleLocked(id)
+      !isGoodSaleLocked(id) &&
+      state.prices[id] / goodById(id).base < 1.45
     );
   }
   if (profession.activeAbility.id === 'marketTrip') {
@@ -90,11 +91,17 @@ function resolveProfessionScheduledEvents() {
   const continues = Math.random() < 0.70;
   const positive = continues ? pending.originalPositive : !pending.originalPositive;
   const event = makeEvent(pending.goodId, positive, { forcedByCard: false, allowRare: false, guaranteedMovement: true });
+  const currentFactor = state.prices[pending.goodId] / goodById(pending.goodId).base;
+  event.targetMult = positive
+    ? +Math.min(50, Math.max(event.targetMult, currentFactor * 1.08)).toFixed(3)
+    : +Math.max(0.02, Math.min(event.targetMult, currentFactor * 0.92)).toFixed(3);
   event.source = 'profession-follow-up';
   event.title = positive ? '📈 后续报道 · 风声续涨' : '📉 后续报道 · 风向突变';
   event.desc = `${goodById(pending.goodId).name}的后续消息落地，行情${positive ? '继续走高' : '转向下跌'}。`;
   state.events.push(event);
   state.logs.unshift(`第${state.day}天：${event.title} ${event.desc}`);
+  const followUpMemory = state.tradeMemories[pending.goodId] || (state.tradeMemories[pending.goodId] = {});
+  followUpMemory.speculatorFollowUp = true;
   delete state.profession.data.pendingFollowUp;
   return event;
 }
@@ -157,11 +164,15 @@ function useProfessionAbility(targetId) {
       queueNotice('牙商 · 抬价失败', desc);
       return { ok: false, reason: 'raise-failed', goodId: targetId, unlockDay };
     }
-    const factor = 1.15 + Math.random() * 0.30;
-    state.prices[targetId] = +(good.base * factor).toFixed(2);
+    const oldFactor = oldPrice / good.base;
+    const minFactor = Math.max(1.15, oldFactor + 0.05);
+    const factor = minFactor + Math.random() * Math.max(0, 1.45 - minFactor);
+    state.prices[targetId] = +(good.base * Math.min(1.45, factor)).toFixed(2);
     state.prevPrices[targetId] = oldPrice;
     state.factors[targetId] = state.prices[targetId] / good.base;
     recordCurrentPrice(targetId);
+    const raiseMemory = state.tradeMemories[targetId] || (state.tradeMemories[targetId] = {});
+    raiseMemory.toothRaised = true;
     const desc = `${good.name}被抬至 ¥${fmt(state.prices[targetId], 2)}，今日可按新价格交易。`;
     state.logs.unshift(`第${state.day}天：牙商使用抬价。${desc}`);
     queueNotice('牙商 · 抬价', desc);
@@ -175,6 +186,8 @@ function useProfessionAbility(targetId) {
     state.profession.data.marketTripDay = state.day;
     const refresh = refreshMarketGood(targetId, { eventChance: 0.15, guaranteedEvent: true, source: 'profession', skipEcology: true });
     const good = goodById(targetId);
+    const tripMemory = state.tradeMemories[targetId] || (state.tradeMemories[targetId] = {});
+    tripMemory.marketTrip = true;
     const desc = `${good.name}已赶集上架，今日成交收入将扣除 5% 路费。`;
     state.logs.unshift(`第${state.day}天：行商使用赶集。${desc}`);
     queueNotice('行商 · 赶集', desc);

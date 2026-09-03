@@ -56,6 +56,7 @@ function resolveNextDayState() {
   resolveProfessionScheduledEvents();
   spawnEvents();
   updatePrices();
+  updateTradeMemories();
   applyProfessionMarketPassive();
   updateSeenPrices();
   recordDayHistory();
@@ -64,6 +65,7 @@ function resolveNextDayState() {
   state.peakNetWorth = Math.max(state.peakNetWorth || CONFIG.START_CASH, netWorth());
   state.runStats.maxDayReached = Math.max(state.runStats.maxDayReached, state.day);
   state.runStats.peakNetWorth = Math.max(state.runStats.peakNetWorth, state.peakNetWorth);
+  evaluateRunAchievements();
   unlockEligibleProfessions({ peakNetWorth: state.peakNetWorth });
   checkEnd();
 }

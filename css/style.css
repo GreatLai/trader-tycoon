@@ -119,7 +119,7 @@
   .btn-ghost:hover { background: #f1f5f9; }
 
   /* ---------- Game screen ---------- */
-  #gameScreen { max-width: 1200px; margin: 0 auto; padding: 16px; }
+  #gameScreen { max-width: 1200px; margin: 0 auto; padding: 16px; overflow-x: clip; }
   header {
     background: var(--card);
     border: 1px solid var(--line);
@@ -227,7 +227,8 @@
     grid-template-columns: minmax(230px, 1fr) minmax(410px, 1.45fr);
     grid-template-areas:
       "info buy"
-      "info sell";
+      "info sell"
+      "info feedback";
     align-items: stretch;
     column-gap: 16px;
     row-gap: 8px;
@@ -289,6 +290,21 @@
   }
   .trade-buy { grid-area: buy; }
   .trade-sell { grid-area: sell; }
+  .trade-feedback {
+    grid-area: feedback;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    min-height: 18px;
+    color: var(--green);
+    font-size: 12px;
+    animation: tradeFeedbackPop .22s ease-out;
+  }
+  .trade-feedback strong { color: var(--amber); }
+  @keyframes tradeFeedbackPop {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
   .trade-label { font-size: 12px; font-weight: 700; color: var(--muted); text-align: center; }
   .trade-row .btn-small {
     width: 100%;
@@ -328,7 +344,8 @@
       grid-template-areas:
         "info"
         "buy"
-        "sell";
+        "sell"
+        "feedback";
       row-gap: 8px;
       padding: 12px 0;
     }
@@ -444,6 +461,13 @@
     background: linear-gradient(135deg, #fff7ed, #fef3c7);
     animation: ecoFlash 1.6s ease-in-out infinite;
   }
+  .achievement-modal { max-width: 460px; text-align: left; border-top: 4px solid var(--amber); }
+  .achievement-kicker { color: var(--amber); font-size: 12px; font-weight: 800; margin-bottom: 6px; }
+  .achievement-description { margin-top: 10px; color: var(--muted); line-height: 1.7; }
+  .achievement-stats { margin-top: 16px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .achievement-stats > div { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; font-size: 13px; }
+  .achievement-stats > div + div { border-top: 1px dashed var(--line); }
+  .achievement-stats strong { color: var(--green); text-align: right; }
   @keyframes ecoFlash {
     0%, 100% { box-shadow: 0 0 0 1px #fcd34d inset; }
     50% { box-shadow: 0 0 18px rgba(217,119,6,.65), 0 0 0 1px #fcd34d inset; }

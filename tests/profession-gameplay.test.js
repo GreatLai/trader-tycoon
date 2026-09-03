@@ -45,6 +45,7 @@ test('tooth merchant can raise an owned listed good once every three days', () =
   state.availableGoods = ['wheat'];
   state.inventory.wheat = 10;
   state.costBasis.wheat = 10;
+  const oldPrice = state.prices.wheat;
   const rolls = [0.5, 0];
   api.setRandom(() => rolls.shift() ?? 0);
 
@@ -53,7 +54,7 @@ test('tooth merchant can raise an owned listed good once every three days', () =
   const second = api.useProfessionAbility('wheat');
 
   assert.equal(first.ok, true);
-  assert.equal(state.prices.wheat, +(api.GOODS.find(good => good.id === 'wheat').base * 1.15).toFixed(2));
+  assert.equal(state.prices.wheat > oldPrice, true);
   assert.equal(state.profession.activeUsedDay, state.day);
   assert.deepEqual(plain(second), { ok: false, reason: 'already-used' });
 
@@ -66,6 +67,39 @@ test('tooth merchant can raise an owned listed good once every three days', () =
 
   state.day = 4;
   assert.deepEqual(plain(api.eligibleProfessionAbilityTargets()), ['wheat']);
+});
+
+test('tooth merchant raise price never lowers an already elevated market price', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  const wheat = api.GOODS.find(good => good.id === 'wheat');
+  state.profession = api.newProfessionState('toothMerchant');
+  state.availableGoods = ['wheat'];
+  state.inventory.wheat = 10;
+  state.costBasis.wheat = wheat.base * 10;
+  state.prices.wheat = +(wheat.base * 1.30).toFixed(2);
+  state.factors.wheat = 1.30;
+  const rolls = [0.5, 0];
+  api.setRandom(() => rolls.shift() ?? 0);
+
+  const result = api.useProfessionAbility('wheat');
+
+  assert.equal(result.ok, true);
+  assert.equal(state.prices.wheat > +(wheat.base * 1.30).toFixed(2), true);
+});
+
+test('tooth merchant cannot target goods already at the ability ceiling', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  const wheat = api.GOODS.find(good => good.id === 'wheat');
+  state.profession = api.newProfessionState('toothMerchant');
+  state.availableGoods = ['wheat'];
+  state.inventory.wheat = 10;
+  state.costBasis.wheat = wheat.base * 10;
+  state.prices.wheat = +(wheat.base * 1.45).toFixed(2);
+  state.factors.wheat = 1.45;
+
+  assert.deepEqual(plain(api.eligibleProfessionAbilityTargets()), []);
 });
 
 test('speculator is available by default', () => {
@@ -163,6 +197,44 @@ test('stoke market follow-up continues below the seventy-percent boundary', () =
   assert.equal(event.isRare, false);
 });
 
+test('speculator positive follow-up must rise from the previous event price', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  const wheat = api.GOODS.find(good => good.id === 'wheat');
+  state.profession = api.newProfessionState('speculator');
+  state.day = 13;
+  state.prices.wheat = +(wheat.base * 3.5).toFixed(2);
+  state.factors.wheat = 3.5;
+  state.profession.data.pendingFollowUp = { goodId: 'wheat', originalPositive: true, dueDay: 13 };
+  const rolls = [0, 0.5, 0.5, 0.5];
+  api.setRandom(() => rolls.shift() ?? 0.5);
+
+  const event = api.resolveProfessionScheduledEvents();
+  api.updateGoodPrice(wheat, event);
+
+  assert.equal(event.type, 'good');
+  assert.equal(state.prices.wheat > wheat.base * 3.5, true);
+});
+
+test('speculator negative follow-up must fall from the previous event price', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  const wheat = api.GOODS.find(good => good.id === 'wheat');
+  state.profession = api.newProfessionState('speculator');
+  state.day = 13;
+  state.prices.wheat = +(wheat.base * 0.25).toFixed(2);
+  state.factors.wheat = 0.25;
+  state.profession.data.pendingFollowUp = { goodId: 'wheat', originalPositive: false, dueDay: 13 };
+  const rolls = [0, 0.5, 0.5, 0.5];
+  api.setRandom(() => rolls.shift() ?? 0.5);
+
+  const event = api.resolveProfessionScheduledEvents();
+  api.updateGoodPrice(wheat, event);
+
+  assert.equal(event.type, 'bad');
+  assert.equal(state.prices.wheat < wheat.base * 0.25, true);
+});
+
 test('stoke market follow-up reverses at the seventy-percent boundary', () => {
   const { api } = createGame();
   const state = api.reset();
@@ -206,7 +278,7 @@ test('speculator UI describes uncertainty without publishing exact follow-up odd
   assert.match(professions, /追风/);
   assert.match(professions, /风声放大/);
   assert.match(professions, /煽风点火/);
-  assert.match(professions, /更可能延续，也可能反转/);
+  assert.match(professions, /延续必定顺势再走一步，也可能反向变化/);
   assert.doesNotMatch(professions, /70%|30%/);
   assert.match(ui, /professionAbilityReadyDay/);
 });

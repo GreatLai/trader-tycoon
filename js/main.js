@@ -152,6 +152,7 @@ function startNewGame(professionId = DEFAULT_PROFESSION_ID) {
   state.logs = ['第1天：商行开张。常规市场上架6种商品，生态行情期间扩展到7种。'];
   $('eventOverlay').classList.add('hidden');
   $('milestoneOverlay').classList.add('hidden');
+  $('achievementOverlay').classList.add('hidden');
   $('historyOverlay').classList.add('hidden');
   $('chartOverlay').classList.add('hidden');
   $('introOverlay').classList.add('hidden');
@@ -167,7 +168,7 @@ function startNewGame(professionId = DEFAULT_PROFESSION_ID) {
 function returnToStartScreen() {
   clearSave();
   state = null;
-  ['overlay', 'eventOverlay', 'milestoneOverlay', 'historyOverlay', 'chartOverlay', 'introOverlay', 'versionOverlay', 'professionOverlay', 'professionAbilityOverlay'].forEach(id => $(id).classList.add('hidden'));
+  ['overlay', 'eventOverlay', 'milestoneOverlay', 'achievementOverlay', 'historyOverlay', 'chartOverlay', 'introOverlay', 'versionOverlay', 'professionOverlay', 'professionAbilityOverlay'].forEach(id => $(id).classList.add('hidden'));
   render();
 }
 
@@ -269,6 +270,12 @@ document.addEventListener('click', (e) => {
     closeEventNotice();
   } else if (target.id === 'milestoneCloseBtn') {
     $('milestoneOverlay').classList.add('hidden');
+    render();
+  } else if (target.id === 'achievementCloseBtn') {
+    completeCurrentAchievement();
+    $('achievementOverlay').classList.add('hidden');
+    save();
+    render();
   } else if (target.id === 'historyBtn') {
     openHistory();
   } else if (target.id === 'historyCloseBtn') {

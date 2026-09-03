@@ -20,6 +20,7 @@ function render() {
     $('overlay').classList.add('hidden');
     $('eventOverlay').classList.add('hidden');
     $('milestoneOverlay').classList.add('hidden');
+    $('achievementOverlay').classList.add('hidden');
     $('historyOverlay').classList.add('hidden');
     $('chartOverlay').classList.add('hidden');
     $('professionAbilityOverlay').classList.add('hidden');
@@ -33,6 +34,7 @@ function render() {
   if (state.gameOver) {
     $('eventOverlay').classList.add('hidden');
     $('milestoneOverlay').classList.add('hidden');
+    $('achievementOverlay').classList.add('hidden');
     $('historyOverlay').classList.add('hidden');
     $('chartOverlay').classList.add('hidden');
     $('professionAbilityOverlay').classList.add('hidden');
@@ -119,6 +121,9 @@ function render() {
           <button class="btn btn-small btn-ghost trade-preset" data-action="sell" data-good="${id}" data-qty="10" ${sellDisabled}>-10</button>
           <button class="btn btn-small btn-ghost trade-preset" data-action="sell" data-good="${id}" data-qty="100" ${sellDisabled}>-100</button>
           <button class="btn btn-small btn-ghost trade-fill" data-action="sell" data-good="${id}" data-qty="all" ${sellDisabled}>全卖</button>`;
+    const feedback = state.lastTradeFeedback && state.lastTradeFeedback.day === state.day && state.lastTradeFeedback.goodId === id && state.lastTradeFeedback.realizedProfit > 0
+      ? `<div class="trade-feedback"><strong>本次利润 +¥${fmt(state.lastTradeFeedback.realizedProfit, 2)}</strong><span>收益率 +${fmt(state.lastTradeFeedback.returnRate * 100, 1)}%</span></div>`
+      : '';
     return `
       <div class="market-row${ecoClass}">
         <div class="market-info">
@@ -142,6 +147,7 @@ function render() {
           <input class="trade-custom-input" type="number" min="1" step="1" inputmode="numeric" placeholder="数量" aria-label="${g.name}卖出数量" data-trade-input="sell" data-good="${id}" ${sellDisabled}>
           <button class="btn btn-small btn-red trade-submit" data-custom-trade="sell" data-good="${id}" ${sellDisabled}>卖出</button>
         </div>
+        ${feedback}
       </div>`;
   }).join('');
   $('marketList').innerHTML = marketHtml;
@@ -205,13 +211,27 @@ function render() {
   // 主动技能事件逐条播报；每日自然事件仍合并播报。
   const popupHtml = suddenNewsHtml + ecoNewsHtml;
   if (state.eventNoticeQueue.length && !state.gameOver) {
+    $('achievementOverlay').classList.add('hidden');
     const notice = state.eventNoticeQueue[0];
     $('eventPopupList').innerHTML = `<div class="news-item"><div class="news-title">${notice.title}</div><div>${notice.desc}</div></div>`;
     $('eventOverlay').classList.remove('hidden');
   } else if (popupHtml && !state.popupShown && !state.gameOver) {
+    $('achievementOverlay').classList.add('hidden');
     $('eventPopupList').innerHTML = popupHtml;
     $('eventOverlay').classList.remove('hidden');
     state.popupShown = true;
+    save();
+  } else if (state.achievementQueue.length && state.achievementShownDay !== state.day && !state.gameOver && $('milestoneOverlay').classList.contains('hidden')) {
+    const achievement = state.achievementQueue[0];
+    $('achievementTitle').textContent = achievement.title;
+    $('achievementDescription').textContent = achievement.description;
+    const profitStats = achievement.realizedProfit > 0 ? `
+      <div><span>本次利润</span><strong>+¥${fmt(achievement.realizedProfit, 2)}</strong></div>
+      <div><span>交易收益率</span><strong>+${fmt(achievement.returnRate * 100, 1)}%</strong></div>` : '';
+    $('achievementStats').innerHTML = `${profitStats}
+      <div><span>总资产</span><strong>¥${fmt(achievement.netWorthBefore, 0)} → ¥${fmt(achievement.netWorthAfter, 0)}</strong></div>`;
+    $('achievementOverlay').classList.remove('hidden');
+    state.achievementShownDay = state.day;
     save();
   }
 
@@ -228,7 +248,10 @@ function render() {
 function closeEventNotice() {
   if (state.eventNoticeQueue.length) state.eventNoticeQueue.shift();
   if (state.eventNoticeQueue.length) render();
-  else $('eventOverlay').classList.add('hidden');
+  else {
+    $('eventOverlay').classList.add('hidden');
+    render();
+  }
   save();
 }
 

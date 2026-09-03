@@ -48,7 +48,10 @@ function buy(id, qty) {
   state.inventory[id] = (state.inventory[id] || 0) + qty;
   state.costBasis[id] = (state.costBasis[id] || 0) + cost;
   state.goodsBoughtDay[id] = state.day;
+  const memory = state.tradeMemories[id] || (state.tradeMemories[id] = {});
+  if (state.events.some(event => event.goodId === id && event.type === 'bad')) memory.boughtDuringBadEvent = true;
   render();
+  return { goodId: id, quantity: qty, unitPrice: price, cost };
 }
 
 function sell(id, qty) {
@@ -60,14 +63,37 @@ function sell(id, qty) {
   if (qty <= 0) return;
   const price = state.prices[id];
   const settlement = calculateSaleSettlement(id, qty, price);
-  const avg = (state.costBasis[id] || 0) / state.inventory[id];
+  const ownedBefore = state.inventory[id];
+  const avg = (state.costBasis[id] || 0) / ownedBefore;
+  const allocatedCost = +(avg * qty).toFixed(2);
+  const netWorthBefore = netWorth();
   state.cash = +(state.cash + settlement.net).toFixed(2);
   state.inventory[id] -= qty;
-  state.costBasis[id] = +(state.costBasis[id] - avg * qty).toFixed(2);
+  state.costBasis[id] = +(state.costBasis[id] - allocatedCost).toFixed(2);
   if (state.inventory[id] <= 0) {
     delete state.inventory[id];
     delete state.costBasis[id];
   }
+  const realizedProfit = +(settlement.net - allocatedCost).toFixed(2);
+  const tradeResult = {
+    goodId: id,
+    quantity: qty,
+    salePrice: price,
+    revenue: settlement.net,
+    allocatedCost,
+    fees: settlement.fee,
+    realizedProfit,
+    returnRate: allocatedCost > 0 ? realizedProfit / allocatedCost : 0,
+    averageCost: avg,
+    netWorthBefore,
+    netWorthAfter: netWorth()
+  };
+  state.lastTradeFeedback = { ...tradeResult, day: state.day };
+  evaluateTradeAchievements(tradeResult);
+  if (realizedProfit > 0) state.achievementRecovery.hasProfitableSale = true;
+  evaluateRunAchievements();
+  if (!state.inventory[id]) delete state.tradeMemories[id];
   render();
+  return tradeResult;
 }
 

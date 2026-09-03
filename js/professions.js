@@ -27,7 +27,7 @@ const PROFESSIONS = Object.freeze({
       id: 'raisePrice',
       name: '抬价',
       cooldownDays: 3,
-      description: '每 3 天可用 1 次。选择今日上架、持有且今天未买入的商品，将价格抬至锚点的 115%～145%。'
+      description: '每 3 天可用 1 次。选择今日上架、持有且今天未买入的商品，从现价继续抬高，最高达到锚点的 145%。'
     })
   }),
   travelingMerchant: Object.freeze({
@@ -57,7 +57,7 @@ const PROFESSIONS = Object.freeze({
       id: 'stokeMarket',
       name: '煽风点火',
       cooldownDays: 3,
-      description: '每 3 天可用 1 次。指定今日发生自然突发事件的商品，安排次日后续行情；走势更可能延续，也可能反转。'
+      description: '每 3 天可用 1 次。指定今日发生自然突发事件的商品，安排次日后续行情；延续必定顺势再走一步，也可能反向变化。'
     })
   })
 });
