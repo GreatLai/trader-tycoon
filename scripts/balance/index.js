@@ -62,6 +62,9 @@ function applyOverrides(api, scenario) {
   for (const [key, configKey] of Object.entries(mapping)) {
     if (scenario[key] != null) api.BALANCE_CONFIG[configKey] = scenario[key];
   }
+  if (Array.isArray(scenario.operatingCostStages)) {
+    api.BALANCE_CONFIG.OPERATING_COST_STAGES = scenario.operatingCostStages.map(stage => ({ ...stage }));
+  }
   if (scenario.basePriceScale != null) {
     for (const good of api.GOODS) good.base *= scenario.basePriceScale;
   }

@@ -95,6 +95,27 @@ test('debt settlement scenario maps the candidate operating and liquidation rule
   assert.equal(api.BALANCE_CONFIG.OFF_MARKET_LIQUIDATION_RATE, 0.2);
 });
 
+test('balance scenarios can replace the operating cost schedule with fixed accounting periods', () => {
+  const { api } = createGame();
+  const stages = [
+    { startDay: 1, endDay: 15, base: 50, growth: 1 },
+    { startDay: 16, endDay: 30, base: 200, growth: 1 },
+    { startDay: 31, endDay: 45, base: 1000, growth: 1 },
+    { startDay: 46, endDay: 60, base: 5000, growth: 1 },
+    { startDay: 61, endDay: 75, base: 20000, growth: 1 },
+    { startDay: 76, endDay: 90, base: 72000, growth: 1 }
+  ];
+
+  applyOverrides(api, applyScenario({ operatingCostStages: stages }));
+
+  assert.equal(api.calcOperatingCost(1), 50);
+  assert.equal(api.calcOperatingCost(16), 200);
+  assert.equal(api.calcOperatingCost(31), 1000);
+  assert.equal(api.calcOperatingCost(46), 5000);
+  assert.equal(api.calcOperatingCost(61), 20000);
+  assert.equal(api.calcOperatingCost(76), 72000);
+});
+
 test('summary reports survivor-only wealth and bankruptcy timing separately', () => {
   const summary = summarizeRuns([
     { survived: true, finalWorth: 100, bankruptcyDay: null },
