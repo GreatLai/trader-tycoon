@@ -33,7 +33,9 @@ function validDailySettlement(settlement) {
 function normalizeSave(saved) {
   if (!saved || typeof saved !== 'object') return null;
 
-  saved.events = Array.isArray(saved.events) ? saved.events : [];
+  saved.events = Array.isArray(saved.events)
+    ? saved.events.filter(event => event && typeof event === 'object' && !Number.isFinite(event.targetMult))
+    : [];
   saved.dailySettlement = validDailySettlement(saved.dailySettlement) ? saved.dailySettlement : null;
   saved.dailyHistory = Array.isArray(saved.dailyHistory) ? saved.dailyHistory : [];
   saved.logs = Array.isArray(saved.logs) ? saved.logs : [];

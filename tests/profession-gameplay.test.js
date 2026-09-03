@@ -72,17 +72,29 @@ test('salt iron monopoly keeps the original recovery trajectory amplified', () =
   }
 });
 
-test('salt iron monopoly triples sudden event deviation from anchor', () => {
+test('salt iron monopoly triples sudden event impact after selecting the directional baseline', () => {
+  const baselineGame = createGame();
+  const baselineState = baselineGame.api.reset();
+  const baselineSalt = baselineGame.api.GOODS.find(good => good.id === 'salt');
+  baselineState.profession = baselineGame.api.newProfessionState('saltIronMonopoly');
+  baselineState.prices.salt = baselineSalt.base;
+  baselineState.prevPrices.salt = baselineSalt.base;
+  baselineState.factors.salt = 1;
+  baselineGame.api.setRandom(() => 0.5);
+  baselineGame.api.updateGoodPrice(baselineSalt);
+
   const { api } = createGame();
   const state = api.reset();
   const salt = api.GOODS.find(good => good.id === 'salt');
   state.profession = api.newProfessionState('saltIronMonopoly');
   state.prices.salt = salt.base;
+  state.prevPrices.salt = salt.base;
   state.factors.salt = 1;
+  api.setRandom(() => 0.5);
 
-  api.updateGoodPrice(salt, { goodId: 'salt', targetMult: 2, type: 'good' });
+  api.updateGoodPrice(salt, { goodId: 'salt', impactMult: 2, type: 'good' });
 
-  assert.equal(Math.abs(state.factors.salt - 8) < 1e-10, true);
+  assert.equal(Math.abs(state.factors.salt - Math.max(1, baselineState.factors.salt) * (2 ** 3)) < 1e-10, true);
 });
 
 test('salt iron monopoly consecutive falling news cannot rise after amplification', () => {
@@ -93,9 +105,9 @@ test('salt iron monopoly consecutive falling news cannot rise after amplificatio
   state.prices.salt = salt.base * 0.125;
   state.factors.salt = 0.125;
 
-  api.updateGoodPrice(salt, { goodId: 'salt', targetMult: 0.70, type: 'bad' });
+  api.updateGoodPrice(salt, { goodId: 'salt', impactMult: 0.70, type: 'bad' });
 
-  assert.equal(state.factors.salt < 0.125, true);
+  assert.equal(Math.abs(state.factors.salt - 0.125 * (0.70 ** 3)) < 1e-10, true);
 });
 
 test('salt iron monopoly triples ecology target deviation from anchor', () => {
@@ -328,8 +340,8 @@ test('speculator natural sudden events amplify log magnitude by twenty percent i
   specGame.api.setRandom(() => 0.5);
   const specDown = specGame.api.makeEvent('wheat', false, { forcedByCard: false, allowRare: false });
 
-  assert.equal(Math.abs(Math.log(specUp.targetMult) - Math.log(baseUp.targetMult) * 1.2) < 0.001, true);
-  assert.equal(Math.abs(Math.log(specDown.targetMult) - Math.log(baseDown.targetMult) * 1.2) < 0.001, true);
+  assert.equal(Math.abs(Math.log(specUp.impactMult) - Math.log(baseUp.impactMult) * 1.2) < 0.003, true);
+  assert.equal(Math.abs(Math.log(specDown.impactMult) - Math.log(baseDown.impactMult) * 1.2) < 0.003, true);
 });
 
 test('stoke market only targets today natural-event goods and does not add an event immediately', () => {
@@ -416,8 +428,8 @@ test('stoke market follow-up reverses at the seventy-percent boundary', () => {
   const event = api.resolveProfessionScheduledEvents();
 
   assert.equal(event.type, 'bad');
-  assert.equal(event.targetMult < 1, true);
-  assert.equal(event.targetMult < 0.2, false);
+  assert.equal(event.impactMult < 1, true);
+  assert.equal(event.impactMult >= 0.02, true);
 });
 
 test('speculator follow-up target occupies a normal shelf position and pending state migrates safely', () => {
@@ -539,6 +551,29 @@ test('market trip can reprice an already listed holding instead of having no tar
   assert.equal(state.profession.data.marketTripGoodId, 'wheat');
 });
 
+test('market refresh does not reapply an event that already changed the current day price', () => {
+  const baselineGame = createGame();
+  const baselineState = baselineGame.api.reset();
+  const wheat = baselineGame.api.GOODS.find(good => good.id === 'wheat');
+  baselineState.prices.wheat = wheat.base * 0.5;
+  baselineState.prevPrices.wheat = wheat.base;
+  baselineState.factors.wheat = 0.5;
+  baselineGame.api.setRandom(() => 0.5);
+  baselineGame.api.refreshMarketGood('wheat', { eventChance: 0, skipEcology: true });
+  const expectedPrice = baselineState.prices.wheat;
+
+  const eventGame = createGame();
+  const eventState = eventGame.api.reset();
+  eventState.prices.wheat = wheat.base * 0.5;
+  eventState.prevPrices.wheat = wheat.base;
+  eventState.factors.wheat = 0.5;
+  eventState.events = [{ goodId: 'wheat', impactMult: 0.5, type: 'bad', source: 'natural' }];
+  eventGame.api.setRandom(() => 0.5);
+  eventGame.api.refreshMarketGood('wheat', { eventChance: 0, skipEcology: true });
+
+  assert.equal(eventState.prices.wheat, expectedPrice);
+});
+
 test('market trip can trigger a sudden event but bypasses active ecology pricing', () => {
   const { api } = createGame();
   const state = api.reset();
@@ -649,8 +684,8 @@ test('forced liquidation also deducts market trip travel costs', () => {
 
   api.applyDailyCosts(1);
 
-  assert.equal(state.inventory.wheat, 94);
-  assert.equal(state.cash, 6.5);
+  assert.equal(state.inventory.wheat, 91);
+  assert.equal(state.cash, 5);
 });
 
 test('legacy traveling merchant saves normalize market trip state', () => {

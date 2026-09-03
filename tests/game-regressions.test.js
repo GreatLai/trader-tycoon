@@ -36,6 +36,22 @@ test('ultra goods stay unlocked after peak wealth reaches ten million', () => {
   assert.equal(picks.some(id => ULTRA_IDS.has(id)), true);
 });
 
+test('ecology event unlocks stay available after peak wealth reaches ten million', () => {
+  const { api } = createGame();
+  const state = api.reset();
+  state.day = 8;
+  state.cash = 1000;
+  state.inventory = {};
+  state.peakNetWorth = 10000000;
+  state.eco = null;
+  const rolls = [0, 0.999999];
+  api.setRandom(() => rolls.shift() ?? 0.5);
+
+  api.advanceEcology();
+
+  assert.equal(state.eco.treeId, 'lunarResourceDevelopment');
+});
+
 test('forced liquidation pays the shortfall and keeps only the surplus', () => {
   const { api } = createGame();
   const state = api.reset();
@@ -49,7 +65,7 @@ test('forced liquidation pays the shortfall and keeps only the surplus', () => {
   assert.equal(api.calcDailyFee(), 5);
   api.applyDailyCosts();
 
-  assert.equal(state.inventory.wheat, 989);
+  assert.equal(state.inventory.wheat, 983);
   assert.equal(state.cash, 0);
   assert.equal(state.gameOver, null);
 });
@@ -66,7 +82,7 @@ test('forced liquidation sells off-market holdings at twenty percent of average 
 
   api.applyDailyCosts();
 
-  assert.equal(state.inventory.wheat, 945);
+  assert.equal(state.inventory.wheat, 915);
   assert.equal(state.cash, 0);
   assert.equal(state.gameOver, null);
 });
@@ -80,9 +96,9 @@ test('operating cost multiplier scales operating pressure without scaling storag
   state.lastSeenPrice.wheat = 5;
   api.BALANCE_CONFIG.OPERATING_COST_MULTIPLIER = 2;
 
-  assert.equal(api.calcOperatingCost(1), 100);
+  assert.equal(api.calcOperatingCost(1), 160);
   assert.equal(api.calcDailyFee(), 0.5);
-  assert.equal(api.calcTotalDailyCost(1), 100.5);
+  assert.equal(api.calcTotalDailyCost(1), 160.5);
 });
 
 test('listed inventory liquidates at the configured current-market rate', () => {
@@ -98,7 +114,7 @@ test('listed inventory liquidates at the configured current-market rate', () => 
 
   api.applyDailyCosts();
 
-  assert.equal(state.inventory.wheat, 989);
+  assert.equal(state.inventory.wheat, 983);
   assert.equal(state.cash, 0);
   assert.equal(state.gameOver, null);
 });
@@ -143,12 +159,12 @@ test('opening settlement lists every forced sale with its actual proceeds', () =
   assert.deepEqual(sale, {
     goodId: 'wheat',
     goodName: '小麦',
-    quantity: 11,
+    quantity: 17,
     listed: true,
     unitPrice: 5,
-    grossRevenue: 55,
+    grossRevenue: 85,
     saleFee: 0,
-    netRevenue: 55
+    netRevenue: 85
   });
   assert.equal(state.dailySettlement.afterCosts.cash, 0);
 });
@@ -168,6 +184,16 @@ test('malformed saved settlement data is discarded during load', () => {
   assert.equal(api.loadSave().dailySettlement, null);
 });
 
+test('legacy active events are discarded after their old absolute price has already been applied', () => {
+  const baseline = createGame().api.newState();
+  baseline.events = [{ goodId: 'wheat', targetMult: 0.5, type: 'bad' }];
+  const { api } = createGame({ savedState: baseline });
+
+  const loaded = api.loadSave();
+
+  assert.deepEqual(JSON.parse(JSON.stringify(loaded.events)), []);
+});
+
 test('off-market inventory liquidates at a fraction of its average purchase cost', () => {
   const { api } = createGame();
   const state = api.reset();
@@ -182,7 +208,7 @@ test('off-market inventory liquidates at a fraction of its average purchase cost
 
   api.applyDailyCosts();
 
-  assert.equal(state.inventory.wheat, 74);
+  assert.equal(state.inventory.wheat, 59);
   assert.equal(state.cash, 1.5);
   assert.equal(state.gameOver, null);
 });
@@ -213,21 +239,22 @@ test('operating costs follow six fixed fifteen-day accounting periods', () => {
   const { api } = createGame();
   const costs = Array.from({ length: api.CONFIG.DAYS_LIMIT }, (_, index) => api.calcOperatingCost(index + 1));
 
-  assert.equal(costs[0], 50);
-  assert.equal(costs[14], 50);
-  assert.equal(costs[15], 200);
-  assert.equal(costs[29], 200);
-  assert.equal(costs[30], 1000);
-  assert.equal(costs[44], 1000);
-  assert.equal(costs[45], 5000);
-  assert.equal(costs[59], 5000);
-  assert.equal(costs[60], 20000);
-  assert.equal(costs[74], 20000);
-  assert.equal(costs[75], 72000);
-  assert.equal(costs.at(-1), 72000);
-  assert.equal(costs.reduce((sum, value) => sum + value, 0), 1473750);
-  assert.equal(api.BALANCE_CONFIG.OPERATING_COST_TOTAL, 1473750);
-  assert.equal(api.calcRemainingOperatingCost(1), 1473750);
+  assert.equal(costs[0], 80);
+  assert.equal(costs[14], 80);
+  assert.equal(costs[15], 320);
+  assert.equal(costs[29], 320);
+  assert.equal(costs[30], 1600);
+  assert.equal(costs[44], 1600);
+  assert.equal(costs[45], 8000);
+  assert.equal(costs[59], 8000);
+  assert.equal(costs[60], 32000);
+  assert.equal(costs[74], 32000);
+  assert.equal(costs[75], 115200);
+  assert.equal(costs.at(-1), 115200);
+  assert.equal(costs.reduce((sum, value) => sum + value, 0), 2358000);
+  assert.equal(api.BALANCE_CONFIG.OPERATING_COST_TOTAL, 2358000);
+  assert.equal(api.BALANCE_CONFIG.SUDDEN_EVENT_SCALE, 1.3);
+  assert.equal(api.calcRemainingOperatingCost(1), 2358000);
   assert.equal(Math.abs(api.calcRemainingOperatingCost(16) - costs.slice(15).reduce((sum, value) => sum + value, 0)) < 0.01, true);
   assert.equal(Math.abs(api.calcRemainingOperatingCost(31) - costs.slice(30).reduce((sum, value) => sum + value, 0)) < 0.01, true);
   assert.equal(Math.abs(api.calcRemainingOperatingCost(46) - costs.slice(45).reduce((sum, value) => sum + value, 0)) < 0.01, true);
@@ -243,14 +270,14 @@ test('a merchant who never trades fails under the staged operating pressure', ()
   while (!state.gameOver) api.nextDay();
 
   assert.equal(state.gameOver, 'lose');
-  assert.equal(state.day > 30 && state.day < 46, true);
+  assert.equal(state.day > 15 && state.day < 31, true);
 });
 
 test('day ninety charges its own costs before a successful time settlement', () => {
   const { api } = createGame();
   const state = api.reset();
   state.day = api.CONFIG.DAYS_LIMIT;
-  state.cash = 100000;
+  state.cash = 200000;
   const expected = +(state.cash - api.calcOperatingCost(api.CONFIG.DAYS_LIMIT)).toFixed(2);
 
   api.nextDay();
@@ -639,7 +666,7 @@ test('a deterministic no-trade run fails from operating pressure without invalid
     assert.equal(api.totalUnits() <= api.capacity(), true);
   }
 
-  assert.equal(state.day, 32);
+  assert.equal(state.day, 27);
   assert.equal(state.gameOver, 'lose');
 });
 
@@ -686,6 +713,7 @@ test('natural sudden event count keeps the original daily distribution', () => {
 test('day one opens with one rising and one falling normal event', () => {
   const { api } = createGame({ random: () => 0.5 });
   const state = api.reset();
+  const openingPrices = { ...state.prices };
 
   const result = api.initializeOpeningMarket();
 
@@ -697,7 +725,9 @@ test('day one opens with one rising and one falling normal event', () => {
   assert.equal(state.events.every(event => event.isRare === false && event.source === 'opening'), true);
   assert.equal(state.popupShown, false);
   for (const event of state.events) {
-    assert.equal(state.prices[event.goodId], +(api.GOODS.find(good => good.id === event.goodId).base * event.targetMult).toFixed(2));
+    assert.equal(event.type === 'good'
+      ? state.prices[event.goodId] > openingPrices[event.goodId]
+      : state.prices[event.goodId] < openingPrices[event.goodId], true);
     assert.equal(state.priceHistory[event.goodId].length, 1);
     assert.equal(state.priceHistory[event.goodId][0].day, 1);
     assert.equal(state.priceHistory[event.goodId][0].price, state.prices[event.goodId]);
@@ -815,13 +845,55 @@ test('consecutive sudden news always moves from the actual pre-event price in it
 
   state.prices.wheat = wheat.base * 0.30;
   state.factors.wheat = 0.30;
-  api.updateGoodPrice(wheat, { goodId: 'wheat', targetMult: 0.50, type: 'bad' });
-  assert.equal(state.factors.wheat < 0.30, true);
+  api.updateGoodPrice(wheat, { goodId: 'wheat', impactMult: 0.50, type: 'bad' });
+  assert.equal(Math.abs(state.factors.wheat - 0.15) < 1e-10, true);
 
   state.prices.wheat = wheat.base * 3;
   state.factors.wheat = 3;
-  api.updateGoodPrice(wheat, { goodId: 'wheat', targetMult: 2, type: 'good' });
-  assert.equal(state.factors.wheat > 3, true);
+  api.updateGoodPrice(wheat, { goodId: 'wheat', impactMult: 2, type: 'good' });
+  assert.equal(Math.abs(state.factors.wheat - 6) < 1e-10, true);
+});
+
+test('positive sudden news beats both yesterday price and the no-event market baseline', () => {
+  const baselineGame = createGame({ random: () => 0.5 });
+  const baselineState = baselineGame.api.reset();
+  const baselineGood = baselineGame.api.GOODS.find(good => good.id === 'wheat');
+  baselineState.prices.wheat = baselineGood.base * 0.20;
+  baselineState.prevPrices.wheat = baselineState.prices.wheat;
+  baselineState.factors.wheat = 0.20;
+  baselineGame.api.updateGoodPrice(baselineGood);
+  const noEventFactor = baselineState.factors.wheat;
+
+  const eventGame = createGame({ random: () => 0.5 });
+  const eventState = eventGame.api.reset();
+  const eventGood = eventGame.api.GOODS.find(good => good.id === 'wheat');
+  eventState.prices.wheat = eventGood.base * 0.20;
+  eventState.prevPrices.wheat = eventState.prices.wheat;
+  eventState.factors.wheat = 0.20;
+  eventGame.api.updateGoodPrice(eventGood, { goodId: 'wheat', impactMult: 2, type: 'good' });
+
+  assert.equal(Math.abs(eventState.factors.wheat - Math.max(0.20, noEventFactor) * 2) < 1e-10, true);
+});
+
+test('negative sudden news beats both yesterday price and the no-event market baseline', () => {
+  const baselineGame = createGame({ random: () => 0.5 });
+  const baselineState = baselineGame.api.reset();
+  const baselineGood = baselineGame.api.GOODS.find(good => good.id === 'wheat');
+  baselineState.prices.wheat = baselineGood.base * 3;
+  baselineState.prevPrices.wheat = baselineState.prices.wheat;
+  baselineState.factors.wheat = 3;
+  baselineGame.api.updateGoodPrice(baselineGood);
+  const noEventFactor = baselineState.factors.wheat;
+
+  const eventGame = createGame({ random: () => 0.5 });
+  const eventState = eventGame.api.reset();
+  const eventGood = eventGame.api.GOODS.find(good => good.id === 'wheat');
+  eventState.prices.wheat = eventGood.base * 3;
+  eventState.prevPrices.wheat = eventState.prices.wheat;
+  eventState.factors.wheat = 3;
+  eventGame.api.updateGoodPrice(eventGood, { goodId: 'wheat', impactMult: 0.5, type: 'bad' });
+
+  assert.equal(Math.abs(eventState.factors.wheat - Math.min(3, noEventFactor) * 0.5) < 1e-10, true);
 });
 
 test('opening story introduces the staged operating pressure', () => {

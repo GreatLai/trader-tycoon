@@ -74,7 +74,7 @@ test('baseline simulation includes operating pressure and no-trade failure', () 
   const result = runSimulation({ seed: 2026090204, strategyId: 'wait' });
 
   assert.equal(result.survived, false);
-  assert.equal(result.bankruptcyDay, 32);
+  assert.equal(result.bankruptcyDay, 27);
   assert.equal(result.profitSources.operatingFees < 0, true);
 });
 
@@ -158,7 +158,7 @@ test('ranked multi-position buying never spends more than its explicit budget', 
   assert.equal(state.cash >= 400, true);
 });
 
-test('archived pre-pressure report preserves its card-free baseline and is labeled stale', () => {
+test('generated balance report matches the current card-free pressure baseline', () => {
   const report = JSON.parse(fs.readFileSync(
     path.join(__dirname, '..', 'docs', 'balance', 'useless-trader-v1.json'),
     'utf8'
@@ -167,6 +167,7 @@ test('archived pre-pressure report preserves its card-free baseline and is label
   const skilled = report.validation.strategies.skilled;
 
   assert.equal(report.baseline, 'useless-trader-card-free');
+  assert.equal(report.gameVersion, '1.16.0');
   assert.deepEqual(report.exclusions, [
     'daily-hand', 'career-skills', 'shop-cards', 'existing-item-card-income'
   ]);
@@ -174,8 +175,8 @@ test('archived pre-pressure report preserves its card-free baseline and is label
   assert.equal(skilled.survivorFinalWorth.median >= 75000000, true);
   assert.equal(skilled.survivorFinalWorth.median <= 125000000, true);
   assert.equal(report.sensitivity.some(item => item.name === '商品基础锚点'), true);
-  assert.equal(Object.hasOwn(skilled.profitSources, 'operatingFees'), false);
-  assert.match(framework, /加入现行经营压力之前的历史基准/);
+  assert.equal(Object.hasOwn(skilled.profitSources, 'operatingFees'), true);
+  assert.match(framework, /存活率 69\.8%/);
 });
 
 test('balance simulator source does not call card purchase or use APIs', () => {

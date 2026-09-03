@@ -79,6 +79,7 @@ function createGame(options = {}) {
       applyProfessionMarketPassive: typeof applyProfessionMarketPassive === 'function' ? applyProfessionMarketPassive : undefined,
       applyProfessionNextDayMarket: typeof applyProfessionNextDayMarket === 'function' ? applyProfessionNextDayMarket : undefined,
       applyProfessionRules: typeof applyProfessionRules === 'function' ? applyProfessionRules : undefined,
+      advanceEcology: typeof advanceEcology === 'function' ? advanceEcology : undefined,
       buy,
       calcDailyFee,
       calcOperatingCost: typeof calcOperatingCost === 'function' ? calcOperatingCost : undefined,

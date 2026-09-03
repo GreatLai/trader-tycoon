@@ -19,7 +19,10 @@ function refreshMarketGood(id, options = {}) {
   const event = !firstAppearance && Math.random() < eventChance
     ? makeEvent(id, null, { guaranteedMovement: options.guaranteedEvent === true })
     : null;
-  updateGoodPrice(good, event, { skipEcology: options.skipEcology === true });
+  updateGoodPrice(good, event, {
+    skipEcology: options.skipEcology === true,
+    ignoreActiveEvent: true
+  });
   recordCurrentPrice(id);
   if (event) {
     event.source = options.source || 'system';
@@ -91,10 +94,6 @@ function resolveProfessionScheduledEvents() {
   const continues = Math.random() < 0.70;
   const positive = continues ? pending.originalPositive : !pending.originalPositive;
   const event = makeEvent(pending.goodId, positive, { forcedByCard: false, allowRare: false, guaranteedMovement: true });
-  const currentFactor = state.prices[pending.goodId] / goodById(pending.goodId).base;
-  event.targetMult = positive
-    ? +Math.min(50, Math.max(event.targetMult, currentFactor * 1.08)).toFixed(3)
-    : +Math.max(0.02, Math.min(event.targetMult, currentFactor * 0.92)).toFixed(3);
   event.source = 'profession-follow-up';
   event.title = positive ? '📈 后续报道 · 风声续涨' : '📉 后续报道 · 风向突变';
   event.desc = `${goodById(pending.goodId).name}的后续消息落地，行情${positive ? '继续走高' : '转向下跌'}。`;
@@ -148,10 +147,8 @@ function eligibleProfessionEcoEvents() {
   const profession = PROFESSIONS[normalizeProfessionId(state.profession && state.profession.id)];
   if (!profession.activeAbility || profession.activeAbility.id !== 'windVane') return [];
   const allowed = getEffectiveRules(state.profession).trade.allowedGoodIds || [];
-  const wealth = Math.max(netWorth(), state.peakNetWorth || 0);
-  return Object.entries(ECO_EVENTS)
-    .filter(([, event]) => (!event.unlock || wealth >= event.unlock) && event.goods.some(id => allowed.includes(id)))
-    .map(([id]) => id);
+  return unlockedEcoEventIds()
+    .filter(id => ECO_EVENTS[id].goods.some(goodId => allowed.includes(goodId)));
 }
 
 function useProfessionAbility(targetId) {

@@ -8,20 +8,20 @@ function makeEvent(goodId, forcedPositive = null, options = {}) {
     const rare = options.allowRare === false ? false : Math.random() < eventRareChance(forcedByCard);
     const positive = forcedPositive == null ? Math.random() < eventPositiveChance(target.tier, rare, target) : forcedPositive;
 
-  let targetMult;
+  let impactMult;
   let title, desc;
 
   // 不同档位普通事件幅度拉开差距：低档最疯，高档最稳
   const tier = target.tier;
   if (rare) {
     if (positive) {
-      targetMult = forcedByCard
+      impactMult = forcedByCard
         ? 250 + Math.pow(Math.random(), 1.8) * 250
         : 6 + Math.pow(Math.random(), 1.8) * 6;
       title = '🌟 超级风口';
       desc = `${target.name}出现历史级抢购潮，今日价格暴涨！`;
     } else {
-      targetMult = forcedByCard
+      impactMult = forcedByCard
         ? 0.005 + (1 - Math.pow(Math.random(), 1.8)) * 0.015
         : 0.05 + (1 - Math.pow(Math.random(), 1.8)) * 0.15;
       title = '💥 黑天鹅';
@@ -29,41 +29,41 @@ function makeEvent(goodId, forcedPositive = null, options = {}) {
     }
   } else if (tier === 'low') {
     if (positive) {
-      targetMult = 2.5 + Math.pow(Math.random(), 1.8) * 1.5;
+      impactMult = 2.5 + Math.pow(Math.random(), 1.8) * 1.5;
       title = '📈 突发利好';
       desc = `${target.name}需求突然大增，今日价格暴涨！`;
     } else {
-      targetMult = 0.20 + (1 - Math.pow(Math.random(), 1.8)) * 0.20;
+      impactMult = 0.20 + (1 - Math.pow(Math.random(), 1.8)) * 0.20;
       title = '📉 突发利空';
       desc = `${target.name}供给突然过剩，今日价格崩盘！`;
     }
   } else if (tier === 'mid') {
     if (positive) {
-      targetMult = 2.0 + Math.pow(Math.random(), 1.8) * 1.0;
+      impactMult = 2.0 + Math.pow(Math.random(), 1.8) * 1.0;
       title = '📈 突发利好';
       desc = `${target.name}需求突然大增，今日价格大涨！`;
     } else {
-      targetMult = 0.30 + (1 - Math.pow(Math.random(), 1.8)) * 0.20;
+      impactMult = 0.30 + (1 - Math.pow(Math.random(), 1.8)) * 0.20;
       title = '📉 突发利空';
       desc = `${target.name}供给突然过剩，今日价格大跌！`;
     }
     } else if (tier === 'ultra') {
       if (positive) {
-        targetMult = 3 + Math.pow(Math.random(), 1.8) * 3;
+        impactMult = 3 + Math.pow(Math.random(), 1.8) * 3;
         title = '📈 突发利好';
         desc = `${target.name}出现历史级抢购潮，今日价格暴涨！`;
       } else {
-        targetMult = 0.30 + (1 - Math.pow(Math.random(), 1.8)) * 0.30;
+        impactMult = 0.30 + (1 - Math.pow(Math.random(), 1.8)) * 0.30;
         title = '📉 突发利空';
         desc = `${target.name}遭遇恐慌性抛售，今日价格大跌！`;
       }
     } else {
     if (positive) {
-      targetMult = 1.5 + Math.pow(Math.random(), 1.8) * 0.5;
+      impactMult = 1.5 + Math.pow(Math.random(), 1.8) * 0.5;
       title = '📈 突发利好';
       desc = `${target.name}需求突然大增，今日价格上涨！`;
     } else {
-      targetMult = 0.40 + (1 - Math.pow(Math.random(), 1.8)) * 0.20;
+      impactMult = 0.40 + (1 - Math.pow(Math.random(), 1.8)) * 0.20;
       title = '📉 突发利空';
       desc = `${target.name}供给突然过剩，今日价格下跌！`;
     }
@@ -74,8 +74,8 @@ function makeEvent(goodId, forcedPositive = null, options = {}) {
     goodId: target.id,
     title,
     desc,
-    targetMult: +Math.pow(targetMult, (forcedByCard ? 1 : BALANCE_CONFIG.SUDDEN_EVENT_SCALE) * target.market.eventImpact * professionNaturalEventIntensity()).toFixed(3),
-    type: targetMult >= 1 ? 'good' : 'bad',
+    impactMult: +Math.pow(impactMult, (forcedByCard ? 1 : BALANCE_CONFIG.SUDDEN_EVENT_SCALE) * target.market.eventImpact * professionNaturalEventIntensity()).toFixed(3),
+    type: impactMult >= 1 ? 'good' : 'bad',
     isRare: rare
   };
 }
@@ -156,9 +156,15 @@ function toDisplayLog(marketLog, deviationScale) {
   return marketLog * deviationScale;
 }
 
-function directionalEventLog(event, oldFactor, deviationScale) {
-  const rawLog = toDisplayLog(Math.log(event.targetMult), deviationScale);
+function resolveDirectionalImpactLog(event, oldFactor, baselineLog, deviationScale) {
   const oldLog = Math.log(Math.max(0.02, Math.min(50, oldFactor)));
+  const safeBaselineLog = Math.max(Math.log(0.02), Math.min(Math.log(50), baselineLog));
+  const referenceLog = event.type === 'good'
+    ? Math.max(oldLog, safeBaselineLog)
+    : event.type === 'bad'
+      ? Math.min(oldLog, safeBaselineLog)
+      : safeBaselineLog;
+  const rawLog = referenceLog + toDisplayLog(Math.log(event.impactMult), deviationScale);
   if (event.type === 'good') {
     return Math.max(rawLog, Math.min(Math.log(50), oldLog + Math.log(1.05)));
   }
@@ -209,11 +215,10 @@ function updateGoodPrice(g, forcedEvent = null, options = {}) {
       }
       logF = toDisplayLog(modelLogF, deviationScale);
 
-      // 4. 事件影响：以基础价为锚直接落点
-      //    比如 targetMult=4，当天价格 = 基础价 × 4，而不是“前一天价格 × 4”
-      const ev = forcedEvent || activeEventFor(g.id);
+      // 4. 方向冲击同时战胜昨日实际价与当日无事件基准价。
+      const ev = forcedEvent || (options.ignoreActiveEvent ? null : activeEventFor(g.id));
       if (ev) {
-        logF = directionalEventLog(ev, oldFactor, deviationScale);
+        logF = resolveDirectionalImpactLog(ev, oldFactor, logF, deviationScale);
       }
     }
 

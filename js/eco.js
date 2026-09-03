@@ -13,6 +13,15 @@ function ecoAffected(goodId) {
   return ECO_EVENTS[state.eco.treeId].goods.includes(goodId);
 }
 
+function ecologyUnlockWealth() {
+  return Math.max(netWorth(), state.peakNetWorth || 0);
+}
+
+function unlockedEcoEventIds() {
+  const wealth = ecologyUnlockWealth();
+  return Object.keys(ECO_EVENTS).filter(id => !ECO_EVENTS[id].unlock || wealth >= ECO_EVENTS[id].unlock);
+}
+
 function ecoCurrentMult(goodId) {
   const tree = ecoTree();
   const rel = ecoRel();

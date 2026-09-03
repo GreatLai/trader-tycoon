@@ -135,7 +135,7 @@ test('finishing a run records its profession result exactly once', () => {
   const { api } = createGame();
   const state = api.reset();
   state.day = api.CONFIG.DAYS_LIMIT;
-  state.cash = 100000;
+  state.cash = 200000;
   const expectedFinalWorth = +(state.cash - api.calcOperatingCost(api.CONFIG.DAYS_LIMIT)).toFixed(2);
 
   api.nextDay();
@@ -177,12 +177,12 @@ test('useless profession has a stable deterministic market sequence after shop r
       cash: state.cash,
       goods: state.availableGoods,
       prices: state.prices,
-      events: state.events.map(event => [event.goodId, event.targetMult, event.type, event.isRare]),
+      events: state.events.map(event => [event.goodId, event.impactMult, event.type, event.isRare]),
       eco: state.eco && [state.eco.treeId, state.eco.startDay, state.eco.A, state.eco.B, state.eco.C, state.eco.byCard]
     });
     api.nextDay();
   }
 
   const digest = crypto.createHash('sha256').update(JSON.stringify(days)).digest('hex');
-  assert.equal(digest, 'f7114d3027427cd2a284c3878b125fa0554ee0b8f516217bf21d7c7229c3bb35');
+  assert.equal(digest, '2736aa68816e0708864a44e593727972943f485d50744db8d81a833086d81198');
 });
