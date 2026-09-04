@@ -717,6 +717,7 @@ test('profession selection stays concise while the in-run panel exposes detailed
   const main = fs.readFileSync(path.join(ROOT, 'js/main.js'), 'utf8');
   const professions = fs.readFileSync(path.join(ROOT, 'js/professions.js'), 'utf8');
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const css = fs.readFileSync(path.join(ROOT, 'css/style.css'), 'utf8');
 
   assert.match(main, /profession-choice-tagline/);
   assert.match(main, /profession-choice-tags/);
@@ -728,7 +729,8 @@ test('profession selection stays concise while the in-run panel exposes detailed
   assert.match(professions, /失败当天及随后两天禁止出售/);
   assert.match(professions, /未卖出不收费/);
   assert.match(professions, /真正的赌注在下一阵风/);
-  assert.match(html, /id="professionOverlay"[\s\S]*?max-height:calc\(100vh - 32px\);overflow:auto/);
+  assert.match(html, /id="professionOverlay"[\s\S]*?max-width:620px/);
+  assert.match(css, /\.modal\s*\{[\s\S]*?max-height:\s*calc\(100dvh - 32px\)[\s\S]*?overflow-y:\s*auto/);
 });
 
 test('common listing UI is separate from profession abilities and keeps its copy concise', () => {

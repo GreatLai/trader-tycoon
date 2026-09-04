@@ -409,11 +409,11 @@ test('the release version is consistent across delivery files', () => {
   const changelog = fs.readFileSync(path.join(ROOT, 'CHANGELOG.md'), 'utf8');
   const versionInfo = JSON.parse(fs.readFileSync(path.join(ROOT, 'version.json'), 'utf8'));
 
-  assert.equal(api.APP_VERSION, '1.17.0');
+  assert.equal(api.APP_VERSION, '1.17.1');
   assert.equal(versionInfo.version, api.APP_VERSION);
-  assert.equal((html.match(/\?v=1\.17\.0/g) || []).length, 16);
-  assert.match(readme, /当前版本：\*\* v1\.17\.0/);
-  assert.match(changelog, /## \[1\.17\.0\] - 2026-09-03/);
+  assert.equal((html.match(/\?v=1\.17\.1/g) || []).length, 16);
+  assert.match(readme, /当前版本：\*\* v1\.17\.1/);
+  assert.match(changelog, /## \[1\.17\.1\] - 2026-09-04/);
 });
 
 test('standard and ecology markets list six and seven goods respectively', () => {
@@ -772,6 +772,18 @@ test('event popup combines the opening settlement with the current day news', ()
   assert.match(html, /id="eventPopupTitle"/);
   assert.match(css, /\.settlement-grid strong \{[^}]*overflow-wrap: anywhere/);
   assert.match(css, /\.settlement-sale > \* \{[^}]*overflow-wrap: anywhere/);
+});
+
+test('long daily popup keeps its close button visible on mobile', () => {
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const css = fs.readFileSync(path.join(ROOT, 'css/style.css'), 'utf8');
+
+  assert.match(html, /id="eventOverlay"[\s\S]*?class="modal event-modal"/);
+  assert.match(css, /\.modal\s*\{[\s\S]*?max-height:\s*calc\(100dvh - 32px\)/);
+  assert.match(css, /\.event-modal\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*overflow:\s*hidden/);
+  assert.match(css, /#eventPopupList\s*\{[^}]*min-height:\s*0[^}]*overflow-y:\s*auto/);
+  assert.match(css, /#eventCloseBtn\s*\{[^}]*flex:\s*0 0 auto/);
+  assert.doesNotMatch(html, /class="modal"[^>]*max-height:[^;\"]*vh/);
 });
 
 test('ecological news expands the market to seven goods until the event ends', () => {

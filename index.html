@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>倒卖大亨 - 日期交易游戏</title>
-<link rel="stylesheet" href="css/style.css?v=1.17.0">
+<link rel="stylesheet" href="css/style.css?v=1.17.1">
 </head>
 <body>
 
@@ -128,10 +128,10 @@
 
   <!-- 突发新闻弹窗 -->
   <div id="eventOverlay" class="overlay hidden">
-    <div class="modal">
+    <div class="modal event-modal">
       <div class="emoji" id="eventPopupEmoji">⚡</div>
       <h2 id="eventPopupTitle">突发新闻</h2>
-      <div id="eventPopupList" style="text-align:left;margin:12px 0;"></div>
+      <div id="eventPopupList"></div>
       <button class="btn btn-block" id="eventCloseBtn">知道了</button>
     </div>
   </div>
@@ -159,7 +159,7 @@
 
   <!-- 每日事件统计弹窗 -->
   <div id="historyOverlay" class="overlay hidden">
-    <div class="modal" style="max-width:560px;max-height:80vh;overflow:auto;text-align:left;">
+    <div class="modal" style="max-width:560px;text-align:left;">
       <h2 style="text-align:center;">📜 每日事件统计</h2>
       <div id="historyList" style="margin:12px 0;"></div>
       <button class="btn btn-block" id="historyCloseBtn">关闭</button>
@@ -168,7 +168,7 @@
 
   <!-- 市场走势图弹窗 -->
   <div id="chartOverlay" class="overlay hidden">
-    <div class="modal" style="max-width:680px;max-height:85vh;overflow:auto;">
+    <div class="modal" style="max-width:680px;">
       <h2 style="text-align:center;">📈 市场走势图</h2>
       <div id="chartGoods" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0;"></div>
       <div id="chartTitle" style="text-align:center;font-weight:700;margin-bottom:8px;"></div>
@@ -189,7 +189,7 @@
 
   <!-- 职业选择 -->
   <div id="professionOverlay" class="overlay hidden">
-    <div class="modal" style="max-width:620px;max-height:calc(100vh - 32px);overflow:auto;">
+    <div class="modal" style="max-width:620px;">
       <h2 style="text-align:center;">选择职业</h2>
       <div id="professionChoices" class="profession-choices"></div>
       <button class="btn btn-secondary btn-block" id="professionSelectCloseBtn" style="margin-top:8px;">返回</button>
@@ -240,20 +240,20 @@
 
 
 
-<script src="js/config.js?v=1.17.0"></script>
-<script src="js/utils.js?v=1.17.0"></script>
-<script src="js/eco.js?v=1.17.0"></script>
-<script src="js/professions.js?v=1.17.0"></script>
-<script src="js/rules.js?v=1.17.0"></script>
-<script src="js/profile.js?v=1.17.0"></script>
-<script src="js/state.js?v=1.17.0"></script>
-<script src="js/market_actions.js?v=1.17.0"></script>
-<script src="js/events.js?v=1.17.0"></script>
-<script src="js/achievements.js?v=1.17.0"></script>
-<script src="js/trading.js?v=1.17.0"></script>
-<script src="js/game.js?v=1.17.0"></script>
-<script src="js/save.js?v=1.17.0"></script>
-<script src="js/ui.js?v=1.17.0"></script>
-<script src="js/main.js?v=1.17.0"></script></body>
+<script src="js/config.js?v=1.17.1"></script>
+<script src="js/utils.js?v=1.17.1"></script>
+<script src="js/eco.js?v=1.17.1"></script>
+<script src="js/professions.js?v=1.17.1"></script>
+<script src="js/rules.js?v=1.17.1"></script>
+<script src="js/profile.js?v=1.17.1"></script>
+<script src="js/state.js?v=1.17.1"></script>
+<script src="js/market_actions.js?v=1.17.1"></script>
+<script src="js/events.js?v=1.17.1"></script>
+<script src="js/achievements.js?v=1.17.1"></script>
+<script src="js/trading.js?v=1.17.1"></script>
+<script src="js/game.js?v=1.17.1"></script>
+<script src="js/save.js?v=1.17.1"></script>
+<script src="js/ui.js?v=1.17.1"></script>
+<script src="js/main.js?v=1.17.1"></script></body>
 </html>
 

@@ -1,9 +1,9 @@
 {
   "reportVersion": "useless-trader-v1",
   "generatedAt": "2026-09-03T09:38:29.839Z",
-  "gameVersion": "1.17.0",
+  "gameVersion": "1.17.1",
   "fingerprints": {
-    "sourceHash": "328bfc591ec0970aac95a82326ea6cbb81eb17497f4363f477b1ab75190b0800",
+    "sourceHash": "e33fe2f9eddf89d105fb1195657d3081e3ee9f0ef5b5cc7d9ff163084c2c2f85",
     "configHash": "4244596505bcca2bf6ea553e9d052ed68b3c7516e81542b16b29c7a8fdbfcd51",
     "calibrationSeedHash": "beb29abad70ac3168e1906d9979a20a39387b50a84478f0372ac564a7c120e8f",
     "validationSeedHash": "997fe1f27642d9240741e1eeb3a894195d5d0afe95e446f4588191818741be94",
